@@ -48,6 +48,7 @@ long long int last_word_latency = 0;
 long long int num_requests = 0;
 int mem_stall[NUM_BANKS];
 
+
 /**
  * This function takes an input line from the trace file, and populates the 
  * passed in struct object with the appropriate data.
@@ -152,10 +153,10 @@ void input_controller(vector<request> request_queue[]) {
 
 		//cout << "Request: " << request_queue[i][0].time << endl;
 		/* If it's time to serve the request, add it to the pending request queue */
-		if(request_queue[i][0].time == current_time && !request_queue[i].empty()) {
+		if(request_queue[i][0].time <= current_time && !request_queue[i].empty()) {
 			temp_requests.push_back(request_queue[i][0]);
 			request_queue[i].erase(request_queue[i].begin()); //Remove the request from the queue
-			roll_back_time = true;
+			//roll_back_time = true;
 		}
 	}
 
@@ -228,20 +229,20 @@ void access_scheduler() {
 		/* Serve a request from the greater queue */
 		if(bank_reads[i].size() >= bank_writes[i].size() && bank_reads[i].size() != 0 && mem_stall[i] == -1) {
 			if(bank_reads[i][0].critical == true) {
-				critical_word_latency += (current_time+1) - bank_reads[i][0].time;
+				critical_word_latency += (current_time+0) - bank_reads[i][0].time;
 			}
 			if(bank_reads[i][0].last == true) {
-				last_word_latency += (current_time+1) - bank_reads[i][0].time;
+				last_word_latency += (current_time+0) - bank_reads[i][0].time;
 			}
 			bank_reads[i].erase(bank_reads[i].begin());
 			mem_stall[i] = 0;
 		}
 		else if(bank_writes[i].size() > bank_reads[i].size() && mem_stall[i] == -1) {
 			if(bank_reads[i][0].critical == true) {
-				critical_word_latency += (current_time+1) - bank_writes[i][0].time;
+				critical_word_latency += (current_time+0) - bank_writes[i][0].time;
 			}
 			if(bank_reads[i][0].last == true) {
-				last_word_latency += (current_time+1) - bank_writes[i][0].time;
+				last_word_latency += (current_time+0) - bank_writes[i][0].time;
 			}	
 			bank_writes[i].erase(bank_writes[i].begin());	
 			mem_stall[i] = 0;
