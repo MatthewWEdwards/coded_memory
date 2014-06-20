@@ -1,0 +1,7 @@
+Mem Delay = 4:
+Number of reads: 47029 Number of writes: 29418
+Average read critical word latency: 2139.81
+Average read last word latency: 1978.49
+Average write critical word latency: 961.771
+Average write last word latency: 932.91
+
