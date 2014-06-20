@@ -12,7 +12,7 @@ using namespace std;
 #define NUM_BANKS 8
 #define NUM_TRACES 6
 #define MEM_DELAY 3
-string TRACE_LOCATION("/home/casen/Huawei/traces/LTE/dsp_0_trace.txt");
+string TRACE_LOCATION("traces/LTE/dsp_0_trace.txt");
 
 
 /* Struct for the input requests from the processors */
@@ -280,7 +280,7 @@ int sc_main(int argc, char* argv[]) {
 		access_scheduler();
 
 		current_time += 1; //Cycle the clock 
-		cout << current_time << endl;
+//		cout << current_time << endl;
 	}
 
 	/* Dispaly the results */
