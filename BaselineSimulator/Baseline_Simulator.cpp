@@ -12,6 +12,8 @@ using namespace std;
 #define NUM_BANKS 8
 #define NUM_TRACES 6
 #define WR_QUEUE_BUILDUP 100
+#define CORE_QUEUE_MAX 8
+#define MAX_BANK_QUEUE_LENGTH 10
 string TRACE_LOCATION("/home/casen/Huawei/traces/LTE/dsp_0_trace.txt");
 int MEM_DELAY; //Taken as an input parameter
 
@@ -22,6 +24,8 @@ typedef struct request {
 	int priority;
 	int length;
 	int time;
+	int queue_time;
+	int core_number;
 	bool read;
 
 } request;
@@ -32,6 +36,8 @@ typedef struct bank_request {
 	int address;
 	int priority;
 	int time;
+	int queue_time;
+	int core_number;
 	bool read;
 	bool critical;
 	bool last;
@@ -42,6 +48,7 @@ typedef struct bank_request {
 vector<bank_request> bank_reads[NUM_BANKS]; //Queue of read requests for each bank
 vector<bank_request> bank_writes[NUM_BANKS]; //Queue of write requests for each bank
 vector<request> request_queue[NUM_TRACES]; 
+vector<request> core_queues[NUM_TRACES]; //These queues hold the requests from the cores
 int current_time = 0; //Current time in ns
 long long int read_cr_word_latency = 0;
 long long int write_cr_word_latency = 0;
@@ -49,7 +56,10 @@ long long int read_last_word_latency = 0;
 long long int write_last_word_latency = 0;
 long long int num_reads = 0;
 long long int num_writes = 0;
-int mem_stall[NUM_BANKS];
+long long int reads_served_from_write = 0;
+int mem_stall = 0;
+
+
 
 
 /**
@@ -73,7 +83,7 @@ request parse_input(string input_command) {
 
 	/* Now grab the important information from the line */
 	request temp;
-	temp.address = strtoul(&token[7][7], NULL, 16); //Convert hex input string to an address
+	temp.address = strtoul(&token[7][7], NULL, 16)/32; //Convert hex input string to an address
 	temp.priority = strtoul(&token[8][6], NULL, 10); //Determine priority
 	temp.length = atoi(&token[5][6]) + 1; //Length of request. Add one to convert from hex
 	temp.time = atoi(&token[0][5]); //Grab the time of the request
@@ -114,6 +124,7 @@ void get_requests() {
 		/* Read the file */	
 		while(getline(inputFile, command)) {
 			request current_request = parse_input(command);
+			current_request.core_number = i;
 			request_queue[i].push_back(current_request);
 		}
 
@@ -129,10 +140,10 @@ bool queue_empty() {
 
 
 	/*if(request_queue[0].size() != previous_size && request_queue[0].size() != 0) {
-		cout << "Size: " << previous_size << endl;
-		previous_size = request_queue[0].size();
-		cout << "Time: " << request_queue[0][0].time << endl;
-	}*/
+	  cout << "Size: " << previous_size << endl;
+	  previous_size = request_queue[0].size();
+	  cout << "Time: " << request_queue[0][0].time << endl;
+	  }*/
 
 	for(int i = 0; i < NUM_TRACES; i++) {
 		if(request_queue[i].size() != 0) {
@@ -153,23 +164,40 @@ bool queue_empty() {
 void input_controller(vector<request> request_queue[]) {
 
 	/* Check to see which requests need to be served */
-	vector<request> temp_requests;
-	bool roll_back_time = false;
 	for(int i = 0; i < NUM_TRACES; i++) {
+		/* First make sure the request can't be served from the write queue */
+		for(int y = 0; y < NUM_BANKS; y++) {
+			for(int z = 0; z < bank_writes[y].size(); z++) {
+				if(request_queue[i].size() > 0) {
+					if(bank_writes[y][z].address == request_queue[i][0].address && request_queue[i][0].time <= current_time) {
+						reads_served_from_write++;
+						request_queue[i].erase(request_queue[i].begin());
+					}
+				}
+			}
+		}
 
-		//cout << "Request: " << request_queue[i][0].time << endl;
 		/* If it's time to serve the request, add it to the pending request queue */
-		if(request_queue[i][0].time <= current_time && !request_queue[i].empty()) {
-			temp_requests.push_back(request_queue[i][0]);
-			request_queue[i].erase(request_queue[i].begin()); //Remove the request from the queue
-			//roll_back_time = true;
+		if(request_queue[i][0].time <= current_time && !request_queue[i].empty() && core_queues[i].size() < CORE_QUEUE_MAX) {
+			request_queue[i][0].time = current_time;
+			core_queues[i].push_back(request_queue[i][0]); //Add the request to the core queue
+			request_queue[i].erase(request_queue[i].begin()); //Remove the request from the request queue
+		}
+	}
+
+	/* Add the requests from the core queues to a temp to be ranked by priority and distributed to the banks.
+	 * This is only temporary since we still need to see if the bank queues can hold the request */
+	vector<request> temp_requests;
+	for(int i = 0; i < NUM_TRACES; i++) {
+		if(core_queues[i].size() > 0){
+			temp_requests.push_back(core_queues[i][0]);
 		}
 	}
 
 	/* Now sort all of the pending requests by priority */
 	vector<request> pending_requests;
 	int numRequests = temp_requests.size();
-	for(int i = 0; i < numRequests; i++) {
+	/*for(int i = 0; i < numRequests; i++) {
 		int max = 100, index = 0;
 		for(int n = 0; n < temp_requests.size(); n++) {
 			if(temp_requests[n].priority < max) {
@@ -179,23 +207,46 @@ void input_controller(vector<request> request_queue[]) {
 		}
 		pending_requests.push_back(temp_requests[index]);
 		temp_requests.erase(temp_requests.begin() + index);
+	}*/
+	for(int i = 0; i < temp_requests.size(); i++) {
+		if(temp_requests[i].address != -1)
+			pending_requests.push_back(temp_requests[i]);
 	}
+
 
 	/* Now distribute the requests to the banks */
 	for(int i = 0; i < pending_requests.size(); i++) {
 
 		/* First create the first queue object that will populate the bank queues */
 		bank_request next_request;
-		next_request.time = pending_requests[0].time;
-		next_request.address = pending_requests[0].address;
+		next_request.core_number = pending_requests[i].core_number;
+		next_request.time = pending_requests[i].time;
+		next_request.queue_time = pending_requests[i].queue_time;
+		next_request.address = pending_requests[i].address;
 		next_request.critical = true;
 		next_request.last = false;
 
 		/* Determine which bank it falls into */
-		int bank = (pending_requests[i].address/32) % NUM_BANKS;
+		int bank = (pending_requests[i].address) % NUM_BANKS;
 
+		/* Make sure we can serve the request. If we can't wait until the next cycle and try again */
+		bool stop_serving = false;
+		for(int n = 0; n < pending_requests[i].length; n++) {
+			if(pending_requests[i].read) {
+				if(bank_reads[(bank + n) % NUM_BANKS].size() > MAX_BANK_QUEUE_LENGTH) 
+					stop_serving = true;
+			}
+			else {
+				if(bank_writes[(bank + n) % NUM_BANKS].size() > MAX_BANK_QUEUE_LENGTH) 
+					stop_serving = true;
+			}
+		}
+		if(stop_serving == true)
+			break;
+
+		core_queues[next_request.core_number].erase(core_queues[next_request.core_number].begin());		
 		/* Determine if read/write queue entry */
-		if(pending_requests[i].read)
+		if(pending_requests[i].read) 
 			bank_reads[bank].push_back(next_request);
 		else
 			bank_writes[bank].push_back(next_request);
@@ -206,10 +257,12 @@ void input_controller(vector<request> request_queue[]) {
 			/* Update the next bank and make the next bank queue object */
 			if((++bank) >= NUM_BANKS)
 				bank = 0;
-			next_request.time = pending_requests[0].time;			
-			next_request.read = pending_requests[0].read;
+			next_request.address = pending_requests[i].address + n;
+			next_request.time = pending_requests[i].time;
+			next_request.queue_time = pending_requests[i].queue_time;			
+			next_request.read = pending_requests[i].read;
 			next_request.critical = false;
-			if(n == pending_requests[0].length - 1)
+			if(n == pending_requests[i].length - 1)
 				next_request.last = true;
 			else
 				next_request.last = false;
@@ -221,9 +274,20 @@ void input_controller(vector<request> request_queue[]) {
 				bank_writes[bank].push_back(next_request);
 		}
 	}
-
-	if(roll_back_time == true)
-		current_time--;
+	
+	/* DEBUG */
+	/*if(current_time == 5) {
+		for(int n = 0; n < 6; n++) {
+			for(int i = 0; i < 8; i++) {
+				if(bank_reads[i][n].critical)
+					cout << bank_reads[i][n].address << "C ";
+				else
+					cout << bank_reads[i][n].address << '\t';
+				
+			}
+			cout << endl;
+		}
+	}*/
 }
 
 
@@ -233,69 +297,34 @@ void access_scheduler() {
 	/* Serve a request from each bank */
 	for(int i = 0; i < NUM_BANKS; i++) {
 
-		/* First check to see if the read is present in the write queue, and serve
-		 * from there */
-		for(int n = 0; n < bank_reads[i].size(); n++) {
-			for(int z = 0; z < bank_writes[i].size(); z++) {
-				if(bank_writes[i][z].address == bank_reads[i][n].address) {
-					if(bank_reads[i][n].critical == true) {
-						read_cr_word_latency += (current_time+0) - bank_reads[i][n].time;
-					}
-					if(bank_reads[i][n].last == true) {
-						read_last_word_latency += (current_time+0) - bank_reads[i][n].time;
-					}
-					bank_reads[i].erase(bank_reads[i].begin() + n);
-					break;
-				}
-			}
-		}
 
 		/* Serve a request from the greater queue */
-		if(bank_writes[i].size() < WR_QUEUE_BUILDUP && bank_reads[i].size() != 0 && mem_stall[i] == -1) {
+		if(bank_writes[i].size() < WR_QUEUE_BUILDUP && bank_reads[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 			if(bank_reads[i][0].critical == true) {
-				read_cr_word_latency += (current_time+0) - bank_reads[i][0].time;
+				read_cr_word_latency += (current_time) - bank_reads[i][0].time;
 				fprintf(dump, "Delay: %d	Address: %d	Time: %d\n", current_time - bank_reads[i][0].time, bank_reads[i][0].address, bank_reads[i][0].time);
 			}
 			if(bank_reads[i][0].last == true) {
-				read_last_word_latency += (current_time+0) - bank_reads[i][0].time;
+				read_last_word_latency += (current_time) - bank_reads[i][0].time;
 			}
 			bank_reads[i].erase(bank_reads[i].begin());
-			mem_stall[i] = 0;
 		}
-		else if(bank_writes[i].size() != 0 && mem_stall[i] == -1) {
+		else if(bank_writes[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 			if(bank_writes[i][0].critical == true) {
-				write_cr_word_latency += (current_time+0) - bank_writes[i][0].time;
+				write_cr_word_latency += (current_time) - bank_writes[i][0].time;
 			}
 			if(bank_writes[i][0].last == true) {
-				write_last_word_latency += (current_time+0) - bank_writes[i][0].time;
+				write_last_word_latency += (current_time) - bank_writes[i][0].time;
 			}	
 			bank_writes[i].erase(bank_writes[i].begin());	
-			mem_stall[i] = 0;
 		}
 	}
-
-	/* Add one clock cycle for each bank latency */
-	for(int i = 0; i < NUM_BANKS; i++) {
-
-		/* Reset the counter if the latency is reached */
-		if(mem_stall[i] == MEM_DELAY)
-			mem_stall[i] = -1;
-		/* Add one to the clock cycle if the memory is stalling */
-		if(mem_stall[i] >= 0)
-			mem_stall[i]++;
-	}
 }
-
 
 int sc_main(int argc, char* argv[]) {
 
 	/* Take in the ratio between processor and memory */
 	MEM_DELAY = atoi(argv[1]);
-
-	/* Make sure the stalls start at 0 */
-	for(int i = 0; i < NUM_BANKS; i++) {
-		mem_stall[i] = 0;
-	}
 
 	/* First populate the request queues with all requests from banks */
 	get_requests();
@@ -318,10 +347,12 @@ int sc_main(int argc, char* argv[]) {
 	cout << "Average read last word latency: " << (float) read_last_word_latency/num_reads << endl;
 	cout << "Average write critical word latency: " << (float) write_cr_word_latency/num_writes << endl;
 	cout << "Average write last word latency: " << (float) write_last_word_latency/num_writes << endl;
+	cout << "Reads served from write queue: " << reads_served_from_write << endl;
 
+	cout << "Total time: " << current_time << endl;
 
 	FILE* results = fopen("baseline_results.txt", "a");
-	fprintf(results, "%d\t%f\t%f\t%f\n", MEM_DELAY, (float)read_cr_word_latency/num_reads, (float)read_last_word_latency/num_reads, (float)write_last_word_latency/num_writes);
+	fprintf(results, "%d\t%f\t%f\t%f\t%d\n", MEM_DELAY, (float)read_cr_word_latency/num_reads, (float)read_last_word_latency/num_reads, (float)write_last_word_latency/num_writes, current_time);
 
 	fclose(results);
 	fclose(dump);
