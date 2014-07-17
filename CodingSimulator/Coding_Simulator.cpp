@@ -224,7 +224,7 @@ void input_controller(vector<request> request_queue[]) {
 	/* Now sort all of the pending requests by priority */
 	vector<request> pending_requests;
 	int numRequests = temp_requests.size();
-	/*for(int i = 0; i < numRequests; i++) {
+	for(int i = 0; i < numRequests; i++) {
 		int max = 100, index = 0;
 		for(int n = 0; n < temp_requests.size(); n++) {
 			if(temp_requests[n].priority < max) {
@@ -234,11 +234,11 @@ void input_controller(vector<request> request_queue[]) {
 		}
 		pending_requests.push_back(temp_requests[index]);
 		temp_requests.erase(temp_requests.begin() + index);
-	}*/
-	for(int i = 0; i < temp_requests.size(); i++) {
+	}
+	/*for(int i = 0; i < temp_requests.size(); i++) {
 		if(temp_requests[i].address != -1)
 			pending_requests.push_back(temp_requests[i]);
-	}
+	}*/
 
 
 	/* Now distribute the requests to the banks */
