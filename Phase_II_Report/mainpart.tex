@@ -1,0 +1,63 @@
+In this section, we discuss the work of Komninakis et al in \cite{komninakis}. They use Kalman filter to estimate time-varying channel for MIMO system. The estimation setup consists of Kalman Tracking with an MMSE-DFE detector. The receiver uses a Kalman filter to track the channel and an MMSE-DFE. The Kalman filter assumes that the DFE hard decisions are correct and uses them to estimate the next channel value, whereas the DFE assumes correct Kalman filter channel estimates and uses them in turn to make hard decisions. \\
+In general, the optimum decision delay can be determined analytically given a channel as per \cite{mimoofdmlinear} . For a wide range of channels (including, but not limited to, nonminimum-phase channels), it turns out that a DFE producing decisions with $\Delta \textgreater$ 0 is optimal. Even for the few channels where $\Delta$ = 0is best, it does not degrade performance to use a DFE with $\Delta \textgreater$ 0 , provided that there are enough taps in the feedforward and feedback filters. Thus, it makes sense, particularly for time-varying channels like the ones tried here, to use decision delays. However, when $\Delta \textgreater$ 0, a time gap is created. At time $t$, when the last received vector is $\boldsymbol{y} _t$, the DFE produces the hard decision $\hat{\boldsymbol{x}} _{t-\Delta}$ . The staggered decisions cause the Kalman filter to operate with delay, that is, operate at time $t-\Delta$ since it only has available hard decisions from the DFE up to then. However, the DFE design still needs channel estimates up to time $t$. Thus, the receiver needs to use channel prediction to bridge the time gap between the Kalman channel estimation and the channel estimates needed for the current DFE adaptation. \\
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm,natwidth=610,natheight=642]{receiver_block_diag_1.jpg}
+\caption{Receiver Block Diagram proposed in \cite{komninakis}}
+\label{fig:komninakis_implementation}
+\end{figure}
+Figure ~\ref{fig:komninakis_implementation} shows the four parts of the estimator. The first part is Kalman filter which takes the current observation, current estimated states and current decision as input and predicts the next channel state. The second part is the channel predictor. The channel predictor takes the channel estimate at the lag time and predicts the current channel estimate. The third part is the equalizer which uses the channel estimates to equalize the received signal. The fourth part is MMSE-DFE which makes hard decision for $\hat{\boldsymbol{x}} _{t-\Delta}$.\\
+Each of the block can be written as following equations : \\
+\begin{itemize}
+\item $\hat{\boldsymbol{h}} _{t-\Delta} = K(\hat{\boldsymbol{h}} _{t-\Delta-p} ^{t-\Delta-1},\hat{\boldsymbol{y}} _{t-\Delta-1},\hat{\boldsymbol{x}} _{t-\Delta-\nu-1} ^{t-\Delta-1})$
+\item $\hat{\boldsymbol{h}} _{t-\Delta+1} ^t = P(\hat{\boldsymbol{h}} _{t-\Delta-p+1} ^{t-\Delta},\hat{\boldsymbol{y}} _{t-\Delta} ^t)$
+
+\item $[{\boldsymbol{W}} _{t} ^{opt}$ ${\boldsymbol{B}} _{t} ^{opt}]$  = design DFE($\hat{\boldsymbol{h}} _{t-N_f} ^{t}$)
+
+\item $ \hat{\boldsymbol{x}} _{t-\Delta} = DFE({\boldsymbol{W}} _{t} ^{opt} {\boldsymbol{B}} _{t} ^{opt} )$
+\end{itemize} 
+\subsubsection{Kalman Filter and Channel Predictor}
+As discussed in section \ref{sec:channel_model}, the channel is modeled as a AR(1) process. Then the varying part of the channel coefficient thus follows AR(1) model, 
+\begin{equation} 
+\boldsymbol{h} _{t+1}  = \boldsymbol{G} \boldsymbol{h} _{t} + \boldsymbol{F} \boldsymbol{w} _{t}
+\end{equation}
+where $h_t$ is the channel tap at time $t$ and $w_t$ is a zero mean i.i.d. circular complex Gaussian vector process with correlation matrix.
+Then, at any time t, the (zero-mean) received vector y is given by
+\begin{equation} 
+\boldsymbol{y} _{t}  = \boldsymbol{x} _{t} \boldsymbol{h} _{t} + \boldsymbol{v} _{t}
+\end{equation}
+With the assumption that the matrices F and G are known from the preciding training phase and assuming the matrix of the most recent available decisions.
+It is also assumed that $\hat{\boldsymbol{X}} _{t- \Delta -1} $ to be equal to the true $ \boldsymbol{X} _{t-\Delta-1} $.
+With this, the Kalman filter can track the channel variation $\boldsymbol{h} _{t-\Delta} $ using the observable vector 
+$\boldsymbol{y} _{t-\Delta-1} $.
+The Kalman filter operating with a delay $\Delta$ is described at time $t$ by the series of equation from \cite{linearestimation}, 
+\begin{equation}
+\label{eq:kalman}
+\begin{split}
+\boldsymbol{h} _{t-\Delta} &= \boldsymbol{F} \ \boldsymbol{h} _{t-\Delta-1} + \boldsymbol{K} _{t-\Delta-1} \boldsymbol{e} _{t-\Delta-1} \\
+\boldsymbol{e} _{t-\Delta-1} &= \boldsymbol{y} _{t-\Delta-1} - \boldsymbol{X} _{t-\Delta-1} (\boldsymbol{h} _{t-\Delta-1} \boldsymbol{c} ) \\
+\boldsymbol{K} _{t-\Delta-1} &= (\boldsymbol{F} \boldsymbol{P} _{t-\Delta-1} \ \boldsymbol{X} _{t-\Delta-1}^{*}) \boldsymbol{R} _{e,t-\Delta-1}^{-1} \\
+\boldsymbol{R} _{e,t-\Delta-1} &= \boldsymbol{R} _{vv} + \boldsymbol{X} _{t-\Delta-1} \boldsymbol{P} _{t-\Delta-1} \boldsymbol{X} _{t-\Delta-1}^{*} \\
+\boldsymbol{P} _{t-\Delta} &= \boldsymbol{F} \boldsymbol{P} _{t-\Delta-1} \boldsymbol{F}^{*} + \boldsymbol{G} \boldsymbol{G}^{*} - \boldsymbol{K} _{t-\Delta-1} \boldsymbol{R} _{e,t-\Delta-1} \boldsymbol{K} _{t-\Delta-1} ^{*}
+\end{split}
+\end{equation}
+For the block-constant fading channel model adopted in the space-time literatures \cite{nambipaper}, they use $\boldsymbol{F}$ = $\boldsymbol{I}$ and $\boldsymbol{G}$ = 0. This assumption greatly simplifies the Kalman filter equations of (~\ref{eq:kalman})
+For channel prediction, the Kalman filter gives the estimate $ \hat{\boldsymbol{h}} _{t-\Delta} $. The channel predictor can now use the channel model AR(1) and predict the future channel taps as,
+\begin{equation}
+\hat{\boldsymbol{h}} _{t} = \boldsymbol{F} ^{\Delta} \hat{\boldsymbol{h}} _{t-\Delta} , \cdots , \hat{\boldsymbol{h}} _{t-\Delta+1} = \boldsymbol{F} \hat{\boldsymbol{h}} _{t-\Delta}
+\end{equation}
+The authors suggest that the prediction formula remains unchanged even for AR($p$) models. 
+
+\subsubsection{MMSE-DFE Implementation}
+The design of the optimum MMSE feedforward and feedback matrix filter $\boldsymbol{W}^{opt}$ and $\boldsymbol{B}^{opt}$ of the lengths $N_f$ and $N_b$ matrix taps.
+It is an MMSE design in the sense that it minimizes both the trace and the determinant of the autocorrelation matrix $\boldsymbol{R} _{\boldsymbol{ee}}$ of the error vector $e_t = \tilde{x} _t - x_t$ , where $ \tilde{x} _{t-\Delta} $ is the vector with the$n_T$ equalized soft values at time $t$, as seen in Figure ~\ref{fig:mmsedfe}. For the design, we assume that there is no error propagation, i.e., the hard decision is the same as the transmitted vector $x_{t-\Delta}$. \\
+In \cite{finitemmsedfe}, various design methodologies are given, depending on whether there is a feedback filter or not (in which case the design is that of an MMSE linear MIMO equalizer). The choice of oversampling is also available without significant changes to the derivation. For the DFE, an important design choice is whether current decisions of stronger users, or only past decisions from every user, are available. The former case would correspond to a successive cancelation scheme and would provide better performance at the cost of added complexity to order the $n_T$ users according to their power. \\
+Here, we avoid the extra complexity by designing a symbol-spaced MIMO DFE, where only past decisions for all users are available and go into the feedback matrix filter $\boldsymbol{B}^{opt}$.Clearly, this choice of strictly causal feedback filtering has a consequence. Although it permits almost perfect cancellation of the ISI and cross-ISI, it does not completely suppress residual cross-coupling. \\
+In this paper,the author also supplements that since the Ricean channel taps are not baud-spaced. They might not be independent of each other when they pass through shaping filters at the transmitter and receiver. However, they propose that since the induced correlation between the taps is known, it can be used to create a matrix which decouples the correlation from the taps.
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm,natwidth=610,natheight=642]{mmsedfe.jpg}
+\caption{MIMO DFE block diagram proposed in \cite{komninakis} }
+\label{fig:mmsedfe}
+\end{figure}
+
