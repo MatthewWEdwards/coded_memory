@@ -1,4 +1,4 @@
-#README# 
+#README # 
 
 This repository contains the systemC implementation of coding algorithms to increase the data redundancy in the memory systems. 
 
@@ -24,4 +24,3 @@ Dr. Sriram Vishwanath  (president@saltare-systems.com )
 Ankit Singh Rawat  (president@saltare-systems.com )
 Casen William Hunger (casen@saltare-systems.com )
 Hardik Jain  (hardik@saltare-systems.com )
-
