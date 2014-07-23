@@ -27,7 +27,7 @@ Clock Ratio  |  Critical Read Latency |  Trans Read Latency |  Write Latency | T
 # Contributors #
 Dr. Sriram Vishwanath  (president@saltare-systems.com )
 
-Ankit Singh Rawat  (president@saltare-systems.com )
+Ankit Singh Rawat  (ankitsrwt@gmail.com )
 
 Casen William Hunger (casen@saltare-systems.com )
 
