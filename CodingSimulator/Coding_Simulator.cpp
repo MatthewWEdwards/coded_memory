@@ -15,7 +15,7 @@ using namespace std;
 #define WR_QUEUE_BUILDUP 5
 #define CORE_QUEUE_MAX 8
 #define MAX_BANK_QUEUE_LENGTH 10
-string TRACE_LOCATION("/home/casen/Huawei/traces/LTE/dsp_0_trace.txt");
+string TRACE_LOCATION;//("../traces/LTE/dsp_0_trace.txt");
 
 /* Input Parameters */
 int MEM_DELAY; 
@@ -532,7 +532,9 @@ int sc_main(int argc, char* argv[]) {
 	MEM_DELAY = atoi(argv[1]);
 	MAX_LOOKAHEAD = atoi(argv[2]);
 	WRITE_REPAIR_TIME = atoi(argv[3]);
+	TRACE_LOCATION = argv[4];
 
+	
 	for(int z = 0; z < 2; z++) {
 		for(int i = 0; i < NUM_PARITY_BANKS; i++)
 			parity_stall[z][i] = -1;
