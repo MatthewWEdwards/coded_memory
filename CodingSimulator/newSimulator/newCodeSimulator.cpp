@@ -74,7 +74,7 @@ int bank_bitmap[NUM_BANKS][6] = {
 	{6,7,2,5,0,4}	
 };
 
-int bank_bitmap2[NUM_BANKS][6] {
+int bank_bitmap2[NUM_BANKS][6] = {
 
 	{2,1,6,3,8,4},
 	{2,0,7,4,6,5},
@@ -355,18 +355,20 @@ bool parity_overwritten(int address) {
 }
 
 
-bool codePresent(int address1, int address2) {
+bool codePresent(int address1, int address2, int address3) {
 
-	bool address1Found = false, address2Found = false;
+	bool address1Found = false, address2Found = false, address3Found = false;
 	
 	for(int i = 0; i < previously_read.size(); i++) {
 		if(previously_read[i] == address1)
 			address1Found = true;
 		if(previously_read[i] == address2)
 			address2Found = true;
+		if(previously_read[i] == address3)
+			address3Found = true;
 	}
 
-	if(address1Found && address2Found)
+	if(address1Found && address2Found && address3Found)
 		return true;
 	else
 		return false;
@@ -396,7 +398,6 @@ void access_scheduler() {
 
 	/* Serve a request from each bank */
 	for(int i = 0; i < NUM_BANKS; i++) {
-
 		/* Serve a request from the greater queue */
 		if(!bank_busy[i] && bank_writes[i].size() < WR_QUEUE_BUILDUP && bank_reads[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 
@@ -405,14 +406,14 @@ void access_scheduler() {
 			if(!parity_overwritten(bank_reads[i][0].address)) { //Make sure a write didn't wipe out the parity
 				for(int n = 0; n < 6; n++) {
 					for(int y = 0; y < 6; y++) {
-						int lookahead = bank_reads[bank_bitmap[i][n]].size();
+						int lookahead = bank_reads[bank_bitmap2[i][y]].size();
 						if(lookahead > MAX_LOOKAHEAD)
 							lookahead = MAX_LOOKAHEAD;
 						/* Make sure the bank we're checking has requests in the queue */
 						for(int z = 0; z < lookahead; z++) { //Right now, only consider the head of the second bank
+							
 							/* Check if using the parity bank is possible */
 							if(bank_reads[bank_bitmap[i][n]][0].address/8 == bank_reads[i][0].address/8 && bank_reads[bank_bitmap2[i][y]][z].address/8 == bank_reads[i][0].address/8) {
-	
 								/* DEBUG */
 								/*fprintf(dump, "Parity Array:\n");
 								  for(int t = 0; t < 12; t++)
@@ -423,7 +424,7 @@ void access_scheduler() {
 								if(parity_stall[parity_bitmap[i][n/2]] == -1 && !parity_overwritten(bank_reads[bank_bitmap[i][n]][0].address) && !parity_overwritten(bank_reads[bank_bitmap2[i][y]][z].address) && codePresent(bank_reads[i][0].address, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[bank_bitmap2[i][y]][z].address)) {
 									if(bank_reads[bank_bitmap2[i][y]][z].critical == true) {
 	
-										fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap2[i][y]][z].time, bank_reads2[bank_bitmap[i][y]][z].address, current_time);
+										//fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap2[i][y]][z].time, bank_reads2[bank_bitmap[i][y]][z].address, current_time);
 										read_cr_word_latency += (current_time) - bank_reads[bank_bitmap2[i][y]][z].time;
 									}
 									if(bank_reads[bank_bitmap2[i][y]][z].last == true) {
@@ -432,7 +433,7 @@ void access_scheduler() {
 									}
 									//past_requests.push_back(bank_reads[i][0]);
 									parity_hit++;
-									bank_reads[bank_bitmap[i][n]].erase(bank_reads[bank_bitmap2[i][y]].begin() + z);
+									bank_reads[bank_bitmap2[i][y]].erase(bank_reads[bank_bitmap2[i][y]].begin() + z);
 									parity_stall[parity_bitmap[i][n/2]] = 0;
 								}
 							}
@@ -518,10 +519,8 @@ void access_scheduler() {
 	}
 
 	/* Set all the parity banks as free */
-	for(int z = 0; z < 2; z++) {
-		for(int i = 0; i < NUM_PARITY_BANKS; i++)
-			parity_stall[z][i] = -1;
-	}
+	for(int i = 0; i < NUM_PARITY_BANKS; i++)
+		parity_stall[i] = -1;
 
 }
 
@@ -541,7 +540,7 @@ bool check_recode() {
 					/* Bookkeeping to make sure correct banks are marked as busy */
 					int bank = overwritten_parity_rows[i].address % 8;
 					for(int n = 0; n < 3; n++)
-						parity_stall[bank/4][parity_bitmap[bank % 4][n]] = 0;
+						parity_stall[parity_bitmap[bank % 4][n]] = 0;
 					bank_busy[bank] = true;
 
 					overwritten_parity_rows.erase(overwritten_parity_rows.begin() + i);
@@ -579,10 +578,8 @@ int sc_main(int argc, char* argv[]) {
 	TRACE_LOCATION = argv[4];
 
 	
-	for(int z = 0; z < 2; z++) {
-		for(int i = 0; i < NUM_PARITY_BANKS; i++)
-			parity_stall[z][i] = -1;
-	}
+	for(int i = 0; i < NUM_PARITY_BANKS; i++)
+		parity_stall[i] = -1;
 
 	/* First populate the request queues with all requests from banks */
 	get_requests();
@@ -590,7 +587,6 @@ int sc_main(int argc, char* argv[]) {
 
 	/* Execute the main loop which will service all requests */
 	while(!queue_empty()) {
-
 		input_controller(request_queue);
 		check_recode(); 
 		access_scheduler();
