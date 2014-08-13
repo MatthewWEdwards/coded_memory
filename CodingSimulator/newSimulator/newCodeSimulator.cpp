@@ -9,7 +9,7 @@ using namespace std;
 
 
 /* Some definitions to change simulation parameters */
-#define NUM_BANKS 9
+#define NUM_BANKS 8
 #define NUM_PARITY_BANKS 9 //Not currently used. Num parity banks per 4 data banks
 #define NUM_TRACES 6
 #define WR_QUEUE_BUILDUP 5
@@ -59,32 +59,32 @@ int parity_bitmap[NUM_BANKS][3] = {
 	{1,5,7},
 	{2,3,7},
 	{2,4,8},
-	{2,5,6}
+	//{2,5,6}
 };
 
 int bank_bitmap[NUM_BANKS][6] = {
-	{1,2,3,6,4,8},
+	{1,2,3,6,0,0},
 	{0,2,4,7,5,6},
-	{0,1,5,8,3,7},
+	{0,1,2,2,3,7},
 	{4,5,0,6,2,7},
-	{3,5,1,7,0,8},
-	{3,4,2,8,1,6},
-	{7,8,0,3,1,5},
-	{6,8,1,4,2,3},
-	{6,7,2,5,0,4}	
+	{3,5,1,7,4,4},
+	{3,4,5,5,1,6},
+	{6,6,0,3,1,5},
+	{7,7,1,4,2,3},
+	//{6,7,2,5,0,4}	
 };
 
 int bank_bitmap2[NUM_BANKS][6] = {
 
-	{2,1,6,3,8,4},
+	{2,1,6,3,4,4},
 	{2,0,7,4,6,5},
-	{1,0,8,5,7,3},
+	{1,0,5,5,7,3},
 	{5,4,6,0,7,2},
-	{5,3,7,1,8,0},
-	{4,3,8,2,6,1},
-	{8,7,3,0,5,1},
-	{8,6,4,1,3,2},
-	{7,6,5,2,4,0}
+	{5,3,7,1,0,0},
+	{4,3,2,2,6,1},
+	{7,7,3,0,5,1},
+	{6,6,4,1,3,2},
+	//{7,6,5,2,4,0}
 
 };
 
@@ -433,7 +433,9 @@ void access_scheduler() {
 									}
 									//past_requests.push_back(bank_reads[i][0]);
 									parity_hit++;
-									bank_reads[bank_bitmap2[i][y]].erase(bank_reads[bank_bitmap2[i][y]].begin() + z);
+									/* Don't remove the head of the queue twice due to the missing 9th bank */
+									//if(i != bank_bitmap[i][n] && i != bank_bitmap2[i][y]) 
+										bank_reads[bank_bitmap2[i][y]].erase(bank_reads[bank_bitmap2[i][y]].begin() + z);
 									parity_stall[parity_bitmap[i][n/2]] = 0;
 								}
 							}
@@ -498,6 +500,7 @@ void access_scheduler() {
 						break;
 					case 8:
 						parity_bank_num = 2;
+						break;
 				}
 
 				/* Make sure the bank isn't busy serving a read */
