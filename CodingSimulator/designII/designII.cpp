@@ -96,29 +96,29 @@ int bank_bitmap2[NUM_BANKS][6] = {
 };
 */
 #define CODE_LOCALITY	3
-int s32parityBankBitmap[NUM_BANKS][CODE_LOCALITY] = {
-		{0,2,4},
-		{0,3,4},
-		{1,3,4},
-		{1,2,4},
-		{5,7,9},
-		{5,8,9},
-		{6,8,9},
-		{6,7,9}
-}
-int s32parityBankMap[NUM_BANKS][NUM_BANKS] = {
+int s32auxiliaryBankinParity[NUM_BANKS][CODE_LOCALITY] = {
+		{1,2,3},
+		{0,2,3},
+		{0,1,3},
+		{0,1,2},
+		{5,6,7},
+		{4,6,7},
+		{4,5,7},
+		{4,5,6}
+};
+int s32banks2Parity[NUM_BANKS][NUM_BANKS] = {
 	//Region 1
 	{0xffff,     0,     4,     2,0xffff,0xffff,0xffff,0xffff},
 	{     0,0xffff,     3,     4,0xffff,0xffff,0xffff,0xffff},
 	{     4,     3,0xffff,     1,0xffff,0xffff,0xffff,0xffff},
 	{     2,     4,     1,0xffff,0xffff,0xffff,0xffff,0xffff},
 	// Region 2
-	{0xffff,	 5, 	9,	   7,0xffff,0xffff,0xffff,0xffff},
-	{	  5,0xffff, 	8,	   9,0xffff,0xffff,0xffff,0xffff},
-	{	  9,	 8,0xffff,	   6,0xffff,0xffff,0xffff,0xffff},
-	{	  7,	 9, 	6,0xffff,0xffff,0xffff,0xffff,0xffff},
+	{0xffff,0xffff,0xffff,0xffff,   0xffff,	 5, 	9,     7},
+	{0xffff,0xffff,0xffff,0xffff,        5,0xffff, 	8,     9},
+	{0xffff,0xffff,0xffff,0xffff,        9,	 8,0xffff,     6},
+	{0xffff,0xffff,0xffff,0xffff,        7,	 9, 	6,0xffff},
 
-}
+};
 /* GLOBALS */
 vector<bank_request> readQueueBank[NUM_BANKS]; //Queue of read requests for each bank
 vector<bank_request> writeQueueBank[NUM_BANKS]; //Queue of write requests for each bank
@@ -140,7 +140,9 @@ int mem_stall;
 int parity_hit = 0;
 int parityBankStatus[NUM_PARITY_BANKS];
 bool dataBankStatus[NUM_BANKS];
-unsigned int gu32writeParityMap = {0,3,1,2,5,8,6,7};
+unsigned int gu32writeParityMap[8] = {0,3,1,2,5,8,6,7};
+// Function Declarations 
+void serveByLookInReadQueue(unsigned int u32bankNum,unsigned int u32address,unsigned int u32maxLookAhead,unsigned int u32OriginalBank);
 /**
  * This function takes an input line from the trace file, and populates the 
  * passed in struct object with the appropriate data.
@@ -196,7 +198,7 @@ void get_requests() {
 		string command;
 		inputFile.open(TRACE_LOCATION.c_str());
 		if(!inputFile.is_open()) {
-			cout << "ERROR OPENING INPUT FILE. SIMULATION HALTING\n";
+//			cout << "ERROR OPENING INPUT FILE. SIMULATION HALTING\n";
 			exit(-1);	  
 		}
 
@@ -407,15 +409,15 @@ void access_scheduler() {
 	for(int i = 0; i < NUM_BANKS; i++) {
 		/* Serve a request from the greater queue */
 		if((dataBankStatus[i] == BANK_FREE) && writeQueueBank[i].size() < WR_QUEUE_BUILDUP && readQueueBank[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
-
+//cout << "In Read Section "<< i << endl;
 			if(!parity_overwritten(readQueueBank[i][0].address)){ // Make sure a write didn't wipe out the parity
 					for(int n=0;n<CODE_LOCALITY;n++){ // Go across all the parity banks
-						if(parityBankStatus[parity_bank_map[i][bitmap_region1[i][n]]] ==0){
-							int lookahead = readQueueBank[bitmap_region1[i][n]].size();
+						if(parityBankStatus[s32banks2Parity[i][s32auxiliaryBankinParity[i][n]]] ==BANK_FREE){
+							int lookahead = readQueueBank[s32auxiliaryBankinParity[i][n]].size();
 							if(lookahead > MAX_LOOKAHEAD)
 								lookahead=MAX_LOOKAHEAD;
 							// Lets Look in the queue now
-							serveByLookInReadQueue(bitmap_region1[i][n],readQueueBank[i][0].address,MAX_LOOKAHEAD,i);
+							serveByLookInReadQueue(s32auxiliaryBankinParity[i][n],readQueueBank[i][0].address,MAX_LOOKAHEAD,i);
 							}
 					}
 				}
@@ -526,7 +528,7 @@ int sc_main(int argc, char* argv[]) {
 	MAX_LOOKAHEAD = atoi(argv[2]);
 	WRITE_REPAIR_TIME = atoi(argv[3]);
 	TRACE_LOCATION = argv[4];
-
+        //cout << TRACE_LOCATION << endl;
 	for(int i = 0; i < NUM_PARITY_BANKS; i++)
 		parityBankStatus[i] = BANK_FREE;
 
@@ -535,9 +537,13 @@ int sc_main(int argc, char* argv[]) {
 
 	/* Execute the main loop which will service all requests */
 	while(!queue_empty()) {
+		//cout << "time is " << current_time << endl;
 		input_controller(request_queue);
+		//cout << "After Input Controller"<< endl;
 		check_recode(); 
+		//cout << "After Check Recode "<< endl;
 		access_scheduler();
+		//cout << "After Access Scheduler" << endl;
 		/* Reset the busy banks for the next memory cycle */
 		for(int i = 0; i < NUM_BANKS; i++)
 			dataBankStatus[i] = BANK_FREE;
@@ -578,12 +584,13 @@ int sc_main(int argc, char* argv[]) {
 void serveByLookInReadQueue(unsigned int u32bankNum,unsigned int u32address,unsigned int u32maxLookAhead,unsigned int u32OriginalBank){
 	unsigned int u32lookahead,u32itrCount;
 	u32lookahead = readQueueBank[u32bankNum].size();
+//	cout << " the program was here for original Bank "<< u32bankNum << " " << u32OriginalBank << endl;
 	// Restrict the look ahead size to max look ahead
 	if(u32lookahead > u32maxLookAhead)
 		u32lookahead = u32maxLookAhead;
 	// Check the address in the queue
 	for(u32itrCount=0;u32itrCount<u32lookahead;u32itrCount++){
-			if(readQueueBank[u32bankNum][u32itrCount].address/8 == u32address){
+			if((readQueueBank[u32bankNum][u32itrCount].address/8 == u32address/8) && (parityBankStatus[s32banks2Parity[u32OriginalBank][u32bankNum]]==BANK_FREE)){
 				if(readQueueBank[u32bankNum][u32itrCount].critical == true) {
 					read_cr_word_latency += (current_time) - readQueueBank[u32bankNum][u32itrCount].time;
 				}
@@ -591,8 +598,10 @@ void serveByLookInReadQueue(unsigned int u32bankNum,unsigned int u32address,unsi
 					read_last_word_latency += (current_time) - readQueueBank[u32bankNum][u32itrCount].time;
 				}
 				parity_hit++;
-				}
+				
 				readQueueBank[u32bankNum].erase(readQueueBank[u32bankNum].begin() + u32itrCount);
-				parityBankStatus[parity_bank_map[u32OriginalBank][u32bankNum]] = BANK_BUSY;
+//				cout << s32banks2Parity[u32OriginalBank][u32bankNum] << endl;
+				parityBankStatus[s32banks2Parity[u32OriginalBank][u32bankNum]] = BANK_BUSY;
+}
 		}
 }

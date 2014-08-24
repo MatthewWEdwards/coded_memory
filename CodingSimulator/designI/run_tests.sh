@@ -15,9 +15,9 @@ for ((j=0; j < $1 ; j ++))
 	do
         for n in {1..10}
         do
-	    ./sim $n $[i*5] 0 "../traces/"${TRACENAME[j]}"/dsp_0_trace.txt"
+	    ./sim $n $[i*5] 0 "../../traces/"${TRACENAME[j]}"/dsp_0_trace.txt"
         done
     done
-    mv coding_results.txt coding_results_${TRACENAME[j]}.txt
+    mv coding_results.txt designI_coding_results_${TRACENAME[j]}.txt
 done
 

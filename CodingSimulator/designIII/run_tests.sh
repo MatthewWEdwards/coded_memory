@@ -18,6 +18,6 @@ for ((j=0; j < $1 ; j ++))
 	    ./sim $n $[i*5] 0 "../../traces/"${TRACENAME[j]}"/dsp_0_trace.txt"
         done
     done
-    mv coding_results.txt coding_results_${TRACENAME[j]}.txt
+    mv coding_results.txt designIII_coding_results_${TRACENAME[j]}.txt
 done
 
