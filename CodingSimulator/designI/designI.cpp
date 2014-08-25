@@ -15,6 +15,8 @@ using namespace std;
 #define WR_QUEUE_BUILDUP 5
 #define CORE_QUEUE_MAX 8
 #define MAX_BANK_QUEUE_LENGTH 10
+#define NUM_REGIONS 8
+#define NUM_ACTIVE_REGIONS 3
 string TRACE_LOCATION;//("../traces/LTE/dsp_0_trace.txt");
 
 /* Input Parameters */
@@ -46,6 +48,10 @@ typedef struct bank_request {
 	bool read;
 	bool critical;
 	bool last;
+	bool inParity; //If the data was written to parity
+	int parityNumber; //The number of the parity bank it was written to
+	int orderNumber; //The order in which the data should be served
+	int requestNumber; //The unique number of the request
 
 } bank_request;
 
@@ -67,13 +73,14 @@ int bank_bitmap[NUM_BANKS][3] = {
 	{4,5,6}	
 };
 
+
 /* GLOBALS */
 vector<bank_request> bank_reads[NUM_BANKS]; //Queue of read requests for each bank
 vector<bank_request> bank_writes[NUM_BANKS]; //Queue of write requests for each bank
 vector<request> request_queue[NUM_TRACES];
 vector<bank_request> overwritten_parity_rows; //Keep track which parities are busy due to writes
+vector<bank_request> pending_parity_writes; //The data that is waiting to be recoded to the parity banks
 vector<request> core_queues[NUM_TRACES]; //These queues hold the requests from the cores
-vector<int> previously_read;
 int current_time = 0; //Current time in ns
 long long int read_cr_word_latency = 0;
 long long int write_cr_word_latency = 0;
@@ -88,7 +95,18 @@ int mem_stall;
 int parity_hit = 0;
 int parity_stall[2][NUM_PARITY_BANKS];
 bool bank_busy[NUM_BANKS];
+int NUM_REQUESTS = 0; //Number of requests we have served
+vector<bank_request> previously_served;
+vector<bank_request> reads_to_serve;
+vector<bank_request> writes_to_serve;
 
+/* Keep track of which locations are currently coded */
+int region_hits[NUM_REGIONS]; //Holds the number of hits a region has had
+int coded_regions[NUM_ACTIVE_REGIONS];
+vector<int> previously_read[NUM_REGIONS];
+int highAddress = 0;
+int lowAddress = 0x7FFFFFFF;
+int region_size = 0;
 
 /**
  * This function takes an input line from the trace file, and populates the 
@@ -112,6 +130,10 @@ request parse_input(string input_command) {
 	/* Now grab the important information from the line */
 	request temp;
 	temp.address = strtoul(&token[7][7], NULL, 16)/32; //Convert hex input string to an address
+	if(temp.address > highAddress)
+		highAddress = temp.address;
+	if(temp.address < lowAddress)
+		lowAddress = temp.address;
 	temp.priority = strtoul(&token[8][6], NULL, 10); //Determine priority
 	temp.length = atoi(&token[5][6]) + 1; //Length of request. Add one to convert from hex
 	temp.time = atoi(&token[0][5]); //Grab the time of the request
@@ -160,6 +182,12 @@ void get_requests() {
 		inputFile.close();
 		TRACE_LOCATION[TRACE_LOCATION.size() - 11] += 1;
 	}
+
+	/* Finally determine the range of memory (for dynamic coding) */
+	region_size = (highAddress - lowAddress)/NUM_REGIONS; 
+	if(((highAddress - lowAddress)%NUM_REGIONS) != 0) {
+		region_size += 10;
+	}
 }
 
 
@@ -187,7 +215,6 @@ bool queue_empty() {
 
 	return true;
 }
-
 
 void input_controller(vector<request> request_queue[]) {
 
@@ -253,6 +280,8 @@ void input_controller(vector<request> request_queue[]) {
 		next_request.address = pending_requests[i].address;
 		next_request.critical = true;
 		next_request.last = false;
+		next_request.orderNumber = 0;
+		next_request.requestNumber = NUM_REQUESTS;
 
 		/* Determine which bank it falls into */
 		int bank = (pending_requests[i].address) % NUM_BANKS;
@@ -272,6 +301,10 @@ void input_controller(vector<request> request_queue[]) {
 		if(stop_serving == true)
 			break;
 
+		/* Keep track of the dynamic coding */
+		int region = (next_request.address - lowAddress)/region_size;
+		region_hits[region] += 1;
+
 		core_queues[next_request.core_number].erase(core_queues[next_request.core_number].begin());		
 		/* Determine if read/write queue entry */
 		if(pending_requests[i].read) 
@@ -290,6 +323,8 @@ void input_controller(vector<request> request_queue[]) {
 			next_request.queue_time = pending_requests[i].queue_time;			
 			next_request.read = pending_requests[i].read;
 			next_request.critical = false;
+			next_request.orderNumber = n;
+			next_request.requestNumber = NUM_REQUESTS;
 			if(n == pending_requests[i].length - 1)
 				next_request.last = true;
 			else
@@ -301,6 +336,8 @@ void input_controller(vector<request> request_queue[]) {
 			else
 				bank_writes[bank].push_back(next_request);
 		}
+
+		NUM_REQUESTS++;
 	}
 	
 	/* DEBUG */
@@ -337,12 +374,25 @@ bool parity_overwritten(int address) {
 bool codePresent(int address1, int address2) {
 
 	bool address1Found = false, address2Found = false;
-	
-	for(int i = 0; i < previously_read.size(); i++) {
-		if(previously_read[i] == address1)
-			address1Found = true;
-		if(previously_read[i] == address2)
-			address2Found = true;
+
+	/* First see if the region is even coded */
+	int region = (address1 - lowAddress)/NUM_REGIONS;
+	bool regionFound = false;
+	for(int i = 0; i < NUM_ACTIVE_REGIONS; i++) {
+		if(coded_regions[i] == region)
+			regionFound = true;
+	}
+	if(!regionFound)
+		return false;
+
+	/* Now, check to see if the code is present */
+	for(int n = 0; n < NUM_ACTIVE_REGIONS; n++) {	
+		for(int i = 0; i < previously_read[coded_regions[n]].size(); i++) {
+			if(previously_read[coded_regions[n]][i] == address1)
+				address1Found = true;
+			if(previously_read[coded_regions[n]][i] == address2)
+				address2Found = true;
+		}
 	}
 
 	if(address1Found && address2Found)
@@ -372,6 +422,7 @@ void access_scheduler() {
 	}*/
 
 	vector<bank_request> past_requests;
+	int region; //The bank's coded region
 
 	/* Serve a request from each bank */
 	for(int i = 0; i < NUM_BANKS; i++) {
@@ -380,7 +431,7 @@ void access_scheduler() {
 		if(!bank_busy[i] && bank_writes[i].size() < WR_QUEUE_BUILDUP && bank_reads[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 
 			/* Check to see if the request can be served from the parity banks */
-			/* Currently, we're only looking at past reads, not in the future */
+		/* Currently, we're only looking at past reads, not in the future */
 			if(!parity_overwritten(bank_reads[i][0].address)) { //Make sure a write didn't wipe out the parity
 				for(int n = 0; n < 3; n++) {
 					int lookahead = bank_reads[bank_bitmap[i][n]].size();
@@ -398,48 +449,65 @@ void access_scheduler() {
 							  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bank_reads[i][0].time, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[i][0].time, current_time, n, i);*/
 
 							/* Serve the request if the bank is free */
-							if(parity_stall[i/4][parity_bitmap[i%4][n]] == -1 && !parity_overwritten(bank_reads[bank_bitmap[i][n]][z].address) && codePresent(bank_reads[i][0].address, bank_reads[bank_bitmap[i][n]][z].address)) {
-								if(bank_reads[bank_bitmap[i][n]][z].critical == true) {
+							if(parity_stall[i/4][parity_bitmap[i%4][n]] == -1) {
+								if(!parity_overwritten(bank_reads[bank_bitmap[i][n]][z].address)) {
+									if(codePresent(bank_reads[i][0].address, bank_reads[bank_bitmap[i][n]][z].address)) {
+										if(bank_reads[bank_bitmap[i][n]][z].critical == true) {
 
-									fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap[i][n]][z].time, bank_reads[bank_bitmap[i][n]][z].address, current_time);
-									read_cr_word_latency += (current_time) - bank_reads[bank_bitmap[i][n]][z].time;
+											fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap[i][n]][z].time, bank_reads[bank_bitmap[i][n]][z].address, current_time);
+											read_cr_word_latency += (current_time) - bank_reads[bank_bitmap[i][n]][z].time;
+											previously_served.push_back(bank_reads[bank_bitmap[i][n]][z]);
+										}
+										/*if(bank_reads[bank_bitmap[i][n]][z].last == true) {
+											
+											read_last_word_latency += (current_time) - bank_reads[bank_bitmap[i][n]][z].time;
+										}*/
+										else {
+											reads_to_serve.push_back(bank_reads[bank_bitmap[i][n]][z]);
+										}
+										//past_requests.push_back(bank_reads[i][0]);
+										parity_hit++;
+										bank_reads[bank_bitmap[i][n]].erase(bank_reads[bank_bitmap[i][n]].begin() + z);
+										parity_stall[i/4][parity_bitmap[i%4][n]] = 0;
+									}
 								}
-								if(bank_reads[bank_bitmap[i][n]][z].last == true) {
-									
-									read_last_word_latency += (current_time) - bank_reads[bank_bitmap[i][n]][z].time;
-								}
-								//past_requests.push_back(bank_reads[i][0]);
-								parity_hit++;
-								bank_reads[bank_bitmap[i][n]].erase(bank_reads[bank_bitmap[i][n]].begin() + z);
-								parity_stall[i/4][parity_bitmap[i%4][n]] = 0;
 							}
 						}
 					}
 				}
 			}
-
+			//cout << "Here5" << endl;
 			/* Make sure we didn't serve all the requests in the queue using the
 			 * parity banks */
 			if(bank_reads[i][0].critical == true) {
 				read_cr_word_latency += (current_time) - bank_reads[i][0].time;
 				fprintf(dump, "Delay: %d\t Address: %d 	Time: %d\n", current_time - bank_reads[i][0].time, bank_reads[i][0].address, current_time);
-				//fprintf(dump, "Delay: %d	Address: %d	Time: %d\n", current_time - bank_reads[i][0].time, bank_reads[i][0].address, bank_reads[i][0].time);
+				previously_served.push_back(bank_reads[i][0]);
 			}
-			if(bank_reads[i][0].last == true) {
+			/*if(bank_reads[i][0].last == true) {
 				read_last_word_latency += (current_time) - bank_reads[i][0].time;
+			}*/
+			else {
+				reads_to_serve.push_back(bank_reads[i][0]);
 			}
 			past_requests.push_back(bank_reads[i][0]);
-			previously_read.push_back(bank_reads[i][0].address); //Record that the memory location is now coded
+			region = (bank_reads[i][0].address - lowAddress)/region_size;
+			previously_read[region].push_back(bank_reads[i][0].address); //Record that the memory location is now coded
 			bank_reads[i].erase(bank_reads[i].begin());
 		}
 		else if(!bank_busy[i] && bank_writes[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 			/* First serve the request in the data bank */
 			if(bank_writes[i][0].critical == true) {
 				write_cr_word_latency += (current_time) - bank_writes[i][0].time;
+				previously_served.push_back(bank_writes[i][0]);
 			}
-			if(bank_writes[i][0].last == true) {
+			/*if(bank_writes[i][0].last == true) {
 				write_last_word_latency += (current_time) - bank_writes[i][0].time;
-			}	
+			}*/
+			else {
+				writes_to_serve.push_back(bank_writes[i][0]);
+			}
+			bank_writes[i][0].inParity = false; //Mark that the write was not written to parity
 			overwritten_parity_rows.push_back(bank_writes[i][0]);
 			bank_writes[i].erase(bank_writes[i].begin());	
 
@@ -467,12 +535,18 @@ void access_scheduler() {
 					parity_stall[i/4][parity_bank_num] = 0; //Mark the bank as busy
 					
 					/* Serve the write the same way as above */
-					if(bank_writes[i][0].critical == true) {
+					if(bank_writes[i][0].critical == true) { //We'll serve the request now if it's critical
 						write_cr_word_latency += (current_time) - bank_writes[i][0].time;
+						previously_served.push_back(bank_writes[i][0]);
 					}
-					if(bank_writes[i][0].last == true) {
+					/*if(bank_writes[i][0].last == true) {
 						write_last_word_latency += (current_time) - bank_writes[i][0].time;
-					}	
+					}*/
+					else { //If not see if it's ready to be served
+						writes_to_serve.push_back(bank_writes[i][0]);
+					}
+					bank_writes[i][0].inParity = true; //Mark that the write was written to parity
+					bank_writes[i][0].parityNumber = parity_bank_num;
 					overwritten_parity_rows.push_back(bank_writes[i][0]);
 					bank_writes[i].erase(bank_writes[i].begin());
 				}
@@ -489,24 +563,38 @@ void access_scheduler() {
 }
 
 
+int PASS = 0; // 2 passes must be made over the data and parity banks to complete recoding
 bool check_recode() {
-
-	/* First check if the oldest element has reached it's limit */
+	/* First, see if we need to finish the coding process for any data that's waiting to be recoded in the parity banks */
+	for(int i = 0; i < pending_parity_writes.size(); i++) {
+		/* Mark all the corresponding parity banks as busy */
+		int bank = pending_parity_writes[i].address % 8;
+		for(int n = 0; n < 3; n++)
+			parity_stall[bank/4][parity_bitmap[bank % 4][n]] = 0;
+	}
+	pending_parity_writes.clear();
+	/* Now, perform reads to banks to begin the recode process. Check if the oldest element has reached it's limit */
 	if(overwritten_parity_rows.size() != 0) {
 		if((current_time - overwritten_parity_rows[0].time) > WRITE_REPAIR_TIME) {
 			/* Repair the entire row */
 			int row = overwritten_parity_rows[0].address/8;
-
+			
 			/* Search through the entire queue, and remove all requests that fall on
 			 * the same row */
 			for(int i = 0; i < overwritten_parity_rows.size(); i++) {
 				if(overwritten_parity_rows[i].address/8 == row) {
 					/* Bookkeeping to make sure correct banks are marked as busy */
 					int bank = overwritten_parity_rows[i].address % 8;
-					for(int n = 0; n < 3; n++)
-						parity_stall[bank/4][parity_bitmap[bank % 4][n]] = 0;
-					bank_busy[bank] = true;
+					//for(int n = 0; n < 3; n++)
+					//	parity_stall[bank/4][parity_bitmap[bank % 4][n]] = 0;
+					/* Mark either the parity bank or data bank as busy, depending on where the data was written */
+					if(overwritten_parity_rows[i].inParity == true) {
+						parity_stall[bank/4][overwritten_parity_rows[i].parityNumber] = 0;
+					}
+					else
+						bank_busy[bank] = true;
 
+					pending_parity_writes.push_back(overwritten_parity_rows[i]); //We still need to update the parities in the next cycle
 					overwritten_parity_rows.erase(overwritten_parity_rows.begin() + i);
 					i--;
 					if(overwritten_parity_rows.size() == 0)
@@ -533,6 +621,80 @@ bool check_recode() {
 	return true;
 }
 
+
+void update_codes() {
+	/* Make a copy of the data */
+	int temp_copy[NUM_REGIONS];
+	int top_hits[NUM_ACTIVE_REGIONS];
+	for(int i = 0; i < NUM_REGIONS; i++) 
+		temp_copy[i] = region_hits[i];
+
+	/* Sort the regions by number of hits */
+	for(int i = 0; i < NUM_ACTIVE_REGIONS; i++) {
+		int hits = temp_copy[i];
+		int region_num = i;
+		for(int n = 0; n < NUM_REGIONS; n++) {
+			if(n != i) {
+				if(hits < temp_copy[n]) {
+					hits = temp_copy[n];
+					region_num = n;
+				}
+			}
+		}
+		top_hits[i] = region_num;
+		temp_copy[region_num] = -1;
+	}
+
+	/* Clear all coding regions that are not in the top */
+	for(int i = 0; i < NUM_REGIONS; i++) {
+
+		bool clear_region = true;
+		for(int n = 0; n < NUM_ACTIVE_REGIONS; n++) {
+			if(i == top_hits[n])
+				clear_region = false;
+		}
+		if(clear_region)
+			previously_read[i].clear();
+
+	}	
+}
+
+
+void serve_requests() {
+	/* Scan through all the reads we need to serve and see if any have been */
+	for(int i = 0; i < reads_to_serve.size(); i++) {
+		for(int n = 0; n < previously_served.size(); n++) {
+			/* Serve the request if its next in the order */
+			if(reads_to_serve[i].requestNumber == previously_served[n].requestNumber && (reads_to_serve[i].orderNumber - 1) == previously_served[n].orderNumber) {
+				if(reads_to_serve[i].last == true) {
+					read_last_word_latency += (current_time) - reads_to_serve[i].time;
+				}
+				previously_served.erase(previously_served.begin() + n);
+				previously_served.push_back(reads_to_serve[i]);
+				reads_to_serve.erase(reads_to_serve.begin() + i);
+				i = 0; //Start over from the beginning
+				break;
+			}
+		}
+	}
+
+	for(int i = 0; i < writes_to_serve.size(); i++) {
+		for(int n = 0; n < previously_served.size(); n++) {
+			/* Serve the request if its next in the order */
+			if(writes_to_serve[i].requestNumber == previously_served[n].requestNumber && (writes_to_serve[i].orderNumber - 1) == previously_served[n].orderNumber) {
+				if(writes_to_serve[i].last == true) {
+					write_last_word_latency += (current_time) - writes_to_serve[i].time;
+				}
+				previously_served.erase(previously_served.begin() + n);
+				previously_served.push_back(writes_to_serve[i]);
+				writes_to_serve.erase(writes_to_serve.begin() + i);
+				i = 0; //Start over from the beginning
+			}
+		}
+	}
+}
+
+
 int sc_main(int argc, char* argv[]) {
 
 	/* Take in the ratio between processor and memory clock speeds */
@@ -547,16 +709,22 @@ int sc_main(int argc, char* argv[]) {
 			parity_stall[z][i] = -1;
 	}
 
+	/* Make all coded regions 0 */
+	for(int i = 0; i < NUM_REGIONS; i++) {
+		region_hits[i] = 0;
+	}
+
 	/* First populate the request queues with all requests from banks */
 	get_requests();
 	previous_size = request_queue[0].size();
 
 	/* Execute the main loop which will service all requests */
 	while(!queue_empty()) {
-
 		input_controller(request_queue);
 		check_recode(); 
 		access_scheduler();
+		serve_requests();
+
 		/* Reset the busy banks for the next memory cycle */
 		for(int i = 0; i < NUM_BANKS; i++)
 			bank_busy[i] = false;
@@ -568,6 +736,9 @@ int sc_main(int argc, char* argv[]) {
 				cout << core_queues[i].size() << " ";
 			cout << endl;
 		}
+
+		update_codes();
+
 		string temp;
 		//cin >> temp;
 	}
