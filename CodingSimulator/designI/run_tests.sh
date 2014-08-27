@@ -7,7 +7,9 @@ if [ "$#" -eq 0 ];then
 	exit 0
 fi
 
-TRACENAME=("LTE" "UMTS" "case4" "trace1" "trace2" "trace3" "trace4")
+#TRACENAME=( "LTE" "UMTS" "case4" "trace1" "trace2" "trace3" "trace4")
+TRACENAME=( "case4" )
+
 
 for ((j=0; j < $1 ; j ++))
     do

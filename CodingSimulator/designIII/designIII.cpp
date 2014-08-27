@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream> 
+#include <unordered_map>
 
 using namespace std;
 
@@ -48,6 +49,8 @@ typedef struct bank_request {
 	bool read;
 	bool critical;
 	bool last;
+	int length;
+	int numServed;
 	bool inParity; //If the data was written to parity
 	int parityNumber; //The number of the parity bank it was written to
 	int orderNumber; //The order in which the data should be served
@@ -115,9 +118,8 @@ int parity_hit = 0;
 int parity_stall[NUM_PARITY_BANKS];
 bool bank_busy[NUM_BANKS];
 int NUM_REQUESTS = 0; //Number of requests we have served
-vector<bank_request> previously_served;
-vector<bank_request> reads_to_serve;
-vector<bank_request> writes_to_serve;
+unordered_map<int, bank_request> previously_served_reads;
+unordered_map<int, bank_request> previously_served_writes;
 
 /* Keep track of which locations are currently coded */
 vector<bank_request> pending_parity_writes;
@@ -152,7 +154,7 @@ request parse_input(string input_command) {
 	request temp;
 	temp.address = strtoul(&token[7][7], NULL, 16)/32; //Convert hex input string to an address
 	if(temp.address > highAddress)
-		highAddress = temp.address;
+		highAddress = temp.address + 7;
 	if(temp.address < lowAddress)
 		lowAddress = temp.address;
 
@@ -301,6 +303,7 @@ void input_controller(vector<request> request_queue[]) {
 		next_request.time = pending_requests[i].time;
 		next_request.queue_time = pending_requests[i].queue_time;
 		next_request.address = pending_requests[i].address;
+		next_request.length = pending_requests[i].length;
 		next_request.critical = true;
 		next_request.last = false;
 		next_request.orderNumber = 0;
@@ -345,6 +348,7 @@ void input_controller(vector<request> request_queue[]) {
 			next_request.time = pending_requests[i].time;
 			next_request.queue_time = pending_requests[i].queue_time;			
 			next_request.read = pending_requests[i].read;
+			next_request.length = pending_requests[i].length;
 			next_request.critical = false;
 			next_request.orderNumber = n;
 			next_request.requestNumber = NUM_REQUESTS;
@@ -425,6 +429,34 @@ bool codePresent(int address1, int address2, int address3) {
 		return false;
 }
 
+void serve_request(bank_request request) {
+		
+	/* Determine if we're dealing with read or write */
+	unordered_map<int, bank_request> *request_list;
+	if(request.read == true) 
+		request_list = &previously_served_reads;
+	else
+		request_list = &previously_served_writes;
+
+	/* Serve the request */
+	auto it = request_list->find(request.requestNumber);
+	if(it == request_list->end()) {
+		request.numServed = 1;
+		request_list->insert({request.requestNumber, request});
+	}
+	else {
+		it->second.numServed += 1;
+		/* If the request has completely been served, take the transactional latency and delete it */
+		if(it->second.numServed == it->second.length) { 
+			if(it->second.read == true)
+				read_last_word_latency += (current_time - it->second.time);
+			else
+				write_last_word_latency += (current_time - it->second.time);
+			request_list->erase(it);	
+		}
+	}
+}
+
 
 
 FILE* dump = fopen("./dump.txt", "w");
@@ -477,16 +509,8 @@ void access_scheduler() {
 	
 										//fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap2[i][y]][z].time, bank_reads2[bank_bitmap[i][y]][z].address, current_time);
 										read_cr_word_latency += (current_time) - bank_reads[bank_bitmap2[i][y]][z].time;
-										previously_served.push_back(bank_reads[bank_bitmap2[i][y]][z]);
 									}
-									/*if(bank_reads[bank_bitmap2[i][y]][z].last == true) {
-										
-										read_last_word_latency += (current_time) - bank_reads[bank_bitmap2[i][y]][z].time;
-									}*/
-									else {
-										reads_to_serve.push_back(bank_reads[bank_bitmap2[i][y]][z]);
-									}
-									//past_requests.push_back(bank_reads[i][0]);
+									serve_request(bank_reads[bank_bitmap2[i][y]][z]);
 									parity_hit++;
 									/* Don't remove the head of the queue twice due to the missing 9th bank */
 									//if(i != bank_bitmap[i][n] && i != bank_bitmap2[i][y]) 
@@ -504,32 +528,24 @@ void access_scheduler() {
 			if(bank_reads[i][0].critical == true) {
 				read_cr_word_latency += (current_time) - bank_reads[i][0].time;
 				fprintf(dump, "Delay: %d\t Address: %d 	Time: %d\n", current_time - bank_reads[i][0].time, bank_reads[i][0].address, current_time);
-				previously_served.push_back(bank_reads[i][0]);
 				//fprintf(dump, "Delay: %d	Address: %d	Time: %d\n", current_time - bank_reads[i][0].time, bank_reads[i][0].address, bank_reads[i][0].time);
-			}
-			/*if(bank_reads[i][0].last == true) {
-				read_last_word_latency += (current_time) - bank_reads[i][0].time;
-			}*/
-			else {
-				reads_to_serve.push_back(bank_reads[i][0]);
 			}
 			past_requests.push_back(bank_reads[i][0]);
 			int region = (bank_reads[i][0].address - lowAddress)/region_size;
+			if(region >= NUM_REGIONS) {
+				cout << region << " " << lowAddress << " " << bank_reads[i][0].address << " " << highAddress << endl;
+				exit(0);
+			}
 			previously_read[region].push_back(bank_reads[i][0].address); //Record that the memory location is now coded
+			serve_request(bank_reads[i][0]);
 			bank_reads[i].erase(bank_reads[i].begin());
 		}
 		else if(!bank_busy[i] && bank_writes[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 			/* First serve the request in the data bank */
 			if(bank_writes[i][0].critical == true) {
 				write_cr_word_latency += (current_time) - bank_writes[i][0].time;
-				previously_served.push_back(bank_writes[i][0]);
 			}
-			/*if(bank_writes[i][0].last == true) {
-				write_last_word_latency += (current_time) - bank_writes[i][0].time;
-			}*/
-			else {
-				writes_to_serve.push_back(bank_writes[i][0]);
-			}	
+			serve_request(bank_writes[i][0]);
 			bank_writes[i][0].inParity = false; //Mark that the write was not written to parity
 			overwritten_parity_rows.push_back(bank_writes[i][0]);
 			bank_writes[i].erase(bank_writes[i].begin());	
@@ -575,14 +591,8 @@ void access_scheduler() {
 					/* Serve the write the same way as above */
 					if(bank_writes[i][0].critical == true) {
 						write_cr_word_latency += (current_time) - bank_writes[i][0].time;
-						previously_served.push_back(bank_writes[i][0]);
 					}
-					/*if(bank_writes[i][0].last == true) {
-						write_last_word_latency += (current_time) - bank_writes[i][0].time;
-					}*/
-					else {
-						writes_to_serve.push_back(bank_writes[i][0]);
-					}	
+					serve_request(bank_writes[i][0]);
 					bank_writes[i][0].inParity = true; //Mark that the write was written to parity
 					bank_writes[i][0].parityNumber = parity_bank_num;
 					overwritten_parity_rows.push_back(bank_writes[i][0]);
@@ -740,41 +750,6 @@ void update_codes() {
 }
 
 
-void serve_requests() {
-	/* Scan through all the reads we need to serve and see if any have been */
-	for(int i = 0; i < reads_to_serve.size(); i++) {
-		for(int n = 0; n < previously_served.size(); n++) {
-			/* Serve the request if its next in the order */
-			if(reads_to_serve[i].requestNumber == previously_served[n].requestNumber && (reads_to_serve[i].orderNumber - 1) == previously_served[n].orderNumber) {
-				if(reads_to_serve[i].last == true) {
-					read_last_word_latency += (current_time) - reads_to_serve[i].time;
-				}
-				previously_served.erase(previously_served.begin() + n);
-				previously_served.push_back(reads_to_serve[i]);
-				reads_to_serve.erase(reads_to_serve.begin() + i);
-				i = 0; //Start over from the beginning
-				break;
-			}
-		}
-	}
-
-	for(int i = 0; i < writes_to_serve.size(); i++) {
-		for(int n = 0; n < previously_served.size(); n++) {
-			/* Serve the request if its next in the order */
-			if(writes_to_serve[i].requestNumber == previously_served[n].requestNumber && (writes_to_serve[i].orderNumber - 1) == previously_served[n].orderNumber) {
-				if(writes_to_serve[i].last == true) {
-					write_last_word_latency += (current_time) - writes_to_serve[i].time;
-				}
-				previously_served.erase(previously_served.begin() + n);
-				previously_served.push_back(writes_to_serve[i]);
-				writes_to_serve.erase(writes_to_serve.begin() + i);
-				i = 0; //Start over from the beginning
-			}
-		}
-	}
-}
-
-
 
 
 int sc_main(int argc, char* argv[]) {
@@ -798,7 +773,6 @@ int sc_main(int argc, char* argv[]) {
 		input_controller(request_queue);
 		check_recode(); 
 		access_scheduler();
-		serve_requests();
 
 		/* Reset the busy banks for the next memory cycle */
 		for(int i = 0; i < NUM_BANKS; i++)
@@ -813,9 +787,6 @@ int sc_main(int argc, char* argv[]) {
 		}
 
 		update_codes();
-
-		string temp;
-		//cin >> temp;
 	}
 
 	/* Dispaly the results */
