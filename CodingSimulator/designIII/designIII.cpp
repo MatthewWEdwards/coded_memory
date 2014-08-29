@@ -402,7 +402,7 @@ bool codePresent(int address1, int address2, int address3) {
 	bool address1Found = false, address2Found = false, address3Found = false;
 
 	/* First see if the region is even coded */
-	int region = (address1 - lowAddress)/NUM_REGIONS;
+	int region = (address1 - lowAddress)/region_size;
 	bool regionFound = false;
 	for(int i = 0; i < NUM_ACTIVE_REGIONS; i++) {
 		if(coded_regions[i] == region)
@@ -496,26 +496,30 @@ void access_scheduler() {
 						for(int z = 0; z < lookahead; z++) { //Right now, only consider the head of the second bank
 							
 							/* Check if using the parity bank is possible */
-							if(bank_reads[bank_bitmap[i][n]][0].address/8 == bank_reads[i][0].address/8 && bank_reads[bank_bitmap2[i][y]][z].address/8 == bank_reads[i][0].address/8) {
-								/* DEBUG */
-								/*fprintf(dump, "Parity Array:\n");
-								  for(int t = 0; t < 12; t++)
-								  fprintf(dump, "%d ", parity_stall[t/6][t%6]);
-								  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bank_reads[i][0].time, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[i][0].time, current_time, n, i);*/
+							if(bank_reads[bank_bitmap[i][n]].size() > 0 && bank_reads[bank_bitmap2[i][y]].size() > 0) { //Avoid seg fault
+								if(bank_reads[bank_bitmap[i][n]][0].address/8 == bank_reads[i][0].address/8 && bank_reads[bank_bitmap2[i][y]][z].address/8 == bank_reads[i][0].address/8) {
+									/* DEBUG */
+									/*fprintf(dump, "Parity Array:\n");
+									  for(int t = 0; t < 12; t++)
+									  fprintf(dump, "%d ", parity_stall[t/6][t%6]);
+									  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bank_reads[i][0].time, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[i][0].time, current_time, n, i);*/
 	
-								/* Serve the request if the bank is free */
-								if(parity_stall[parity_bitmap[i][n/2]] == -1 && !parity_overwritten(bank_reads[bank_bitmap[i][n]][0].address) && !parity_overwritten(bank_reads[bank_bitmap2[i][y]][z].address) && codePresent(bank_reads[i][0].address, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[bank_bitmap2[i][y]][z].address)) {
-									if(bank_reads[bank_bitmap2[i][y]][z].critical == true) {
+									/* Serve the request if the bank is free */
+									if(parity_stall[parity_bitmap[i][n/2]] == -1) {
+										if(!parity_overwritten(bank_reads[bank_bitmap[i][n]][0].address) && !parity_overwritten(bank_reads[bank_bitmap2[i][y]][z].address) && codePresent(bank_reads[i][0].address, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[bank_bitmap2[i][y]][z].address)) {
+											if(bank_reads[bank_bitmap2[i][y]][z].critical == true) {
 	
-										//fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap2[i][y]][z].time, bank_reads2[bank_bitmap[i][y]][z].address, current_time);
-										read_cr_word_latency += (current_time) - bank_reads[bank_bitmap2[i][y]][z].time;
+												//fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap2[i][y]][z].time, bank_reads2[bank_bitmap[i][y]][z].address, current_time);
+												read_cr_word_latency += (current_time) - bank_reads[bank_bitmap2[i][y]][z].time;
+											}
+											serve_request(bank_reads[bank_bitmap2[i][y]][z]);
+											parity_hit++;
+											/* Don't remove the head of the queue twice due to the missing 9th bank */
+											//if(i != bank_bitmap[i][n] && i != bank_bitmap2[i][y]) 
+											bank_reads[bank_bitmap2[i][y]].erase(bank_reads[bank_bitmap2[i][y]].begin() + z);
+											parity_stall[parity_bitmap[i][n/2]] = 0;
+										}
 									}
-									serve_request(bank_reads[bank_bitmap2[i][y]][z]);
-									parity_hit++;
-									/* Don't remove the head of the queue twice due to the missing 9th bank */
-									//if(i != bank_bitmap[i][n] && i != bank_bitmap2[i][y]) 
-									bank_reads[bank_bitmap2[i][y]].erase(bank_reads[bank_bitmap2[i][y]].begin() + z);
-									parity_stall[parity_bitmap[i][n/2]] = 0;
 								}
 							}
 						}
