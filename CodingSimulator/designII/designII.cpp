@@ -57,6 +57,12 @@ typedef struct bank_request {
 	bool read;
 	bool critical;
 	bool last;
+	int length;
+	int numServed;
+	bool inParity; //If the data was written to parity
+	int parityNumber; //The number of the parity bank it was written to
+	int orderNumber; //The order in which the data should be served
+	int requestNumber; //The unique number of the request
 
 } bank_request;
 /* Bitmap for which parity banks a data bank is coded in */

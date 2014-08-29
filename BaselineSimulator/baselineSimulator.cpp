@@ -15,7 +15,7 @@ using namespace std;
 #define WR_QUEUE_BUILDUP 100
 #define CORE_QUEUE_MAX 8
 #define MAX_BANK_QUEUE_LENGTH 10
-string TRACE_LOCATION("/home/casen/Huawei/traces/LTE/dsp_0_trace.txt");
+string TRACE_LOCATION; //("/home/casen/Huawei/traces/LTE/dsp_0_trace.txt");
 int MEM_DELAY; //Taken as an input parameter
 
 /* Struct for the input requests from the processors */
@@ -368,6 +368,7 @@ int sc_main(int argc, char* argv[]) {
 
 	/* Take in the ratio between processor and memory */
 	MEM_DELAY = atoi(argv[1]);
+	TRACE_LOCATION = argv[2];
 
 	/* First populate the request queues with all requests from banks */
 	get_requests();
