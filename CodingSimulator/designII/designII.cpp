@@ -61,20 +61,20 @@ typedef struct bank_request {
 
 /* Bitmap for which parity banks a data bank is coded in */
 int parity_bitmap[NUM_BANKS/2][3] = {
-	{0,2,2}, //repeated, just checks the same bank twice because we removed a parity bank in this design
+	{0,2,4}, //repeated, just checks the same bank twice because we removed a parity bank in this design
 	{0,3,4},
-	{1,3,3}, //repeated
+	{1,3,4}, //repeated
 	{1,2,4} };
 
 /* Bitmap for which data banks are coded together */
 int bank_bitmap[NUM_BANKS][3] = {
-	{1,3,3},
+	{1,3,2},
 	{0,2,3},
-	{3,1,1},
+	{3,1,0},
 	{2,0,1},
-	{5,7,7},
+	{5,7,6},
 	{4,6,7},
-	{7,5,5},
+	{7,5,4},
 	{6,4,5}	
 };
 
