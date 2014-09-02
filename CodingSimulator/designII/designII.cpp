@@ -136,7 +136,7 @@ request parse_input(string input_command) {
 	request temp;
 	temp.address = strtoul(&token[7][7], NULL, 16)/32; //Convert hex input string to an address
 	if(temp.address > highAddress)
-		highAddress = temp.address + 13;
+		highAddress = temp.address + 20;
 	if(temp.address < lowAddress)
 		lowAddress = temp.address;
 	temp.priority = strtoul(&token[8][6], NULL, 10); //Determine priority
@@ -512,8 +512,9 @@ void access_scheduler() {
 			}
 			past_requests.push_back(bank_reads[i][0]);
 			region = (bank_reads[i][0].address - lowAddress)/region_size;
-			if(region >= NUM_ACTIVE_REGIONS) {
+			if(region >= NUM_REGIONS) {
 				cout << lowAddress << " " << bank_reads[i][0].address << " " << highAddress << endl;
+				cout << region << " " << NUM_ACTIVE_REGIONS << endl;
 				exit(0);
 			}
 			previously_read[region].push_back(bank_reads[i][0].address);
