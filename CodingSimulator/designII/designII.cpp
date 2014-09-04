@@ -222,12 +222,40 @@ bool queue_empty() {
 	return true;
 }
 
+bool check_write_queue(bank_request request) {
+
+	if(request.read == true) {
+		for(int n = 0; n < NUM_BANKS; n++) {
+			for(int i = 0; i < bank_writes[n].size(); i++) {
+
+				/* If the address is the same and they weren't issued 
+				 * at the same time, serve from the write queue */
+				if(request.address == bank_writes[n][i].address && request.time != bank_writes[n][i].time) {
+					reads_served_from_write++;
+					return true;
+				}
+			}
+		}
+	}
+	else {
+		for(int n = 0; n < NUM_BANKS; n++) {
+			for(int i = 0; i < bank_writes[n].size(); i++) {
+
+				/* If it's a write, replace the old write with the 
+				 * new one */
+				if(request.address == bank_writes[n][i].address)
+					bank_writes[n].erase(bank_writes[n].begin() + i);
+			}
+		}
+	}
+}
+
 void input_controller(vector<request> request_queue[]) {
 
 	/* Check to see which requests need to be served */
 	for(int i = 0; i < NUM_TRACES; i++) {
 		/* First make sure the request can't be served from the write queue */
-		for(int y = 0; y < NUM_BANKS; y++) {
+		/*for(int y = 0; y < NUM_BANKS; y++) {
 			for(int z = 0; z < bank_writes[y].size(); z++) {
 				if(request_queue[i].size() > 0) {
 					if(bank_writes[y][z].address == request_queue[i][0].address && request_queue[i][0].time <= current_time) {
@@ -236,7 +264,7 @@ void input_controller(vector<request> request_queue[]) {
 					}
 				}
 			}
-		}
+		}*/
 
 		/* If it's time to serve the request, add it to the pending request queue */
 		if(request_queue[i][0].time <= current_time && !request_queue[i].empty() && core_queues[i].size() < CORE_QUEUE_MAX) {
@@ -308,16 +336,17 @@ void input_controller(vector<request> request_queue[]) {
 		if(stop_serving == true)
 			break;
 
-		/* Keep track of the dynamic coding */
-		int region = (next_request.address - lowAddress)/region_size;
-		region_hits[region] += 1;
-
 		core_queues[next_request.core_number].erase(core_queues[next_request.core_number].begin());		
 		/* Determine if read/write queue entry */
-		if(pending_requests[i].read) 
-			bank_reads[bank].push_back(next_request);
-		else
+		if(pending_requests[i].read) {
+			/* Check and see if the request can be served from the write queue first */
+			if(!check_write_queue(next_request)) 
+				bank_reads[bank].push_back(next_request);
+		}
+		else {
+			check_write_queue(next_request);
 			bank_writes[bank].push_back(next_request);
+		}
 
 		/* Now populate the next bank queues */
 		for(int n = 1; n < pending_requests[i].length; n++) {
@@ -339,12 +368,16 @@ void input_controller(vector<request> request_queue[]) {
 				next_request.last = false;
 
 			/* Determine if read/write queue entry */
-			if(pending_requests[i].read)
-				bank_reads[bank].push_back(next_request);
-			else
+			if(pending_requests[i].read) {
+				/* Check and see if the request can be served from the write queue first */
+				if(!check_write_queue(next_request)) 
+					bank_reads[bank].push_back(next_request);
+			}
+			else {
+				check_write_queue(next_request);
 				bank_writes[bank].push_back(next_request);
+			}
 		}
-
 		NUM_REQUESTS++;
 	}
 	
