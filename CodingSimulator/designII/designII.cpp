@@ -278,10 +278,16 @@ void input_controller(vector<request> request_queue[]) {
 	 * This is only temporary since we still need to see if the bank queues can hold the request */
 	vector<request> temp_requests;
 	for(int i = 0; i < NUM_TRACES; i++) {
-		if(core_queues[i].size() > 0){
-			temp_requests.push_back(core_queues[i][0]);
+
+		if(TRACE_TO_SERVE == NUM_TRACES)
+			TRACE_TO_SERVE = 0;
+		
+		if(core_queues[TRACE_TO_SERVE].size() > 0){
+			temp_requests.push_back(core_queues[TRACE_TO_SERVE][0]);
 		}
+		TRACE_TO_SERVE++;
 	}
+	TRACE_TO_SERVE++; //Make sure we start at the next trace the next round
 
 	/* Now sort all of the pending requests by priority */
 	vector<request> pending_requests;
