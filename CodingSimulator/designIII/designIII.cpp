@@ -536,21 +536,21 @@ void access_scheduler() {
 						int lookahead = bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]].size();
 						if(lookahead > MAX_LOOKAHEAD)
 							lookahead = MAX_LOOKAHEAD;
+						if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0) {
+							if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address/8 == bank_reads[mainDataBank][0].address/8 && bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0)  {
+								/* Make sure the bank we're checking has requests in the queue */
+								for(int z = 0; z < lookahead; z++) { //Right now, only consider the head of the second bank
 
-						if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address/8 == bank_reads[mainDataBank][0].address/8 && bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0)  {
-							/* Make sure the bank we're checking has requests in the queue */
-							for(int z = 0; z < lookahead; z++) { //Right now, only consider the head of the second bank
+									/* Check if using the parity bank is possible */
+									if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0) { //Avoid seg fault
+										if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address/8 == bank_reads[mainDataBank][0].address/8 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address/8 == bank_reads[mainDataBank][0].address/8) {
+											/* DEBUG */
+											/*fprintf(dump, "Parity Array:\n");
+											  for(int t = 0; t < 12; t++)
+											  fprintf(dump, "%d ", parity_stall[t/6][t%6]);
+											  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bank_reads[mainDataBank][0].time, bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address, bank_reads[mainDataBank][0].time, current_time, n, i);*/
 
-								/* Check if using the parity bank is possible */
-								if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0) { //Avoid seg fault
-									if(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address/8 == bank_reads[mainDataBank][0].address/8 && bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address/8 == bank_reads[mainDataBank][0].address/8) {
-										/* DEBUG */
-										/*fprintf(dump, "Parity Array:\n");
-										  for(int t = 0; t < 12; t++)
-										  fprintf(dump, "%d ", parity_stall[t/6][t%6]);
-										  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bank_reads[mainDataBank][0].time, bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address, bank_reads[mainDataBank][0].time, current_time, n, i);*/
-
-										/* Serve the request if the bank is free */
+											/* Serve the request if the bank is free */
 										if(parity_stall[parity_bitmap[mainDataBank][auxiliaryBank1/2]] == -1) {
 											if(!parity_overwritten(bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address) && !parity_overwritten(bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address) && codePresent(bank_reads[mainDataBank][0].address, bank_reads[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address, bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address)) {
 												if(bank_reads[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].critical == true) {
@@ -570,6 +570,7 @@ void access_scheduler() {
 								}
 							}
 						}
+					}
 					}
 				}
 			}

@@ -15,7 +15,7 @@ for ((j=0; j < $1 ; j ++))
     do
     for i in {2..2}	
 	do
-        for n in {1..10}
+        for n in {1..1}
         do
 	    ./sim $n $[i*5] 0 "../../traces/"${TRACENAME[j]}"/dsp_0_trace.txt"
         done
