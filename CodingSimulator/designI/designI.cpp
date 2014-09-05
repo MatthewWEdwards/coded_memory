@@ -85,6 +85,7 @@ vector<bank_request> overwritten_parity_rows; //Keep track which parities are bu
 vector<bank_request> pending_parity_writes; //The data that is waiting to be recoded to the parity banks
 vector<request> core_queues[NUM_TRACES]; //These queues hold the requests from the cores
 int current_time = 0; //Current time in ns
+int TRACE_TO_SERVE = 0;
 long long int read_cr_word_latency = 0;
 long long int write_cr_word_latency = 0;
 long long int read_last_word_latency = 0;
@@ -134,7 +135,7 @@ request parse_input(string input_command) {
 	request temp;
 	temp.address = strtoul(&token[7][7], NULL, 16)/32; //Convert hex input string to an address
 	if(temp.address > highAddress)
-		highAddress = temp.address + 13;
+		highAddress = temp.address + 20;
 	if(temp.address < lowAddress)
 		lowAddress = temp.address;
 	temp.priority = strtoul(&token[8][6], NULL, 10); //Determine priority
@@ -248,7 +249,6 @@ bool check_write_queue(bank_request request) {
 	}
 }
 
-int TRACE_TO_SERVE = 0;
 void input_controller(vector<request> request_queue[]) {
 
 	/* Check to see which requests need to be served */
@@ -278,7 +278,7 @@ void input_controller(vector<request> request_queue[]) {
 	vector<request> temp_requests;
 	for(int i = 0; i < NUM_TRACES; i++) {
 
-		if(TRACE_TO_SERVE == NUM_TRACES)
+		if(TRACE_TO_SERVE >= NUM_TRACES)
 			TRACE_TO_SERVE = 0;
 		
 		if(core_queues[TRACE_TO_SERVE].size() > 0){
@@ -286,6 +286,8 @@ void input_controller(vector<request> request_queue[]) {
 		}
 		TRACE_TO_SERVE++;
 	}
+	if(TRACE_TO_SERVE >= NUM_TRACES)
+			TRACE_TO_SERVE = 0;
 	TRACE_TO_SERVE++; //Make sure we start at the next trace the next round
 
 	/* Now sort all of the pending requests by priority */
@@ -550,7 +552,7 @@ void access_scheduler() {
 			}
 			past_requests.push_back(bank_reads[i][0]);
 			region = (bank_reads[i][0].address - lowAddress)/region_size;
-			if(region >= NUM_ACTIVE_REGIONS) {
+			if(region >= NUM_REGIONS) {
 				cout << lowAddress << " " << bank_reads[i][0].address << " " << highAddress << endl;
 				exit(0);
 			}

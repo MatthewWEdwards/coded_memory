@@ -87,6 +87,7 @@ vector<bank_request> overwritten_parity_rows; //Keep track which parities are bu
 vector<bank_request> pending_parity_writes; //The data that is waiting to be recoded to the parity banks
 vector<request> core_queues[NUM_TRACES]; //These queues hold the requests from the cores
 int current_time = 0; //Current time in ns
+int TRACE_TO_SERVE = 0;
 long long int read_cr_word_latency = 0;
 long long int write_cr_word_latency = 0;
 long long int read_last_word_latency = 0;
@@ -279,7 +280,7 @@ void input_controller(vector<request> request_queue[]) {
 	vector<request> temp_requests;
 	for(int i = 0; i < NUM_TRACES; i++) {
 
-		if(TRACE_TO_SERVE == NUM_TRACES)
+		if(TRACE_TO_SERVE >= NUM_TRACES)
 			TRACE_TO_SERVE = 0;
 		
 		if(core_queues[TRACE_TO_SERVE].size() > 0){
@@ -287,6 +288,8 @@ void input_controller(vector<request> request_queue[]) {
 		}
 		TRACE_TO_SERVE++;
 	}
+	if(TRACE_TO_SERVE >= NUM_TRACES)
+			TRACE_TO_SERVE = 0;
 	TRACE_TO_SERVE++; //Make sure we start at the next trace the next round
 
 	/* Now sort all of the pending requests by priority */
