@@ -68,7 +68,8 @@ int NUM_REQUESTS = 0;
 unordered_map<int, beatLevelRequestInBank> previously_served_reads;
 unordered_map<int, beatLevelRequestInBank> previously_served_writes;
 
-
+// Defining functions here 
+void serve_request(beatLevelRequestInBank request);
 
 /**
  * This function takes an input line from the trace file, and populates the 
