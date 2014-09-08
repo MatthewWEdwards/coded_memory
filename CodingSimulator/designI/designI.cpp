@@ -475,26 +475,26 @@ void access_scheduler() {
 						/* Make sure the bank we're checking has requests in the queue */
 						for(int z = 0; z < lookahead; z++) {
 							/* Check if using the parity bank is possible */
-							if(bank_reads[bank_bitmap[i][n]][z].address/8 == bank_reads[i][0].address/8) {
+							if(bankReadQueue[bank_bitmap[i][n]][z].address/8 == bankReadQueue[i][0].address/8) {
 
 								/* DEBUG */
 								/*fprintf(dump, "Parity Array:\n");
 								  for(int t = 0; t < 12; t++)
 								  fprintf(dump, "%d ", parity_stall[t/6][t%6]);
-								  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bank_reads[i][0].time, bank_reads[bank_bitmap[i][n]][0].address, bank_reads[i][0].time, current_time, n, i);*/
+								  fprintf(dump, "\nDelay: %d	Address: %x	Time: %d	Current Time: %d	n: %d	i: %d\n", current_time - bankReadQueue[i][0].time, bankReadQueue[bank_bitmap[i][n]][0].address, bankReadQueue[i][0].time, current_time, n, i);*/
 
 								/* Serve the request if the bank is free */
 								if(parity_stall[i/4][parity_bitmap[i%4][n]] == BANK_FREE) {
-									if(!parity_overwritten(bank_reads[bank_bitmap[i][n]][z].address)) {
-										if(codePresent(bank_reads[i][0].address, bank_reads[bank_bitmap[i][n]][z].address)) {
-											if(bank_reads[bank_bitmap[i][n]][z].critical == true) {
+									if(!parity_overwritten(bankReadQueue[bank_bitmap[i][n]][z].address)) {
+										if(codePresent(bankReadQueue[i][0].address, bankReadQueue[bank_bitmap[i][n]][z].address)) {
+											if(bankReadQueue[bank_bitmap[i][n]][z].critical == true) {
 
-												fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bank_reads[bank_bitmap[i][n]][z].time, bank_reads[bank_bitmap[i][n]][z].address, current_time);
-												read_cr_word_latency += (current_time) - bank_reads[bank_bitmap[i][n]][z].time;
+												fprintf(dump, "Delay: %d\t Address: %d	Time: %d P\n", current_time - bankReadQueue[bank_bitmap[i][n]][z].time, bankReadQueue[bank_bitmap[i][n]][z].address, current_time);
+												read_cr_word_latency += (current_time) - bankReadQueue[bank_bitmap[i][n]][z].time;
 											}
-											serve_request(bank_reads[bank_bitmap[i][n]][z]);
+											serve_request(bankReadQueue[bank_bitmap[i][n]][z]);
 											parity_hit++;
-											bank_reads[bank_bitmap[i][n]].erase(bank_reads[bank_bitmap[i][n]].begin() + z);
+											bankReadQueue[bank_bitmap[i][n]].erase(bankReadQueue[bank_bitmap[i][n]].begin() + z);
 											parity_stall[i/4][parity_bitmap[i%4][n]] = BANK_BUSY;
 										}
 									}
@@ -505,32 +505,32 @@ void access_scheduler() {
 				}
 			}
 			/* Serving the head of the queue here */
-			if(bank_reads[i][0].critical == true) {
-				read_cr_word_latency += (current_time) - bank_reads[i][0].time;
-				fprintf(dump, "Delay: %d\t Address: %d 	Time: %d\n", current_time - bank_reads[i][0].time, bank_reads[i][0].address, current_time);
+			if(bankReadQueue[i][0].critical == true) {
+				read_cr_word_latency += (current_time) - bankReadQueue[i][0].time;
+				fprintf(dump, "Delay: %d\t Address: %d 	Time: %d\n", current_time - bankReadQueue[i][0].time, bankReadQueue[i][0].address, current_time);
 			}
-			past_requests.push_back(bank_reads[i][0]);
-			region = (bank_reads[i][0].address - lowAddress)/region_size;
+			past_requests.push_back(bankReadQueue[i][0]);
+			region = (bankReadQueue[i][0].address - lowAddress)/region_size;
 			if(region >= NUM_REGIONS) {
-				cout << lowAddress << " " << bank_reads[i][0].address << " " << highAddress << endl;
+				cout << lowAddress << " " << bankReadQueue[i][0].address << " " << highAddress << endl;
 				exit(0);
 			}
-			previously_read[region].push_back(bank_reads[i][0].address);
-			serve_request(bank_reads[i][0]);			
-			bank_reads[i].erase(bank_reads[i].begin());
+			previously_read[region].push_back(bankReadQueue[i][0].address);
+			serve_request(bankReadQueue[i][0]);			
+			bankReadQueue[i].erase(bankReadQueue[i].begin());
 		}
-		else if((dataBankStatus[i]==BANK_FREE) && bank_writes[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
+		else if((dataBankStatus[i]==BANK_FREE) && bankWriteQueue[i].size() != 0 && (current_time % MEM_DELAY) == 0) {
 			/* First serve the request in the data bank */
-			if(bank_writes[i][0].critical == true) {
-				write_cr_word_latency += (current_time) - bank_writes[i][0].time;
+			if(bankWriteQueue[i][0].critical == true) {
+				write_cr_word_latency += (current_time) - bankWriteQueue[i][0].time;
 			}
-			serve_request(bank_writes[i][0]);
-			bank_writes[i][0].inParity = false; //Mark that the write was not written to parity
-			overwritten_parity_rows.push_back(bank_writes[i][0]);
-			bank_writes[i].erase(bank_writes[i].begin());	
+			serve_request(bankWriteQueue[i][0]);
+			bankWriteQueue[i][0].inParity = false; //Mark that the write was not written to parity
+			overwritten_parity_rows.push_back(bankWriteQueue[i][0]);
+			bankWriteQueue[i].erase(bankWriteQueue[i].begin());	
 
 			/* If another request is waiting behind it, try to use the parity banks */
-			if(bank_writes[i].size() != 0) {
+			if(bankWriteQueue[i].size() != 0) {
 				/* Check the appropriate parity bank for storing the write */
 				int parity_bank_num = 0;
 				switch(i) {
@@ -553,14 +553,14 @@ void access_scheduler() {
 					parity_stall[i/4][parity_bank_num] = BANK_BUSY; //Mark the bank as busy
 					
 					/* Serve the write the same way as above */
-					if(bank_writes[i][0].critical == true) { //We'll serve the request now if it's critical
-						write_cr_word_latency += (current_time) - bank_writes[i][0].time;
+					if(bankWriteQueue[i][0].critical == true) { //We'll serve the request now if it's critical
+						write_cr_word_latency += (current_time) - bankWriteQueue[i][0].time;
 					}
-					serve_request(bank_writes[i][0]);
-					bank_writes[i][0].inParity = true; //Mark that the write was written to parity
-					bank_writes[i][0].parityNumber = parity_bank_num;
-					overwritten_parity_rows.push_back(bank_writes[i][0]);
-					bank_writes[i].erase(bank_writes[i].begin());
+					serve_request(bankWriteQueue[i][0]);
+					bankWriteQueue[i][0].inParity = true; //Mark that the write was written to parity
+					bankWriteQueue[i][0].parityNumber = parity_bank_num;
+					overwritten_parity_rows.push_back(bankWriteQueue[i][0]);
+					bankWriteQueue[i].erase(bankWriteQueue[i].begin());
 				}
 			}
 		}
@@ -618,7 +618,7 @@ bool check_recode() {
 	/* Only recode if there are no pending queue requests */
 	bool no_pending_requests = true;
 	for(int i = 0; i < NUM_BANKS; i++) {
-		if(bank_reads[i].size() != 0 || bank_writes[i].size() != 0) {
+		if(bankReadQueue[i].size() != 0 || bankWriteQueue[i].size() != 0) {
 			return false;
 		}
 	}
