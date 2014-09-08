@@ -11,7 +11,7 @@ using namespace std;
 
 /* Some definitions to change simulation parameters */
 #define NUM_BANKS 8
-#define NUM_PARITY_BANKS 6 //Not currently used. Num parity banks per 4 data banks
+#define NUM_PARITY_BANKS 6 
 #define NUM_TRACES 6
 #define WR_QUEUE_BUILDUP 10
 #define CORE_QUEUE_MAX 8
