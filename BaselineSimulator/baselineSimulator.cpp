@@ -12,7 +12,7 @@ using namespace std;
 /* Some definitions to change simulation parameters */
 #define NUM_BANKS 8
 #define NUM_TRACES 6
-#define WR_QUEUE_BUILDUP 100
+#define WR_QUEUE_BUILDUP 10
 #define CORE_QUEUE_MAX 8
 #define MAX_BANK_QUEUE_LENGTH 10
 string TRACE_LOCATION; //("/home/casen/Huawei/traces/LTE/dsp_0_trace.txt");
