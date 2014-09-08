@@ -126,7 +126,7 @@ unordered_map<int, beatLevelRequestInBank> previously_served_writes;
 int PASS = 0; // 2 passes must be made over the data and parity banks to complete recodingf
 
 /* Keep track of which locations are currently coded */
-vector<bank_request> pending_parity_writes;
+vector<beatLevelRequestInBank> pending_parity_writes;
 int region_hits[NUM_REGIONS]; //Holds the number of hits a region has had
 int coded_regions[NUM_ACTIVE_REGIONS];
 vector<int> previously_read[NUM_REGIONS];
