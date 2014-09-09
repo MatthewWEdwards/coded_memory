@@ -7,15 +7,15 @@ if [ "$#" -eq 0 ];then
 	exit 0
 fi
 
-TRACENAME=( "LTE" "UMTS" "trace1" "trace2" "trace3" "trace4")
-#TRACENAME=( "case4" )
+#TRACENAME=( "LTE" "UMTS" "trace1" "trace2" "trace3" "trace4")
+TRACENAME=( "case4" )
 
 
 for ((j=0; j < $1 ; j ++))
     do
     for i in {2..2}	
 	do
-        for n in {1..10}
+        for n in {9..10}
         do
 	    ./sim $n $[i*5] 0 "../../traces/"${TRACENAME[j]}"/dsp_0_trace.txt"
         done
