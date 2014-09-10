@@ -460,6 +460,10 @@ bool codePresent(int address1, int address2) {
 
 
 void serve_request(beatLevelRequestInBank request) {
+
+	/* Keep track of the region hits */
+	int region = (request.address - lowAddress)/NUM_REGIONS;
+	region_hits[region]++;
 		
 	/* Determine if we're dealing with read or write */
 	unordered_map<int, beatLevelRequestInBank> *request_list;
