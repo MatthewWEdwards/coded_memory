@@ -523,43 +523,37 @@ void access_scheduler() {
 			/* Check to see if the request can be served from the parity banks */
 			/* Currently, we're only looking at past reads, not in the future */
 			if(!parity_overwritten(bankReadQueue[mainDataBank][0].address)) { //Make sure a write didn't wipe out the parity
-				for(int auxiliaryBank1 = 0; auxiliaryBank1 < 6; auxiliaryBank1++) {
-					int start;
-					if(auxiliaryBank1 %2 == 0)
-						start = auxiliaryBank1;
-					else
-						start = auxiliaryBank1 - 1;
-					for(int auxiliaryBank2 = start; auxiliaryBank2 < start + 2; auxiliaryBank2++) {
-						int lookahead = bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]].size();
-						if(lookahead > MAX_LOOKAHEAD)
-							lookahead = MAX_LOOKAHEAD;
-						if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0) {
-							if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address/8 == bankReadQueue[mainDataBank][0].address/8 && bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0)  {
-								/* Make sure the bank we're checking has requests in the queue */
-								for(int z = 0; z < lookahead; z++) { //Right now, only consider the head of the second bank
+				for(int auxiliaryBank = 0; auxiliaryBank < 6; auxiliaryBank++) {
 
-									/* Check if using the parity bank is possible */
-									if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]].size() > 0 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]].size() > 0) { //Avoid seg fault
-										if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address/8 == bankReadQueue[mainDataBank][0].address/8 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address/8 == bankReadQueue[mainDataBank][0].address/8) {
-											/* Serve the request if the bank is free */
-										if(parity_stall[parity_bitmap[mainDataBank][auxiliaryBank1/2]] == BANK_FREE) {
-											if(!parity_overwritten(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address) && !parity_overwritten(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address) && codePresent(bankReadQueue[mainDataBank][0].address, bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank1]][0].address, bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].address)) {
-												if(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].critical == true) {
-													read_cr_word_latency += (current_time) - bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]][z].time;
+					int lookahead = bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]].size();
+					if(lookahead > MAX_LOOKAHEAD)
+						lookahead = MAX_LOOKAHEAD;
+					if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]].size() > 0 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]].size() > 0) {
+						if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]][0].address/8 == bankReadQueue[mainDataBank][0].address/8 && bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]].size() > 0 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]].size() > 0)  {
+							/* Make sure the bank we're checking has requests in the queue */
+							for(int z = 0; z < lookahead; z++) { //Right now, only consider the head of the second bank
+
+								/* Check if using the parity bank is possible */
+								if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]].size() > 0 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]].size() > 0) { //Avoid seg fault
+									if(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]][0].address/8 == bankReadQueue[mainDataBank][0].address/8 && bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]][z].address/8 == bankReadQueue[mainDataBank][0].address/8) {
+										/* Serve the request if the bank is free */
+										if(parity_stall[parity_bitmap[mainDataBank][auxiliaryBank/2]] == BANK_FREE) {
+											if(!parity_overwritten(bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]][0].address) && !parity_overwritten(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]][z].address) && codePresent(bankReadQueue[mainDataBank][0].address, bankReadQueue[bank_bitmap[mainDataBank][auxiliaryBank]][0].address, bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]][z].address)) {
+												if(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]][z].critical == true) {
+													read_cr_word_latency += (current_time) - bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]][z].time;
 												}
-												serve_request(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]][z]);
+												serve_request(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]][z]);
 												parity_hit++;
 												/* Don't remove the head of the queue twice due to the missing 9th bank */
-												//if(i != bank_bitmap[mainDataBank][auxiliaryBank1] && i != bank_bitmap2[mainDataBank][auxiliaryBank2]) 
-												bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]].erase(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank2]].begin() + z);
-												parity_stall[parity_bitmap[mainDataBank][auxiliaryBank1/2]] = BANK_BUSY;
+												//if(i != bank_bitmap[mainDataBank][auxiliaryBank] && i != bank_bitmap2[mainDataBank][auxiliaryBank]) 
+												bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]].erase(bankReadQueue[bank_bitmap2[mainDataBank][auxiliaryBank]].begin() + z);
+												parity_stall[parity_bitmap[mainDataBank][auxiliaryBank/2]] = BANK_BUSY;
 											}
 										}
 									}
 								}
 							}
 						}
-					}
 					}
 				}
 			}
