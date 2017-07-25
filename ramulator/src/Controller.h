@@ -357,20 +357,18 @@ public:
 
         void schedule_parity_reads(const list<Request>::iterator &req_it)
         {
-                vector<list<Request>::iterator> to_schedule;
                 for (auto it { std::begin(readq.q) };
                      it != std::end(readq.q); ++it) {
                         if (it == req_it)
                                 continue;
                         auto avail_banks { find_avail_parity_banks(*req_it, *it) };
-                        if (avail_banks.size() > 0)
-                                to_schedule.push_back(it);
-                }
-                for (auto req : to_schedule) {
-                        req->served_by_parity = true;
-                        req->depart = clk + channel->spec->read_latency;
-                        readq.q.erase(req);
-                        pending.push_back(*req);
+                        if (avail_banks.size() > 0) {
+                                it->served_by_parity = true;
+                                it->depart = clk + channel->spec->read_latency;
+                                pending.push_back(*it);
+                                readq.q.erase(it);
+                                break;
+                        }
                 }
         }
 #endif
