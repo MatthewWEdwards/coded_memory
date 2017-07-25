@@ -366,11 +366,11 @@ public:
                         if (avail_banks.size() > 0)
                                 to_schedule.push_back(it);
                 }
-                for (auto req_it : to_schedule) {
-                        req_it->served_by_parity = true;
-                        req_it->depart = clk + channel->spec->read_latency;
-                        readq.q.erase(req_it);
-                        pending.push_back(*req_it);
+                for (auto req : to_schedule) {
+                        req->served_by_parity = true;
+                        req->depart = clk + channel->spec->read_latency;
+                        readq.q.erase(req);
+                        pending.push_back(*req);
                 }
         }
 #endif
