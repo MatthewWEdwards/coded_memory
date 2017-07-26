@@ -34,15 +34,27 @@ public:
                                const ramulator::Request &want) const
         {
                 /* "have" will be served by main memory. "want" might be
-                 * serviceable by * this parity bank. */
+                 * serviceable by this parity bank. */
                 /* FIXME: only supports parity banks with two XOR'd regions */
-                return (regions[0].contains_request_data(have) &&
-                        regions[1].contains_request_data(want)) ||
-                       (regions[1].contains_request_data(have) &&
-                        regions[0].contains_request_data(want));
+                bool compatible = (regions[0].contains_request_data(have) &&
+                                   regions[1].contains_request_data(want)) ||
+                                  (regions[1].contains_request_data(have) &&
+                                   regions[0].contains_request_data(want));
+                return !is_busy && compatible;
         }
-        bool lock();
-        void free();
+        bool lock()
+        {
+                if (!is_busy) {
+                        is_busy = true;
+                        return true;
+                } else {
+                        return false;
+                }
+        }
+        void free()
+        {
+                is_busy = false;
+        }
 };
 
 }

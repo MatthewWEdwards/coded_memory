@@ -344,29 +344,36 @@ public:
     }
 
 #ifdef MEMORY_CODING
-        vector<coding::ParityBank<T, parity_max_rows>>
+        vector<coding::ParityBank<T, parity_max_rows>*>
                         find_avail_parity_banks(const Request &have, const Request &want)
         {
-                vector<coding::ParityBank<T, parity_max_rows>> ret;
-                for (auto it { std::begin(parity_banks) };
+                vector<coding::ParityBank<T, parity_max_rows>*> ret;
+                for (auto it {std::begin(parity_banks)};
                      it != std::end(parity_banks); ++it)
                         if (it->can_serve_request(have, want))
-                                ret.push_back(*it);
+                                ret.push_back(&(*it));
                 return ret;
+        }
+
+        void schedule_concurrent_parity_read(list<Request>::iterator &req_it,
+                                             coding::ParityBank<T, parity_max_rows> *bank)
+        {
+                bank->lock();
+                req_it->served_by_parity = true;
+                req_it->depart = clk + channel->spec->read_latency;
+                pending.push_back(*req_it);
+                readq.q.erase(req_it);
         }
 
         void schedule_parity_reads(const list<Request>::iterator &req_it)
         {
-                for (auto it { std::begin(readq.q) };
+                for (auto it {std::begin(readq.q)};
                      it != std::end(readq.q); ++it) {
                         if (it == req_it)
                                 continue;
-                        auto avail_banks { find_avail_parity_banks(*req_it, *it) };
+                        auto avail_banks {find_avail_parity_banks(*req_it, *it)};
                         if (avail_banks.size() > 0) {
-                                it->served_by_parity = true;
-                                it->depart = clk + channel->spec->read_latency;
-                                pending.push_back(*it);
-                                readq.q.erase(it);
+                                schedule_concurrent_parity_read(it, avail_banks[0]);
                                 break;
                         }
                 }
