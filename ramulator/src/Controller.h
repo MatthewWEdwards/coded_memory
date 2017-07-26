@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "Coding.h"
 #include "Config.h"
 #include "DRAM.h"
 #include "Refresh.h"
@@ -22,6 +21,11 @@
 #include "TLDRAM.h"
 
 #define MEMORY_CODING
+
+#ifdef MEMORY_CODING
+#include "Coding.h"
+#include <functional>
+#endif
 
 using namespace std;
 
@@ -359,6 +363,14 @@ public:
                                              coding::ParityBank<T, parity_max_rows> *bank)
         {
                 bank->lock();
+                /* for now, parity bank is free when the main memory request
+                 * completes */
+                auto old_callback = req_it->callback;
+                auto wrap_callback = [old_callback, bank](Request &req) {
+                        bank->free();
+                        old_callback(req);
+                };
+                req_it->callback = wrap_callback;
                 req_it->served_by_parity = true;
                 req_it->depart = clk + channel->spec->read_latency;
                 pending.push_back(*req_it);
