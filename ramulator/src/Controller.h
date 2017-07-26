@@ -349,41 +349,42 @@ public:
 
 #ifdef MEMORY_CODING
         vector<coding::ParityBank<T, parity_max_rows>*>
-                        find_avail_parity_banks(const Request &have, const Request &want)
+                        find_avail_parity_banks(const Request &primary,
+                                                const Request &secondary)
         {
                 vector<coding::ParityBank<T, parity_max_rows>*> ret;
                 for (auto it {std::begin(parity_banks)};
                      it != std::end(parity_banks); ++it)
-                        if (it->can_serve_request(have, want))
+                        if (it->can_serve_request(primary, secondary))
                                 ret.push_back(&(*it));
                 return ret;
         }
 
-        void schedule_concurrent_parity_read(list<Request>::iterator &req_it,
+        void schedule_concurrent_parity_read(list<Request>::iterator &secondary_it,
                                              coding::ParityBank<T, parity_max_rows> *bank)
         {
+                /* for now, parity read is as fast as main memory read */
                 bank->lock();
-                /* for now, parity bank is free when the main memory request
-                 * completes */
-                auto old_callback = req_it->callback;
+                auto old_callback = secondary_it->callback;
                 auto wrap_callback = [old_callback, bank](Request &req) {
                         bank->free();
                         old_callback(req);
                 };
-                req_it->callback = wrap_callback;
-                req_it->served_by_parity = true;
-                req_it->depart = clk + channel->spec->read_latency;
-                pending.push_back(*req_it);
-                readq.q.erase(req_it);
+                secondary_it->callback = wrap_callback;
+                secondary_it->served_by_parity = true;
+                secondary_it->depart = clk + channel->spec->read_latency;
+                pending.push_back(*secondary_it);
+                readq.q.erase(secondary_it);
         }
 
-        void schedule_parity_reads(const list<Request>::iterator &req_it)
+        void schedule_parity_reads(const list<Request>::iterator &primary_it)
         {
                 for (auto it {std::begin(readq.q)};
                      it != std::end(readq.q); ++it) {
-                        if (it == req_it)
+                        if (it == primary_it)
                                 continue;
-                        auto avail_banks {find_avail_parity_banks(*req_it, *it)};
+                        /* fcfs */
+                        auto avail_banks {find_avail_parity_banks(*primary_it, *it)};
                         if (avail_banks.size() > 0) {
                                 schedule_concurrent_parity_read(it, avail_banks[0]);
                                 break;

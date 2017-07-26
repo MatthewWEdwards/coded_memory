@@ -30,16 +30,16 @@ private:
         bool is_busy;
 public:
         ParityBank(const vector<CodedRegion<T, R>> regions) : regions(regions) {}
-        bool can_serve_request(const ramulator::Request &have,
-                               const ramulator::Request &want) const
+        bool can_serve_request(const ramulator::Request &primary,
+                               const ramulator::Request &secondary) const
         {
-                /* "have" will be served by main memory. "want" might be
+                /* "primary" will be served by main memory. "secondary" might be
                  * serviceable by this parity bank. */
                 /* FIXME: only supports parity banks with two XOR'd regions */
-                bool compatible = (regions[0].contains_request_data(have) &&
-                                   regions[1].contains_request_data(want)) ||
-                                  (regions[1].contains_request_data(have) &&
-                                   regions[0].contains_request_data(want));
+                bool compatible = (regions[0].contains_request_data(primary) &&
+                                   regions[1].contains_request_data(secondary)) ||
+                                  (regions[1].contains_request_data(primary) &&
+                                   regions[0].contains_request_data(secondary));
                 return !is_busy && compatible;
         }
         bool lock()
