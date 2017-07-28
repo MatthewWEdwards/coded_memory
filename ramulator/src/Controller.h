@@ -461,12 +461,6 @@ public:
 
     void tick()
     {
-#ifdef MEMORY_CODING
-        for (auto b_it {std::begin(parity_banks)};
-             b_it != std::end(parity_banks); ++b_it)
-            b_it->tick();
-#endif
-
         clk++;
         req_queue_length_sum += readq.size() + writeq.size() + pending.size();
         read_req_queue_length_sum += readq.size() + pending.size();
@@ -553,6 +547,10 @@ public:
         }
 
 #ifdef MEMORY_CODING
+        for (auto b_it {std::begin(parity_banks)};
+             b_it != std::end(parity_banks); ++b_it)
+            b_it->tick();
+        /*** See if we can serve this request sooner using parity banks. */
         if (!write_mode)
             if (serve_read_with_parity(*req))
                 return;
@@ -581,7 +579,7 @@ public:
 
 #ifdef MEMORY_CODING
         /*** We issued a read request to main memory, now see if we can serve
-             any queued reads usinga parity banks. */
+             any queued reads using parity banks. */
         if (!write_mode)
             serve_other_reads_with_parity(*req);
 #endif
