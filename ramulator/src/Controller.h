@@ -351,22 +351,19 @@ public:
     }
 
 #ifdef MEMORY_CODING
-        void schedule_served_read(Request& req, long depart)
+        void serve_other_reads_with_parity(const Request& mem_req)
         {
-                req.hit_dram = false;
-                req.depart = depart;
-                pending.push_back(req);
-        }
-
-        map<int, vector<reference_wrapper<Request>>> sort_reads_by_bank()
-        {
-                map<int, vector<reference_wrapper<Request>>> sorted;
-                for (auto read_it {std::begin(readq.q)};
-                     read_it != std::end(readq.q); ++read_it) {
-                        int bank = read_it->addr_vec[(int)T::Level::Bank];
-                        sorted[bank].push_back(*read_it);
+                auto concurrent_reads = find_concurrent_parity_reads(mem_req);
+                for (auto concurrent_read : concurrent_reads) {
+                        Request& parity_req {concurrent_read.first.get()};
+                        coding::ParityBank<T, parity_max_rows>&
+                                parity_bank {concurrent_read.second.get()};
+                        parity_bank.lock_for_read();
+                        // this doesn't work? probably a template thing
+                        //readq.q.remove(parity_req);
+                        remove_read_from_readq(parity_req);
+                        schedule_served_read(parity_req, clk + parity_bank_latency);
                 }
-                return sorted;
         }
 
         /* Given a read request to main memory, schedule other concurrent reads
@@ -389,6 +386,24 @@ public:
                 return schedule;
         }
 
+        map<int, vector<reference_wrapper<Request>>> sort_reads_by_bank()
+        {
+                map<int, vector<reference_wrapper<Request>>> sorted;
+                for (auto read_it {std::begin(readq.q)};
+                     read_it != std::end(readq.q); ++read_it) {
+                        int bank = read_it->addr_vec[(int)T::Level::Bank];
+                        sorted[bank].push_back(*read_it);
+                }
+                return sorted;
+        }
+
+        void schedule_served_read(Request& req, long depart)
+        {
+                req.hit_dram = false;
+                req.depart = depart;
+                pending.push_back(req);
+        }
+
         void remove_read_from_readq(Request& req)
         {
                 for (auto read_it {std::begin(readq.q)};
@@ -399,21 +414,6 @@ public:
                         }
                 }
                 assert(false);
-        }
-
-        void serve_other_reads_with_parity(const Request& mem_req)
-        {
-                auto concurrent_reads = find_concurrent_parity_reads(mem_req);
-                for (auto concurrent_read : concurrent_reads) {
-                        Request& parity_req {concurrent_read.first.get()};
-                        coding::ParityBank<T, parity_max_rows>&
-                                parity_bank {concurrent_read.second.get()};
-                        parity_bank.lock_for_read();
-                        // this doesn't work? probably a template thing
-                        //readq.q.remove(parity_req);
-                        remove_read_from_readq(parity_req);
-                        schedule_served_read(parity_req, clk + parity_bank_latency);
-                }
         }
 #endif
 
