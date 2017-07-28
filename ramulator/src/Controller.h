@@ -24,6 +24,8 @@
 
 #ifdef MEMORY_CODING
 #include "Coding.h"
+#include <map>
+#include <functional>
 #endif
 
 using namespace std;
@@ -102,6 +104,7 @@ public:
 #ifdef MEMORY_CODING
     static constexpr int parity_max_rows = 1 << 15;
     vector<coding::ParityBank<T, parity_max_rows>> parity_banks;
+    unsigned long parity_bank_latency;
 #endif
 
     /* Constructor */
@@ -128,7 +131,7 @@ public:
 #ifdef MEMORY_CODING
         // coding
         /* for now, parity bank latency = main memory latency */
-        const unsigned long parity_bank_latency = channel->spec->read_latency;
+        parity_bank_latency = channel->spec->read_latency;
         /* for now, use coded regions as big as the memory banks */
         std::bitset<parity_max_rows> parity_bank_rows;
         parity_bank_rows.set();
@@ -348,41 +351,68 @@ public:
     }
 
 #ifdef MEMORY_CODING
-        vector<coding::ParityBank<T, parity_max_rows>*>
-                        find_avail_parity_banks(const Request &primary,
-                                                const Request &secondary)
-        {
-                vector<coding::ParityBank<T, parity_max_rows>*> ret;
-                for (auto it {std::begin(parity_banks)};
-                     it != std::end(parity_banks); ++it)
-                        if (it->can_serve_request(primary, secondary))
-                                ret.push_back(&(*it));
-                return ret;
-        }
-
-        void schedule_served_read(Request &req, long depart)
+        void schedule_served_read(Request& req, long depart)
         {
                 req.hit_dram = false;
                 req.depart = depart;
                 pending.push_back(req);
         }
 
-        void schedule_parity_reads(const list<Request>::iterator &primary_it)
+        map<int, vector<reference_wrapper<Request>>> sort_reads_by_bank()
         {
-                for (auto it {std::begin(readq.q)};
-                     it != std::end(readq.q); ++it) {
-                        if (it == primary_it)
-                                continue;
-                        /* fcfs */
-                        auto avail_banks {find_avail_parity_banks(*primary_it, *it)};
-                        if (avail_banks.size() > 0) {
-                                auto bank_ptr = avail_banks[0];
-                                bank_ptr->do_read();
-                                schedule_served_read(*it, clk +
-                                                          channel->spec->read_latency);
-                                readq.q.erase(it);
-                                break;
+                map<int, vector<reference_wrapper<Request>>> sorted;
+                for (auto read_it {std::begin(readq.q)};
+                     read_it != std::end(readq.q); ++read_it) {
+                        int bank = read_it->addr_vec[(int)T::Level::Bank];
+                        sorted[bank].push_back(*read_it);
+                }
+                return sorted;
+        }
+
+        /* Given a read request to main memory, schedule other concurrent reads
+         * using parity banks.
+         *
+         * Return a map of read requests to parity banks, indicating each
+         * request can be serviced simultaneously with the others using its
+         * respective parity bank. */
+        map<reference_wrapper<Request>,
+            reference_wrapper<coding::ParityBank<T, parity_max_rows>>>
+                find_concurrent_parity_reads(const Request& mem_req)
+        {
+                map<reference_wrapper<Request>,
+                    reference_wrapper<coding::ParityBank<T, parity_max_rows>>>
+                        schedule;
+                auto reads_by_bank = sort_reads_by_bank();
+
+                // ???
+
+                return schedule;
+        }
+
+        void remove_read_from_readq(Request& req)
+        {
+                for (auto read_it {std::begin(readq.q)};
+                     read_it != std::end(readq.q); ++read_it) {
+                        if (&(*read_it) == &req) {
+                                readq.q.erase(read_it);
+                                return;
                         }
+                }
+                assert(false);
+        }
+
+        void serve_other_reads_with_parity(const Request& mem_req)
+        {
+                auto concurrent_reads = find_concurrent_parity_reads(mem_req);
+                for (auto concurrent_read : concurrent_reads) {
+                        Request& parity_req {concurrent_read.first.get()};
+                        coding::ParityBank<T, parity_max_rows>&
+                                parity_bank {concurrent_read.second.get()};
+                        parity_bank.lock_for_read();
+                        // this doesn't work? probably a template thing
+                        //readq.q.remove(parity_req);
+                        remove_read_from_readq(parity_req);
+                        schedule_served_read(parity_req, clk + parity_bank_latency);
                 }
         }
 #endif
@@ -498,13 +528,15 @@ public:
             channel->update_serving_requests(req->addr_vec.data(), -1, clk);
         }
 
-#ifdef MEMORY_CODING
-        if (!write_mode)
-            schedule_parity_reads(req);
-#endif
-
         // remove request from queue
         queue->q.erase(req);
+
+#ifdef MEMORY_CODING
+        /*** We issued a read request to main memory, now see if we can serve
+             any queued reads usinga parity banks. */
+        if (!write_mode)
+            serve_other_reads_with_parity(*req);
+#endif
     }
 
     bool is_ready(list<Request>::iterator req)

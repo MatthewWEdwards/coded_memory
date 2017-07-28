@@ -8,14 +8,15 @@
 namespace coding
 {
 
-template <typename T, std::size_t R>
+template <typename T, std::size_t max_rows>
 class CodedRegion {
 private:
-        const std::bitset<R> rows;
+        const std::bitset<max_rows> rows;
         const int bank;
 public:
-        CodedRegion(const std::bitset<R> &rows, const int &bank) :
-                rows(rows), bank(bank) {}
+        CodedRegion(const std::bitset<max_rows> &rows, const int &bank) :
+                rows(rows),
+                bank(bank) {}
         inline bool contains_request_data(const ramulator::Request &req) const
         {
                 int row { req.addr_vec[(int)T::Level::Row] };
@@ -23,16 +24,16 @@ public:
         }
 };
 
-template <typename T, std::size_t R>
+template <typename T, std::size_t max_rows>
 class ParityBank {
 private:
-        const vector<CodedRegion<T, R>> regions;
+        const vector<CodedRegion<T, max_rows>> regions;
         unsigned long clock = 0;
         unsigned long will_finish = 0;
         bool is_busy = false;
         const unsigned long access_latency;
 public:
-        ParityBank(const vector<CodedRegion<T, R>> regions,
+        ParityBank(const vector<CodedRegion<T, max_rows>> regions,
                    const unsigned long latency) :
                 regions(regions), access_latency(latency) {}
         bool can_serve_request(const ramulator::Request &primary,
@@ -47,7 +48,7 @@ public:
                                    regions[0].contains_request_data(secondary));
                 return !is_busy && compatible;
         }
-        bool do_read()
+        bool lock_for_read()
         {
                 if (!is_busy) {
                         is_busy = true;
