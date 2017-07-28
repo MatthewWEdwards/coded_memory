@@ -351,13 +351,14 @@ public:
     }
 
 #ifdef MEMORY_CODING
+        using ParityBank = coding::ParityBank<T, parity_max_rows>;
+
         void serve_other_reads_with_parity(const Request& mem_req)
         {
                 auto concurrent_reads = find_concurrent_parity_reads(mem_req);
                 for (auto concurrent_read : concurrent_reads) {
                         Request& parity_req {concurrent_read.first.get()};
-                        coding::ParityBank<T, parity_max_rows>&
-                                parity_bank {concurrent_read.second.get()};
+                        ParityBank& parity_bank {concurrent_read.second.get()};
                         parity_bank.lock_for_read();
                         // this doesn't work? probably a template thing
                         //readq.q.remove(parity_req);
@@ -372,12 +373,11 @@ public:
          * Return a map of read requests to parity banks, indicating each
          * request can be serviced simultaneously with the others using its
          * respective parity bank. */
-        map<reference_wrapper<Request>,
-            reference_wrapper<coding::ParityBank<T, parity_max_rows>>>
+        map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
                 find_concurrent_parity_reads(const Request& mem_req)
         {
                 map<reference_wrapper<Request>,
-                    reference_wrapper<coding::ParityBank<T, parity_max_rows>>>
+                    reference_wrapper<ParityBank>>
                         schedule;
                 auto reads_by_bank = sort_reads_by_bank();
 
