@@ -360,7 +360,7 @@ public:
                 auto piggyback_it {std::begin(piggybacks)};
                 /* just grab the first one, if it exists */
                 if (piggyback_it != std::end(piggybacks)) {
-                        Request& pending_req {piggyback_it->first.get()};
+                        const Request& pending_req {piggyback_it->first.get()};
                         long depart = max<long>(clk + parity_bank_latency,
                                                 pending_req.depart);
                         // this doesn't work? probably a template thing
@@ -383,10 +383,11 @@ public:
          * Return a map of pending reqeusts to parity banks, indicating that the
          * given request can piggyback on each pending request in conjunction
          * with its respective parity bank. */
-        map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
+        map<reference_wrapper<const Request>, reference_wrapper<ParityBank>>
                 find_parity_sources(const Request& read_req)
         {
-                map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
+                map<reference_wrapper<const Request>,
+                    reference_wrapper<ParityBank>>
                         piggybacks;
                 auto reads_by_bank = sort_reads_by_bank();
 
@@ -445,7 +446,7 @@ public:
                 pending.push_back(req);
         }
 
-        void remove_read_from_readq(Request& req)
+        void remove_read_from_readq(const Request& req)
         {
                 for (auto read_it {std::begin(readq.q)};
                      read_it != std::end(readq.q); ++read_it) {
