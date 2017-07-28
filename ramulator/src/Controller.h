@@ -439,7 +439,7 @@ public:
                 return sorted;
         }
 
-        void schedule_served_read(Request& req, long depart)
+        void schedule_served_read(Request& req, const long& depart)
         {
                 req.hit_dram = false;
                 req.depart = depart;
