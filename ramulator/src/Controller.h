@@ -24,6 +24,7 @@
 
 #ifdef MEMORY_CODING
 #include "Coding.h"
+#include <algorithm>
 #include <functional>
 #include <map>
 #endif
@@ -353,6 +354,47 @@ public:
 #ifdef MEMORY_CODING
         using ParityBank = coding::ParityBank<T, parity_max_rows>;
 
+        bool serve_read_with_parity(Request& read_req)
+        {
+                auto piggybacks = find_parity_sources(read_req);
+                auto piggyback_it {std::begin(piggybacks)};
+                /* just grab the first one, if it exists */
+                if (piggyback_it != std::end(piggybacks)) {
+                        Request& pending_req {piggyback_it->first.get()};
+                        long depart = max<long>(clk + parity_bank_latency,
+                                                pending_req.depart);
+                        // this doesn't work? probably a template thing
+                        //readq.q.remove(read_req);
+                        remove_read_from_readq(read_req);
+                        schedule_served_read(read_req, depart);
+
+                        ParityBank& parity_bank {piggyback_it->second.get()};
+                        parity_bank.lock_for_read();
+
+                        return true;
+                } else {
+                        return false;
+                }
+        }
+
+        /* Given a read request, scan the pending queue and see if the given
+         * request can be served sooner using a parity bank.
+         *
+         * Return a map of pending reqeusts to parity banks, indicating that the
+         * given request can piggyback on each pending request in conjunction
+         * with its respective parity bank. */
+        map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
+                find_parity_sources(const Request& read_req)
+        {
+                map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
+                        piggybacks;
+                auto reads_by_bank = sort_reads_by_bank();
+
+                // ???
+
+                return piggybacks;
+        }
+
         void serve_other_reads_with_parity(const Request& mem_req)
         {
                 auto concurrent_reads = find_concurrent_parity_reads(mem_req);
@@ -376,8 +418,7 @@ public:
         map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
                 find_concurrent_parity_reads(const Request& mem_req)
         {
-                map<reference_wrapper<Request>,
-                    reference_wrapper<ParityBank>>
+                map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
                         schedule;
                 auto reads_by_bank = sort_reads_by_bank();
 
@@ -509,6 +550,12 @@ public:
               write_transaction_bytes += tx;
             }
         }
+
+#ifdef MEMORY_CODING
+        if (!write_mode)
+            if (serve_read_with_parity(*req))
+                return;
+#endif
 
         // issue command on behalf of request
         auto cmd = get_first_cmd(req);
