@@ -24,8 +24,8 @@
 
 #ifdef MEMORY_CODING
 #include "Coding.h"
-#include <map>
 #include <functional>
+#include <map>
 #endif
 
 using namespace std;
