@@ -27,9 +27,14 @@ template <typename T, std::size_t R>
 class ParityBank {
 private:
         const vector<CodedRegion<T, R>> regions;
-        bool is_busy;
+        unsigned long clock = 0;
+        unsigned long will_finish = 0;
+        bool is_busy = false;
+        const unsigned long access_latency;
 public:
-        ParityBank(const vector<CodedRegion<T, R>> regions) : regions(regions) {}
+        ParityBank(const vector<CodedRegion<T, R>> regions,
+                   const unsigned long latency) :
+                regions(regions), access_latency(latency) {}
         bool can_serve_request(const ramulator::Request &primary,
                                const ramulator::Request &secondary) const
         {
@@ -42,18 +47,21 @@ public:
                                    regions[0].contains_request_data(secondary));
                 return !is_busy && compatible;
         }
-        bool lock()
+        bool do_read()
         {
                 if (!is_busy) {
                         is_busy = true;
+                        will_finish = clock + access_latency;
                         return true;
                 } else {
                         return false;
                 }
         }
-        void free()
+        void tick()
         {
-                is_busy = false;
+                if (is_busy && clock >= will_finish)
+                        is_busy = false;
+                clock++;
         }
 };
 

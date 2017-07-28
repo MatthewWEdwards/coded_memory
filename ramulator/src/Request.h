@@ -32,7 +32,7 @@ public:
 
     long arrive = -1;
     long depart;
-    bool served_by_parity = false;
+    bool hit_dram = true;
     function<void(Request&)> callback; // call back with more info
 
     Request(long addr, Type type, int coreid = 0)

@@ -24,7 +24,6 @@
 
 #ifdef MEMORY_CODING
 #include "Coding.h"
-#include <functional>
 #endif
 
 using namespace std;
@@ -128,7 +127,8 @@ public:
 
 #ifdef MEMORY_CODING
         // coding
-
+        /* for now, parity bank latency = main memory latency */
+        const unsigned long parity_bank_latency = channel->spec->read_latency;
         /* for now, use coded regions as big as the memory banks */
         std::bitset<parity_max_rows> parity_bank_rows;
         parity_bank_rows.set();
@@ -140,12 +140,12 @@ public:
                                                             {parity_bank_rows, 5},
                                                             {parity_bank_rows, 6},
                                                             {parity_bank_rows, 7}};
-        parity_banks.push_back({{regions[0], regions[1]}});
-        parity_banks.push_back({{regions[2], regions[3]}});
-        parity_banks.push_back({{regions[0], regions[3]}});
-        parity_banks.push_back({{regions[1], regions[2]}});
-        parity_banks.push_back({{regions[1], regions[3]}});
-        parity_banks.push_back({{regions[0], regions[2]}});
+        parity_banks.push_back({{regions[0], regions[1]}, parity_bank_latency});
+        parity_banks.push_back({{regions[2], regions[3]}, parity_bank_latency});
+        parity_banks.push_back({{regions[0], regions[3]}, parity_bank_latency});
+        parity_banks.push_back({{regions[1], regions[2]}, parity_bank_latency});
+        parity_banks.push_back({{regions[1], regions[3]}, parity_bank_latency});
+        parity_banks.push_back({{regions[0], regions[2]}, parity_bank_latency});
 #endif
 
         // regStats
@@ -360,21 +360,11 @@ public:
                 return ret;
         }
 
-        void schedule_concurrent_parity_read(list<Request>::iterator &secondary_it,
-                                             coding::ParityBank<T, parity_max_rows> *bank)
+        void schedule_served_read(Request &req, long depart)
         {
-                /* for now, parity read is as fast as main memory read */
-                bank->lock();
-                auto old_callback = secondary_it->callback;
-                auto wrap_callback = [old_callback, bank](Request &req) {
-                        bank->free();
-                        old_callback(req);
-                };
-                secondary_it->callback = wrap_callback;
-                secondary_it->served_by_parity = true;
-                secondary_it->depart = clk + channel->spec->read_latency;
-                pending.push_back(*secondary_it);
-                readq.q.erase(secondary_it);
+                req.hit_dram = false;
+                req.depart = depart;
+                pending.push_back(req);
         }
 
         void schedule_parity_reads(const list<Request>::iterator &primary_it)
@@ -386,7 +376,11 @@ public:
                         /* fcfs */
                         auto avail_banks {find_avail_parity_banks(*primary_it, *it)};
                         if (avail_banks.size() > 0) {
-                                schedule_concurrent_parity_read(it, avail_banks[0]);
+                                auto bank_ptr = avail_banks[0];
+                                bank_ptr->do_read();
+                                schedule_served_read(*it, clk +
+                                                          channel->spec->read_latency);
+                                readq.q.erase(it);
                                 break;
                         }
                 }
@@ -395,6 +389,12 @@ public:
 
     void tick()
     {
+#ifdef MEMORY_CODING
+        for (auto b_it {std::begin(parity_banks)};
+             b_it != std::end(parity_banks); ++b_it)
+            b_it->tick();
+#endif
+
         clk++;
         req_queue_length_sum += readq.size() + writeq.size() + pending.size();
         read_req_queue_length_sum += readq.size() + pending.size();
@@ -404,7 +404,7 @@ public:
         if (pending.size()) {
             Request& req = pending[0];
             if (req.depart <= clk) {
-                if (!req.served_by_parity &&
+                if (req.hit_dram &&
                     req.depart - req.arrive > 1) { // this request really accessed a row
                   read_latency_sum += req.depart - req.arrive;
                   channel->update_serving_requests(
@@ -500,7 +500,7 @@ public:
 
 #ifdef MEMORY_CODING
         if (!write_mode)
-                schedule_parity_reads(req);
+            schedule_parity_reads(req);
 #endif
 
         // remove request from queue
