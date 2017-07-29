@@ -2,52 +2,66 @@
 #define __CODING_H
 
 #include "Request.h"
-#include <bitset>
 #include <vector>
+
+using Request = ramulator::Request;
 
 namespace coding
 {
 
-template <typename T, std::size_t max_rows>
+template <typename T, int n_rows>
 class CodedRegion {
 private:
-        const std::bitset<max_rows> rows;
+        const int start_row;
         const int bank;
 public:
-        CodedRegion(const std::bitset<max_rows> &rows, const int &bank) :
-                rows(rows),
+        CodedRegion(const int& start_row, const int& bank) :
+                start_row(start_row),
                 bank(bank) {}
-        inline bool contains_request_data(const ramulator::Request &req) const
+
+        bool operator ==(const CodedRegion<T, n_rows>& other) const
         {
-                int row { req.addr_vec[(int)T::Level::Row] };
-                return req.addr_vec[(int)T::Level::Bank] == bank && rows[row] == 1;
+                return start_row == other.start_row && bank == other.bank;
+        }
+        bool operator !=(const CodedRegion<T, n_rows>& other) const
+        {
+                return !(*this == other);
+        }
+        inline bool contains(const Request& req) const
+        {
+                bool same_bank {req.addr_vec[(int)T::Level::Bank] == bank};
+                int req_row {req.addr_vec[(int)T::Level::Row]};
+                bool row_in_range {req_row >= start_row &&
+                                   req_row < start_row + n_rows};
+                return same_bank && row_in_range;
+        }
+        int row_number(const Request& req) const
+        {
+                if (contains(req))
+                        return req.addr_vec[(int)T::Level::Row] - start_row;
+                else
+                        return -1;
         }
 };
 
-template <typename T, std::size_t max_rows>
+template <typename T, int n_rows>
 class ParityBank {
+        using Region = CodedRegion<T, n_rows>;
+
 private:
-        const vector<CodedRegion<T, max_rows>> regions;
-        unsigned long clock = 0;
-        unsigned long will_finish = 0;
+        unsigned long clock {0};
+        unsigned long will_finish {0};
         bool is_busy = false;
         const unsigned long access_latency;
 public:
-        ParityBank(const vector<CodedRegion<T, max_rows>> regions,
-                   const unsigned long latency) :
-                regions(regions), access_latency(latency) {}
-        bool can_serve_request(const ramulator::Request &primary,
-                               const ramulator::Request &secondary) const
-        {
-                /* "primary" will be served by main memory. "secondary" might be
-                 * serviceable by this parity bank. */
-                /* FIXME: only supports parity banks with two XOR'd regions */
-                bool compatible = (regions[0].contains_request_data(primary) &&
-                                   regions[1].contains_request_data(secondary)) ||
-                                  (regions[1].contains_request_data(primary) &&
-                                   regions[0].contains_request_data(secondary));
-                return !is_busy && compatible;
-        }
+        const vector<Region> xor_regions;
+        const Region NO_REGION {-1, -1}; /* sentinel */
+
+        ParityBank(const vector<Region>& regions,
+                   const unsigned long& latency) :
+                access_latency(latency),
+                xor_regions(regions) {}
+
         bool lock_for_read()
         {
                 if (!is_busy) {
@@ -58,11 +72,29 @@ public:
                         return false;
                 }
         }
+        bool busy() const
+        {
+                return is_busy;
+        }
         void tick()
         {
                 if (is_busy && clock >= will_finish)
                         is_busy = false;
                 clock++;
+        }
+        const Region& request_region(const Request& req) const
+        {
+                for (const Region& region : xor_regions)
+                        if (region.contains(req))
+                                return region;
+                return NO_REGION;
+        }
+        bool same_request_row_numbers(const Request& a, const Request& b) const
+        {
+                const Region& a_region {request_region(a)};
+                const Region& b_region {request_region(b)};
+                return a_region != NO_REGION && b_region != NO_REGION &&
+                       a_region.row_number(a) == b_region.row_number(b);
         }
 };
 

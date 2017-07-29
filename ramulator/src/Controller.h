@@ -25,8 +25,6 @@
 #ifdef MEMORY_CODING
 #include "Coding.h"
 #include <algorithm>
-#include <functional>
-#include <map>
 #endif
 
 using namespace std;
@@ -103,9 +101,10 @@ public:
     bool print_cmd_trace = false;
 
 #ifdef MEMORY_CODING
-    static constexpr int parity_max_rows = 1 << 15;
-    vector<coding::ParityBank<T, parity_max_rows>> parity_banks;
-    unsigned long parity_bank_latency;
+    /* for now, a parity bank is as big as a memory bank */
+    static constexpr int parity_bank_rows = 1 << 15;
+    vector<coding::ParityBank<T, parity_bank_rows>> parity_banks;
+    long parity_bank_latency;
 #endif
 
     /* Constructor */
@@ -133,17 +132,16 @@ public:
         // coding
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
-        /* for now, use coded regions as big as the memory banks */
-        std::bitset<parity_max_rows> parity_bank_rows;
-        parity_bank_rows.set();
-        coding::CodedRegion<T, parity_max_rows> regions[8] {{parity_bank_rows, 0},
-                                                            {parity_bank_rows, 1},
-                                                            {parity_bank_rows, 2},
-                                                            {parity_bank_rows, 3},
-                                                            {parity_bank_rows, 4},
-                                                            {parity_bank_rows, 5},
-                                                            {parity_bank_rows, 6},
-                                                            {parity_bank_rows, 7}};
+        /* for now, all parity banks have windows that start at row = 0 */
+        coding::CodedRegion<T, parity_bank_rows> regions[8] {{0, 0},
+                                                             {0, 1},
+                                                             {0, 2},
+                                                             {0, 3},
+                                                             {0, 4},
+                                                             {0, 5},
+                                                             {0, 6},
+                                                             {0, 7}};
+        /* coding design I */
         parity_banks.push_back({{regions[0], regions[1]}, parity_bank_latency});
         parity_banks.push_back({{regions[2], regions[3]}, parity_bank_latency});
         parity_banks.push_back({{regions[0], regions[3]}, parity_bank_latency});
@@ -352,91 +350,75 @@ public:
     }
 
 #ifdef MEMORY_CODING
-        using ParityBank = coding::ParityBank<T, parity_max_rows>;
+        using ParityBank = coding::ParityBank<T, parity_bank_rows>;
 
-        bool serve_read_with_parity(Request& read_req)
+        void coding_scheduler()
         {
-                auto piggybacks = find_parity_sources(read_req);
-                auto piggyback_it {std::begin(piggybacks)};
-                /* just grab the first one, if it exists */
-                if (piggyback_it != std::end(piggybacks)) {
-                        const Request& pending_req {piggyback_it->first.get()};
-                        long depart = max<long>(clk + parity_bank_latency,
-                                                pending_req.depart);
-                        // this doesn't work? probably a template thing
-                        //readq.q.remove(read_req);
-                        remove_read_from_readq(read_req);
-                        schedule_served_read(read_req, depart);
-
-                        ParityBank& parity_bank {piggyback_it->second.get()};
-                        parity_bank.lock_for_read();
-
-                        return true;
-                } else {
-                        return false;
+                for (ParityBank& bank : parity_banks) {
+                        /* update internal state */
+                        bank.tick();
+                        /* match queued reads to pending reads */
+                        if (!bank.busy())
+                                schedule_queued_read_for_parity_bank(bank);
                 }
         }
 
-        /* Given a read request, scan the pending queue and see if the given
-         * request can be served sooner using a parity bank.
-         *
-         * Return a map of pending reqeusts to parity banks, indicating that the
-         * given request can piggyback on each pending request in conjunction
-         * with its respective parity bank. */
-        map<reference_wrapper<const Request>, reference_wrapper<ParityBank>>
-                find_parity_sources(const Request& read_req)
+        void schedule_queued_read_for_parity_bank(ParityBank& bank)
         {
-                map<reference_wrapper<const Request>,
-                    reference_wrapper<ParityBank>>
-                        piggybacks;
-                auto reads_by_bank = sort_reads_by_bank();
+                /* select all pending reads that could be used by this parity
+                 * bank and were not previously scheduled by this function */
+                vector<reference_wrapper<Request>> candidate_pending;
+                for (Request& req : pending)
+                        if (bank.request_region(req) != bank.NO_REGION &&
+                            req.hit_dram)
+                                candidate_pending.push_back(req);
+                /* select all queued reads that could be served by this parity
+                 * bank */
+                vector<reference_wrapper<Request>> candidate_reads;
+                for (Request& req : readq.q)
+                        if (bank.request_region(req) != bank.NO_REGION)
+                                candidate_reads.push_back(req);
+                /* try to schedule each candidate read */
+                for (Request& read : candidate_reads) {
+                        using Region = const coding::CodedRegion<T, parity_bank_rows>;
 
-                // ???
-
-                return piggybacks;
-        }
-
-        void serve_other_reads_with_parity(const Request& mem_req)
-        {
-                auto concurrent_reads = find_concurrent_parity_reads(mem_req);
-                for (auto concurrent_read : concurrent_reads) {
-                        Request& parity_req {concurrent_read.first.get()};
-                        ParityBank& parity_bank {concurrent_read.second.get()};
-                        parity_bank.lock_for_read();
-                        // this doesn't work? probably a template thing
-                        //readq.q.remove(parity_req);
-                        remove_read_from_readq(parity_req);
-                        schedule_served_read(parity_req, clk + parity_bank_latency);
+                        /* get a list of all the XOR regions needed to complete
+                         * the parity */
+                        Region& read_region {bank.request_region(read)};
+                        vector<reference_wrapper<Region>> other_regions;
+                        for (Region& region : bank.xor_regions)
+                                if (region != read_region)
+                                        other_regions.push_back(region);
+                        /* find a pending read in the same row number for every
+                         * other XOR region */
+                        bool can_schedule {true};
+                        long depart {clk + parity_bank_latency};
+                        for (Region& other_region : other_regions) {
+                                auto can_use {[bank, read, other_region](Request& req)
+                                              { return bank.request_region(req) == other_region &&
+                                                       bank.same_request_row_numbers(read, req); }};
+                                vector<reference_wrapper<Request>>::iterator
+                                        row_pending {find_if(begin(candidate_pending),
+                                                             end(candidate_pending),
+                                                             can_use)};
+                                if (row_pending != end(candidate_pending)) {
+                                        depart = max<long>(depart, row_pending->get().depart);
+                                } else {
+                                        /* couldn't find a match for a region,
+                                         * this read request can't be scheduled */
+                                        can_schedule = false;
+                                        break;
+                                }
+                        }
+                        /* schedule the read and return if we were able to
+                         * complete the parity */
+                        if (can_schedule) {
+                                bank.lock_for_read();
+                                schedule_served_read(read, depart);
+                                remove_read_from_readq(read);
+                                return;
+                        }
                 }
-        }
-
-        /* Given a read request to main memory, schedule other concurrent reads
-         * using parity banks.
-         *
-         * Return a map of read requests to parity banks, indicating each
-         * request can be serviced simultaneously with the others using its
-         * respective parity bank. */
-        map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
-                find_concurrent_parity_reads(const Request& mem_req)
-        {
-                map<reference_wrapper<Request>, reference_wrapper<ParityBank>>
-                        schedule;
-                auto reads_by_bank = sort_reads_by_bank();
-
-                // ???
-
-                return schedule;
-        }
-
-        map<int, vector<reference_wrapper<Request>>> sort_reads_by_bank()
-        {
-                map<int, vector<reference_wrapper<Request>>> sorted;
-                for (auto read_it {std::begin(readq.q)};
-                     read_it != std::end(readq.q); ++read_it) {
-                        int bank = read_it->addr_vec[(int)T::Level::Bank];
-                        sorted[bank].push_back(*read_it);
-                }
-                return sorted;
         }
 
         void schedule_served_read(Request& req, const long& depart)
@@ -450,7 +432,7 @@ public:
         {
                 for (auto read_it {std::begin(readq.q)};
                      read_it != std::end(readq.q); ++read_it) {
-                        if (&(*read_it) == &req) {
+                        if (&(*read_it) == &req) { // FIXME: implement comparison?
                                 readq.q.erase(read_it);
                                 return;
                         }
@@ -483,6 +465,10 @@ public:
 
         /*** 2. Refresh scheduler ***/
         refresh->tick_ref();
+
+#ifdef MEMORY_CODING
+        coding_scheduler();
+#endif
 
         /*** 3. Should we schedule writes? ***/
         if (!write_mode) {
@@ -546,16 +532,6 @@ public:
             }
         }
 
-#ifdef MEMORY_CODING
-        for (auto b_it {std::begin(parity_banks)};
-             b_it != std::end(parity_banks); ++b_it)
-            b_it->tick();
-        /*** See if we can serve this request sooner using parity banks. */
-        if (!write_mode)
-            if (serve_read_with_parity(*req))
-                return;
-#endif
-
         // issue command on behalf of request
         auto cmd = get_first_cmd(req);
         issue_cmd(cmd, get_addr_vec(cmd, req));
@@ -576,13 +552,6 @@ public:
 
         // remove request from queue
         queue->q.erase(req);
-
-#ifdef MEMORY_CODING
-        /*** We issued a read request to main memory, now see if we can serve
-             any queued reads using parity banks. */
-        if (!write_mode)
-            serve_other_reads_with_parity(*req);
-#endif
     }
 
     bool is_ready(list<Request>::iterator req)
