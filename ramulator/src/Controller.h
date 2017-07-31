@@ -25,6 +25,7 @@
 #ifdef MEMORY_CODING
 #include "Coding.h"
 #include <algorithm>
+#include <utility>
 #endif
 
 using namespace std;
@@ -365,13 +366,6 @@ public:
 
         void schedule_queued_read_for_parity_bank(ParityBank& bank)
         {
-                /* select all pending reads that could be used by this parity
-                 * bank and were not previously scheduled by this function */
-                vector<reference_wrapper<Request>> candidate_pending;
-                for (Request& req : pending)
-                        if (bank.request_region(req) != bank.NO_REGION &&
-                            req.hit_dram)
-                                candidate_pending.push_back(req);
                 /* select all queued reads that could be served by this parity
                  * bank */
                 vector<reference_wrapper<Request>> candidate_reads;
@@ -380,45 +374,58 @@ public:
                                 candidate_reads.push_back(req);
                 /* try to schedule each candidate read */
                 for (Request& read : candidate_reads) {
-                        using Region = const coding::CodedRegion<T, parity_bank_rows>;
-
-                        /* get a list of all the XOR regions needed to complete
-                         * the parity */
-                        Region& read_region {bank.request_region(read)};
-                        vector<reference_wrapper<Region>> other_regions;
-                        for (Region& region : bank.xor_regions)
-                                if (region != read_region)
-                                        other_regions.push_back(region);
-                        /* find a pending read in the same row number for every
-                         * other XOR region */
-                        bool can_schedule {true};
-                        long depart {clk + parity_bank_latency};
-                        for (Region& other_region : other_regions) {
-                                auto can_use {[bank, read, other_region](Request& req)
-                                              { return bank.request_region(req) == other_region &&
-                                                       bank.same_request_row_numbers(read, req); }};
-                                vector<reference_wrapper<Request>>::iterator
-                                        row_pending {find_if(begin(candidate_pending),
-                                                             end(candidate_pending),
-                                                             can_use)};
-                                if (row_pending != end(candidate_pending)) {
-                                        depart = max<long>(depart, row_pending->get().depart);
-                                } else {
-                                        /* couldn't find a match for a region,
-                                         * this read request can't be scheduled */
-                                        can_schedule = false;
-                                        break;
-                                }
-                        }
-                        /* schedule the read and return if we were able to
-                         * complete the parity */
-                        if (can_schedule) {
+                        pair<bool, long> schedulable_result
+                                {can_schedule_queued_read_for_parity_bank(read, bank)};
+                        bool schedulable {schedulable_result.first};
+                        long depart {schedulable_result.second};
+                        if (schedulable) {
                                 bank.lock_for_read();
                                 schedule_served_read(read, depart);
                                 remove_read_from_readq(read);
-                                return;
+                                break;
                         }
                 }
+        }
+        pair<bool, long> can_schedule_queued_read_for_parity_bank(Request& read,
+                                                                  ParityBank& bank)
+        {
+                using Region = const coding::CodedRegion<T, parity_bank_rows>;
+
+                /* select all pending reads that could be used by this parity
+                 * bank and were not previously scheduled by this function */
+                vector<reference_wrapper<Request>> candidate_pending;
+                for (Request& req : pending)
+                        if (bank.request_region(req) != bank.NO_REGION &&
+                            req.hit_dram)
+                                candidate_pending.push_back(req);
+                /* get a list of all the XOR regions needed to complete
+                 * the parity */
+                Region& read_region {bank.request_region(read)};
+                vector<reference_wrapper<Region>> other_regions;
+                for (Region& region : bank.xor_regions)
+                        if (region != read_region)
+                                other_regions.push_back(region);
+                /* find a pending read in the same row number for every
+                 * other XOR region */
+                long depart {clk + parity_bank_latency};
+                for (Region& other_region : other_regions) {
+                        auto can_use {[bank, read, other_region](Request& req)
+                                      { return bank.request_region(req) == other_region &&
+                                               bank.same_request_row_numbers(read, req); }};
+                        vector<reference_wrapper<Request>>::iterator
+                                row_pending {find_if(begin(candidate_pending),
+                                                     end(candidate_pending),
+                                                     can_use)};
+                        if (row_pending != end(candidate_pending))
+                                depart = max<long>(depart, row_pending->get().depart);
+                        else
+                                /* couldn't find a match for a region,
+                                 * this read request can't be scheduled */
+                                return {false, -1};
+                }
+                /* we were able to complete the parity, return
+                 * max(pending request(s) time(s), parity bank read latency) */
+                return {true, depart};
         }
 
         void schedule_served_read(Request& req, const long& depart)
