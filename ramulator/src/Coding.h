@@ -9,21 +9,24 @@ using Request = ramulator::Request;
 namespace coding
 {
 
-template <typename T, int n_rows>
+template <typename T>
 class CodedRegion {
 private:
         const int start_row;
+        const int n_rows;
         const int bank;
 public:
-        CodedRegion(const int& start_row, const int& bank) :
+        CodedRegion(const int& start_row, const int& n_rows, const int& bank) :
                 start_row(start_row),
+                n_rows(n_rows),
                 bank(bank) {}
 
-        bool operator ==(const CodedRegion<T, n_rows>& other) const
+        bool operator ==(const CodedRegion<T>& other) const
         {
-                return start_row == other.start_row && bank == other.bank;
+                return start_row == other.start_row && n_rows == other.n_rows &&
+                       bank == other.bank;
         }
-        bool operator !=(const CodedRegion<T, n_rows>& other) const
+        bool operator !=(const CodedRegion<T>& other) const
         {
                 return !(*this == other);
         }
@@ -44,9 +47,9 @@ public:
         }
 };
 
-template <typename T, int n_rows>
+template <typename T>
 class ParityBank {
-        using Region = CodedRegion<T, n_rows>;
+        using Region = CodedRegion<T>;
 
 private:
         unsigned long clock {0};
@@ -55,7 +58,7 @@ private:
         const unsigned long access_latency;
 public:
         const vector<Region> xor_regions;
-        const Region NO_REGION {-1, -1}; /* sentinel */
+        const Region NO_REGION {-1, -1, -1}; /* sentinel */
 
         ParityBank(const vector<Region>& regions,
                    const unsigned long& latency) :

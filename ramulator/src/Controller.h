@@ -102,9 +102,7 @@ public:
     bool print_cmd_trace = false;
 
 #ifdef MEMORY_CODING
-    /* for now, a parity bank is as big as a memory bank */
-    static constexpr int parity_bank_rows = 1 << 15;
-    vector<coding::ParityBank<T, parity_bank_rows>> parity_banks;
+    vector<coding::ParityBank<T>> parity_banks;
     long parity_bank_latency;
 #endif
 
@@ -133,16 +131,16 @@ public:
         // coding
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
-        /* for now, all parity banks have windows that start at row = 0 */
-        coding::CodedRegion<T, parity_bank_rows> regions[8] {{0, 0},
-                                                             {0, 1},
-                                                             {0, 2},
-                                                             {0, 3},
-                                                             {0, 4},
-                                                             {0, 5},
-                                                             {0, 6},
-                                                             {0, 7}};
+        /* for now, a parity bank is as big as a memory bank */
         /* coding design I */
+        coding::CodedRegion<T> regions[8] {{0, 1 << 15, 0},
+                                           {0, 1 << 15, 1},
+                                           {0, 1 << 15, 2},
+                                           {0, 1 << 15, 3},
+                                           {0, 1 << 15, 4},
+                                           {0, 1 << 15, 5},
+                                           {0, 1 << 15, 6},
+                                           {0, 1 << 15, 7}};
         parity_banks.push_back({{regions[0], regions[1]}, parity_bank_latency});
         parity_banks.push_back({{regions[2], regions[3]}, parity_bank_latency});
         parity_banks.push_back({{regions[0], regions[3]}, parity_bank_latency});
@@ -351,7 +349,7 @@ public:
     }
 
 #ifdef MEMORY_CODING
-        using ParityBank = coding::ParityBank<T, parity_bank_rows>;
+        using ParityBank = coding::ParityBank<T>;
 
         void coding_scheduler()
         {
@@ -389,7 +387,7 @@ public:
         pair<bool, long> can_schedule_queued_read_for_parity_bank(Request& read,
                                                                   ParityBank& bank)
         {
-                using Region = const coding::CodedRegion<T, parity_bank_rows>;
+                using Region = const coding::CodedRegion<T>;
 
                 /* select all pending reads that could be used by this parity
                  * bank and were not previously scheduled by this function */
