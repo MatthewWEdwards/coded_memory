@@ -21,6 +21,7 @@
 #include "TLDRAM.h"
 
 #define MEMORY_CODING
+#define CODING_SCHEME 1
 
 #ifdef MEMORY_CODING
 #include "Coding.h"
@@ -153,6 +154,7 @@ public:
                                                {half_rows, rows, 6},
                                                {half_rows, rows, 7}};
 
+#if CODING_SCHEME==1
         /* coding design I */
         vector<XorCodedRegions> bank1_xor {{{top_regions[0], top_regions[1]}},
                                            {{btm_regions[0], btm_regions[1]}}};
@@ -177,6 +179,32 @@ public:
         vector<XorCodedRegions> bank6_xor {{{top_regions[0], top_regions[2]}},
                                            {{btm_regions[0], btm_regions[2]}}};
         parity_banks.push_back({bank6_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank7_xor {{{top_regions[4], top_regions[5]}},
+                                           {{btm_regions[4], btm_regions[5]}}};
+        parity_banks.push_back({bank7_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank8_xor {{{top_regions[6], top_regions[7]}},
+                                           {{btm_regions[6], btm_regions[7]}}};
+        parity_banks.push_back({bank8_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank9_xor {{{top_regions[4], top_regions[7]}},
+                                           {{btm_regions[4], btm_regions[7]}}};
+        parity_banks.push_back({bank9_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank10_xor {{{top_regions[5], top_regions[6]}},
+                                            {{btm_regions[5], btm_regions[6]}}};
+        parity_banks.push_back({bank10_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank11_xor {{{top_regions[5], top_regions[7]}},
+                                            {{btm_regions[5], btm_regions[7]}}};
+        parity_banks.push_back({bank11_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank12_xor {{{top_regions[4], top_regions[6]}},
+                                            {{btm_regions[4], btm_regions[6]}}};
+        parity_banks.push_back({bank12_xor, parity_bank_latency});
+#endif
+
 #endif
 
         // regStats
