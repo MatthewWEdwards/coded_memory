@@ -134,23 +134,24 @@ public:
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
 
-        /* for now, a parity bank is as big as a memory bank */
-        coding::CodedRegion<T> top_regions[8] {{0, 1 << 14, 0},
-                                               {0, 1 << 14, 1},
-                                               {0, 1 << 14, 2},
-                                               {0, 1 << 14, 3},
-                                               {0, 1 << 14, 4},
-                                               {0, 1 << 14, 5},
-                                               {0, 1 << 14, 6},
-                                               {0, 1 << 14, 7}};
-        coding::CodedRegion<T> btm_regions[8] {{1 << 14, 1 << 14, 0},
-                                               {1 << 14, 1 << 14, 1},
-                                               {1 << 14, 1 << 14, 2},
-                                               {1 << 14, 1 << 14, 3},
-                                               {1 << 14, 1 << 14, 4},
-                                               {1 << 14, 1 << 14, 5},
-                                               {1 << 14, 1 << 14, 6},
-                                               {1 << 14, 1 << 14, 7}};
+        static constexpr int rows {(1 << 15)/16};
+        static constexpr int half_rows {1 << 14};
+        coding::CodedRegion<T> top_regions[8] {{half_rows - rows, rows, 0},
+                                               {half_rows - rows, rows, 1},
+                                               {half_rows - rows, rows, 2},
+                                               {half_rows - rows, rows, 3},
+                                               {half_rows - rows, rows, 4},
+                                               {half_rows - rows, rows, 5},
+                                               {half_rows - rows, rows, 6},
+                                               {half_rows - rows, rows, 7}};
+        coding::CodedRegion<T> btm_regions[8] {{half_rows, rows, 0},
+                                               {half_rows, rows, 1},
+                                               {half_rows, rows, 2},
+                                               {half_rows, rows, 3},
+                                               {half_rows, rows, 4},
+                                               {half_rows, rows, 5},
+                                               {half_rows, rows, 6},
+                                               {half_rows, rows, 7}};
 
         /* coding design I */
         vector<XorCodedRegions> bank1_xor {{{top_regions[0], top_regions[1]}},
