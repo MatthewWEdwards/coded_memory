@@ -60,7 +60,7 @@ void Controller<TLDRAM>::tick(){
 
     /*** 1. Serve completed reads ***/
     if (pending.size()) {
-        Request& req = pending[0];
+        Request& req = pending.front();
         if (req.depart <= clk) {
           if (req.depart - req.arrive > 1) {
                   read_latency_sum += req.depart - req.arrive;

@@ -110,7 +110,7 @@ public:
     Queue writeq;  // queue for write requests
     Queue otherq;  // queue for all "other" requests (e.g., refresh)
 
-    deque<Request> pending;  // read requests that are about to receive data from DRAM
+    list<Request> pending;  // read requests that are about to receive data from DRAM
     bool write_mode = false;  // whether write requests should be prioritized over reads
     //long refreshed = 0;  // last time refresh requests were generated
 
@@ -608,6 +608,8 @@ public:
                 req.hit_dram = false;
                 req.depart = depart;
                 pending.push_back(req);
+                pending.sort([](const Request& a, const Request& b)
+                             { return a.depart < b.depart; });
         }
 
         void remove_read_from_readq(const Request& req)
@@ -632,7 +634,7 @@ public:
 
         /*** 1. Serve completed reads ***/
         if (pending.size()) {
-            Request& req = pending[0];
+            Request& req = pending.front();
             if (req.depart <= clk) {
                 if (req.hit_dram &&
                     req.depart - req.arrive > 1) { // this request really accessed a row
