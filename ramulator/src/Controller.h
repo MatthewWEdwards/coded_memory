@@ -137,71 +137,70 @@ public:
 
         static constexpr int rows {(1 << 15)/16};
         static constexpr int half_rows {1 << 14};
-        coding::CodedRegion<T> top_regions[8] {{half_rows - rows, rows, 0},
-                                               {half_rows - rows, rows, 1},
-                                               {half_rows - rows, rows, 2},
-                                               {half_rows - rows, rows, 3},
-                                               {half_rows - rows, rows, 4},
-                                               {half_rows - rows, rows, 5},
-                                               {half_rows - rows, rows, 6},
-                                               {half_rows - rows, rows, 7}};
-        coding::CodedRegion<T> btm_regions[8] {{half_rows, rows, 0},
-                                               {half_rows, rows, 1},
-                                               {half_rows, rows, 2},
-                                               {half_rows, rows, 3},
-                                               {half_rows, rows, 4},
-                                               {half_rows, rows, 5},
-                                               {half_rows, rows, 6},
-                                               {half_rows, rows, 7}};
+        coding::CodedRegion<T> region1[8] {{half_rows - rows, rows, 0},  // a
+                                           {half_rows - rows, rows, 1},  // b
+                                           {half_rows - rows, rows, 2},  // c
+                                           {half_rows - rows, rows, 3},  // d
+                                           {half_rows - rows, rows, 4},  // e
+                                           {half_rows - rows, rows, 5},  // f
+                                           {half_rows - rows, rows, 6},  // g
+                                           {half_rows - rows, rows, 7}}; // h
+        coding::CodedRegion<T> region2[8] {{half_rows, rows, 0},  // a
+                                           {half_rows, rows, 1},  // b
+                                           {half_rows, rows, 2},  // c
+                                           {half_rows, rows, 3},  // d
+                                           {half_rows, rows, 4},  // e
+                                           {half_rows, rows, 5},  // f
+                                           {half_rows, rows, 6},  // g
+                                           {half_rows, rows, 7}}; // h
 
 #if CODING_SCHEME==1
-        /* coding design I */
-        vector<XorCodedRegions> bank1_xor {{{top_regions[0], top_regions[1]}},
-                                           {{btm_regions[0], btm_regions[1]}}};
+        vector<XorCodedRegions> bank1_xor {{{region1[0], region1[1]}},
+                                           {{region2[0], region2[1]}}};
         parity_banks.push_back({bank1_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank2_xor {{{top_regions[2], top_regions[3]}},
-                                           {{btm_regions[2], btm_regions[3]}}};
+        vector<XorCodedRegions> bank2_xor {{{region1[2], region1[3]}},
+                                           {{region2[2], region2[3]}}};
         parity_banks.push_back({bank2_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank3_xor {{{top_regions[0], top_regions[3]}},
-                                           {{btm_regions[0], btm_regions[3]}}};
+        vector<XorCodedRegions> bank3_xor {{{region1[0], region1[3]}},
+                                           {{region2[0], region2[3]}}};
         parity_banks.push_back({bank3_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank4_xor {{{top_regions[1], top_regions[2]}},
-                                           {{btm_regions[1], btm_regions[2]}}};
+        vector<XorCodedRegions> bank4_xor {{{region1[1], region1[2]}},
+                                           {{region2[1], region2[2]}}};
         parity_banks.push_back({bank4_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank5_xor {{{top_regions[1], top_regions[3]}},
-                                           {{btm_regions[1], btm_regions[3]}}};
+        vector<XorCodedRegions> bank5_xor {{{region1[1], region1[3]}},
+                                           {{region2[1], region2[3]}}};
         parity_banks.push_back({bank5_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank6_xor {{{top_regions[0], top_regions[2]}},
-                                           {{btm_regions[0], btm_regions[2]}}};
+        vector<XorCodedRegions> bank6_xor {{{region1[0], region1[2]}},
+                                           {{region2[0], region2[2]}}};
         parity_banks.push_back({bank6_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank7_xor {{{top_regions[4], top_regions[5]}},
-                                           {{btm_regions[4], btm_regions[5]}}};
+        vector<XorCodedRegions> bank7_xor {{{region1[4], region1[5]}},
+                                           {{region2[4], region2[5]}}};
         parity_banks.push_back({bank7_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank8_xor {{{top_regions[6], top_regions[7]}},
-                                           {{btm_regions[6], btm_regions[7]}}};
+        vector<XorCodedRegions> bank8_xor {{{region1[6], region1[7]}},
+                                           {{region2[6], region2[7]}}};
         parity_banks.push_back({bank8_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank9_xor {{{top_regions[4], top_regions[7]}},
-                                           {{btm_regions[4], btm_regions[7]}}};
+        vector<XorCodedRegions> bank9_xor {{{region1[4], region1[7]}},
+                                           {{region2[4], region2[7]}}};
         parity_banks.push_back({bank9_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank10_xor {{{top_regions[5], top_regions[6]}},
-                                            {{btm_regions[5], btm_regions[6]}}};
+        vector<XorCodedRegions> bank10_xor {{{region1[5], region1[6]}},
+                                            {{region2[5], region2[6]}}};
         parity_banks.push_back({bank10_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank11_xor {{{top_regions[5], top_regions[7]}},
-                                            {{btm_regions[5], btm_regions[7]}}};
+        vector<XorCodedRegions> bank11_xor {{{region1[5], region1[7]}},
+                                            {{region2[5], region2[7]}}};
         parity_banks.push_back({bank11_xor, parity_bank_latency});
 
-        vector<XorCodedRegions> bank12_xor {{{top_regions[4], top_regions[6]}},
-                                            {{btm_regions[4], btm_regions[6]}}};
+        vector<XorCodedRegions> bank12_xor {{{region1[4], region1[6]}},
+                                            {{region2[4], region2[6]}}};
         parity_banks.push_back({bank12_xor, parity_bank_latency});
 #endif
 
