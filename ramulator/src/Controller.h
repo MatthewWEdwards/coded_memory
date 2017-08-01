@@ -129,24 +129,53 @@ public:
 
 #ifdef MEMORY_CODING
         // coding
+        using XorCodedRegions = coding::XorCodedRegions<T>;
+
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
+
         /* for now, a parity bank is as big as a memory bank */
+        coding::CodedRegion<T> top_regions[8] {{0, 1 << 14, 0},
+                                               {0, 1 << 14, 1},
+                                               {0, 1 << 14, 2},
+                                               {0, 1 << 14, 3},
+                                               {0, 1 << 14, 4},
+                                               {0, 1 << 14, 5},
+                                               {0, 1 << 14, 6},
+                                               {0, 1 << 14, 7}};
+        coding::CodedRegion<T> btm_regions[8] {{1 << 14, 1 << 14, 0},
+                                               {1 << 14, 1 << 14, 1},
+                                               {1 << 14, 1 << 14, 2},
+                                               {1 << 14, 1 << 14, 3},
+                                               {1 << 14, 1 << 14, 4},
+                                               {1 << 14, 1 << 14, 5},
+                                               {1 << 14, 1 << 14, 6},
+                                               {1 << 14, 1 << 14, 7}};
+
         /* coding design I */
-        coding::CodedRegion<T> regions[8] {{0, 1 << 15, 0},
-                                           {0, 1 << 15, 1},
-                                           {0, 1 << 15, 2},
-                                           {0, 1 << 15, 3},
-                                           {0, 1 << 15, 4},
-                                           {0, 1 << 15, 5},
-                                           {0, 1 << 15, 6},
-                                           {0, 1 << 15, 7}};
-        parity_banks.push_back({{regions[0], regions[1]}, parity_bank_latency});
-        parity_banks.push_back({{regions[2], regions[3]}, parity_bank_latency});
-        parity_banks.push_back({{regions[0], regions[3]}, parity_bank_latency});
-        parity_banks.push_back({{regions[1], regions[2]}, parity_bank_latency});
-        parity_banks.push_back({{regions[1], regions[3]}, parity_bank_latency});
-        parity_banks.push_back({{regions[0], regions[2]}, parity_bank_latency});
+        vector<XorCodedRegions> bank1_xor {{{top_regions[0], top_regions[1]}},
+                                           {{btm_regions[0], btm_regions[1]}}};
+        parity_banks.push_back({bank1_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank2_xor {{{top_regions[2], top_regions[3]}},
+                                           {{btm_regions[2], btm_regions[3]}}};
+        parity_banks.push_back({bank2_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank3_xor {{{top_regions[0], top_regions[3]}},
+                                           {{btm_regions[0], btm_regions[3]}}};
+        parity_banks.push_back({bank3_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank4_xor {{{top_regions[1], top_regions[2]}},
+                                           {{btm_regions[1], btm_regions[2]}}};
+        parity_banks.push_back({bank4_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank5_xor {{{top_regions[1], top_regions[3]}},
+                                           {{btm_regions[1], btm_regions[3]}}};
+        parity_banks.push_back({bank5_xor, parity_bank_latency});
+
+        vector<XorCodedRegions> bank6_xor {{{top_regions[0], top_regions[2]}},
+                                           {{btm_regions[0], btm_regions[2]}}};
+        parity_banks.push_back({bank6_xor, parity_bank_latency});
 #endif
 
         // regStats
@@ -368,7 +397,7 @@ public:
                  * bank */
                 vector<reference_wrapper<Request>> candidate_reads;
                 for (Request& req : readq.q)
-                        if (bank.request_region(req) != bank.NO_REGION)
+                        if (bank.contains(req))
                                 candidate_reads.push_back(req);
                 /* try to schedule each candidate read */
                 for (Request& read : candidate_reads) {
@@ -387,29 +416,30 @@ public:
         pair<bool, long> can_schedule_queued_read_for_parity_bank(Request& read,
                                                                   ParityBank& bank)
         {
-                using Region = const coding::CodedRegion<T>;
+                using CodedRegion = coding::CodedRegion<T>;
+                using XorCodedRegions = coding::XorCodedRegions<T>;
 
                 /* select all pending reads that could be used by this parity
                  * bank and were not previously scheduled by this function */
                 vector<reference_wrapper<Request>> candidate_pending;
                 for (Request& req : pending)
-                        if (bank.request_region(req) != bank.NO_REGION &&
-                            req.hit_dram)
+                        if (bank.contains(req) && req.hit_dram)
                                 candidate_pending.push_back(req);
                 /* get a list of all the XOR regions needed to complete
                  * the parity */
-                Region& read_region {bank.request_region(read)};
-                vector<reference_wrapper<Region>> other_regions;
-                for (Region& region : bank.xor_regions)
+                const XorCodedRegions& xor_regions {bank.request_xor_regions(read)};
+                const CodedRegion& read_region {xor_regions.request_region(read)};
+                vector<reference_wrapper<const CodedRegion>> other_regions;
+                for (const CodedRegion& region : xor_regions.regions)
                         if (region != read_region)
                                 other_regions.push_back(region);
                 /* find a pending read in the same row number for every
                  * other XOR region */
                 long depart {clk + parity_bank_latency};
-                for (Region& other_region : other_regions) {
-                        auto can_use {[bank, read, other_region](Request& req)
-                                      { return bank.request_region(req) == other_region &&
-                                               bank.same_request_row_numbers(read, req); }};
+                for (const CodedRegion& other_region : other_regions) {
+                        auto can_use {[xor_regions, read, other_region](Request& req)
+                                      { return xor_regions.request_region(req) == other_region &&
+                                               xor_regions.same_request_row_numbers(read, req); }};
                         vector<reference_wrapper<Request>>::iterator
                                 row_pending {find_if(begin(candidate_pending),
                                                      end(candidate_pending),

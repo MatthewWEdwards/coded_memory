@@ -38,32 +38,56 @@ public:
                                    req_row < start_row + n_rows};
                 return same_bank && row_in_range;
         }
-        int row_number(const Request& req) const
+        inline int row_number(const Request& req) const
         {
-                if (contains(req))
-                        return req.addr_vec[(int)T::Level::Row] - start_row;
-                else
-                        return -1;
+                return req.addr_vec[(int)T::Level::Row] - start_row;
+        }
+};
+
+template <typename T>
+class XorCodedRegions {
+public:
+        const vector<CodedRegion<T>> regions;
+        const CodedRegion<T> NO_REGION {-1, -1, -1}; /* sentinel */
+
+        XorCodedRegions(const vector<CodedRegion<T>>& regions) :
+                regions(regions) {}
+
+        const CodedRegion<T>& request_region(const Request& req) const
+        {
+                for (const CodedRegion<T>& region : regions)
+                        if (region.contains(req))
+                                return region;
+                return NO_REGION;
+        }
+        inline bool contains(const Request& req) const
+        {
+                return request_region(req) != NO_REGION;
+        }
+        bool same_request_row_numbers(const Request& a, const Request& b) const
+        {
+                const CodedRegion<T>& a_region {request_region(a)};
+                const CodedRegion<T>& b_region {request_region(b)};
+                return a_region != NO_REGION && b_region != NO_REGION &&
+                       a_region.row_number(a) == b_region.row_number(b);
         }
 };
 
 template <typename T>
 class ParityBank {
-        using Region = CodedRegion<T>;
-
 private:
         unsigned long clock {0};
         unsigned long will_finish {0};
         bool is_busy = false;
         const unsigned long access_latency;
 public:
-        const vector<Region> xor_regions;
-        const Region NO_REGION {-1, -1, -1}; /* sentinel */
+        const vector<XorCodedRegions<T>> xor_regions;
+        const XorCodedRegions<T> NO_XOR_REGIONS {{}}; /* sentinel */
 
-        ParityBank(const vector<Region>& regions,
+        ParityBank(const vector<XorCodedRegions<T>>& xor_regions,
                    const unsigned long& latency) :
                 access_latency(latency),
-                xor_regions(regions) {}
+                xor_regions(xor_regions) {}
 
         bool lock_for_read()
         {
@@ -85,19 +109,19 @@ public:
                         is_busy = false;
                 clock++;
         }
-        const Region& request_region(const Request& req) const
+        const bool contains(const Request& req) const
         {
-                for (const Region& region : xor_regions)
-                        if (region.contains(req))
-                                return region;
-                return NO_REGION;
+                for (const XorCodedRegions<T>& xor_region : xor_regions)
+                        if (xor_region.contains(req))
+                                return true;
+                return false;
         }
-        bool same_request_row_numbers(const Request& a, const Request& b) const
+        const XorCodedRegions<T>& request_xor_regions(const Request& req) const
         {
-                const Region& a_region {request_region(a)};
-                const Region& b_region {request_region(b)};
-                return a_region != NO_REGION && b_region != NO_REGION &&
-                       a_region.row_number(a) == b_region.row_number(b);
+                for (const XorCodedRegions<T>& xor_region : xor_regions)
+                        if (xor_region.request_region(req) != xor_region.NO_REGION)
+                                return xor_region;
+                return NO_XOR_REGIONS;
         }
 };
 
