@@ -154,6 +154,7 @@ public:
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
 
+        /* coded regions within banks */
         static constexpr int rows {(1 << 15)/16};
         static constexpr int half_rows {1 << 14};
         coding::CodedRegion<T> region1[] {{half_rows - rows, rows, 0},  // a
@@ -175,6 +176,7 @@ public:
                                           {half_rows, rows, 7},  // h
                                           {half_rows, rows, 8}}; // i
 
+        /* construct parity banks with these coded regions */
 #if CODING_SCHEME==1
         vector<XorCodedRegions> bank1_xor {{{A1, B1}},
                                            {{A2, B2}}};
