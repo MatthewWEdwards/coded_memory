@@ -32,7 +32,8 @@ public:
 
     long arrive = -1;
     long depart;
-    bool hit_dram = true;
+    bool bypass_dram = false;
+    bool bypass_code_pattern_builders = false;
     function<void(Request&)> callback; // call back with more info
 
     Request(long addr, Type type, int coreid = 0)

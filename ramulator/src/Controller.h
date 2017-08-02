@@ -154,35 +154,32 @@ public:
         using XorCodedRegions = coding::XorCodedRegions<T>;
         using CodedRegion = coding::CodedRegion<T>;
 
-        const int *sz {channel->spec->org_entry.count};
-        const int banks {sz[static_cast<int>(T::Level::Bank)]};
-        const int rows {sz[static_cast<int>(T::Level::Row)]};
-
-        code_status = new coding::CodeStatusMap<T>(banks, rows);
+        code_status = new coding::CodeStatusMap<T>(*channel->spec);
 
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
 
         /* coded regions within banks */
+        const int rows {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
         const int half_rows {rows/2};
-        CodedRegion region1[] {{half_rows - rows, rows, 0},  // a
-                               {half_rows - rows, rows, 1},  // b
-                               {half_rows - rows, rows, 2},  // c
-                               {half_rows - rows, rows, 3},  // d
-                               {half_rows - rows, rows, 4},  // e
-                               {half_rows - rows, rows, 5},  // f
-                               {half_rows - rows, rows, 6},  // g
-                               {half_rows - rows, rows, 7},  // h
-                               {half_rows - rows, rows, 8}}; // i
-        CodedRegion region2[] {{half_rows, rows, 0},  // a
-                               {half_rows, rows, 1},  // b
-                               {half_rows, rows, 2},  // c
-                               {half_rows, rows, 3},  // d
-                               {half_rows, rows, 4},  // e
-                               {half_rows, rows, 5},  // f
-                               {half_rows, rows, 6},  // g
-                               {half_rows, rows, 7},  // h
-                               {half_rows, rows, 8}}; // i
+        CodedRegion region1[] {{0, rows/8, 0},  // a
+                               {0, rows/8, 1},  // b
+                               {0, rows/8, 2},  // c
+                               {0, rows/8, 3},  // d
+                               {0, rows/8, 4},  // e
+                               {0, rows/8, 5},  // f
+                               {0, rows/8, 6},  // g
+                               {0, rows/8, 7},  // h
+                               {0, rows/8, 8}}; // i
+        CodedRegion region2[] {{half_rows, rows/8, 0},  // a
+                               {half_rows, rows/8, 1},  // b
+                               {half_rows, rows/8, 2},  // c
+                               {half_rows, rows/8, 3},  // d
+                               {half_rows, rows/8, 4},  // e
+                               {half_rows, rows/8, 5},  // f
+                               {half_rows, rows/8, 6},  // g
+                               {half_rows, rows/8, 7},  // h
+                               {half_rows, rows/8, 8}}; // i
 
         /* construct parity banks with these coded regions */
 #if CODING_SCHEME==1
@@ -534,6 +531,9 @@ public:
 
 #ifdef MEMORY_CODING
         using ParityBank = coding::ParityBank<T>;
+        using CodeLocation = coding::CodeLocation<T>;
+
+        /*** Read Pattern Builder ***/
 
         void read_pattern_builder()
         {
@@ -576,11 +576,11 @@ public:
                 using Status = typename coding::CodeStatusMap<T>::Status;
 
                 /* select all pending reads that could be used by this parity
-                 * bank and were not previously scheduled by this function */
+                 * bank and were not previously scheduled by us */
                 vector<reference_wrapper<Request>> candidate_pending;
                 for (Request& req : pending)
                         if (code_status->get(req) == Status::Updated &&
-                            bank.contains(req) && req.hit_dram)
+                            bank.contains(req) && !req.bypass_code_pattern_builders)
                                 candidate_pending.push_back(req);
                 /* get a list of all the XOR regions needed to complete
                  * the parity */
@@ -616,7 +616,7 @@ public:
 
         void schedule_served_read(Request& req, const long& depart)
         {
-                req.hit_dram = false;
+                req.bypass_dram = true;
                 req.depart = depart;
                 pending.push_back(req);
                 pending.sort([](const Request& a, const Request& b)
@@ -634,6 +634,57 @@ public:
                 }
                 assert(false);
         }
+
+        /*** Recode Scheduler ***/
+
+        const CodeLocation NO_LOCATION {*channel->spec, -1, -1};
+
+        void recoding_controller()
+        {
+                using Status = typename coding::CodeStatusMap<T>::Status;
+
+                const CodeLocation location {get_location_to_recode()};
+                if (location != NO_LOCATION) {
+                        /* create a read request to recode this location */
+                        vector<int> addr_vec {location.addr_vec()};
+                        addr_vec[0] = 0; // support only 1 channel for now
+                        auto callback {[this, location](Request& req)
+                                       { code_status->set(location, Status::Updated); }};
+                        // TODO need to keep track of these things so we're not
+                        // sending duplicates, we can cancel...
+                        Request recode {addr_vec, Request::Type::READ, callback};
+                        recode.bypass_code_pattern_builders = true;
+                        readq.q.push_back(recode);
+                }
+        }
+
+        CodeLocation get_location_to_recode()
+        {
+                using CodedRegion = coding::CodedRegion<T>;
+                using XorCodedRegions = coding::XorCodedRegions<T>;
+                using Status = typename coding::CodeStatusMap<T>::Status;
+
+                /* get a list of all coded regions */
+                // TODO this is a little absurd, we probably need a global list
+                // of these things, especially for the dynamic coding scheduler
+                vector<reference_wrapper<const CodedRegion>> regions;
+                for (const ParityBank& bank : parity_banks)
+                        for (const XorCodedRegions& xor_regions : bank.xor_regions)
+                                for (const CodedRegion& region : xor_regions.regions)
+                                        regions.push_back(region);
+                /* find a (bank, row) location that needs to be recoded */
+                for (const CodedRegion& region : regions) {
+                        for (int row {region.start_row};
+                             row < (region.start_row + region.n_rows); row++) {
+                                Status status {code_status->get({*channel->spec,
+                                                                 region.bank, row})};
+                                if (status == Status::FreshData ||
+                                    status == Status::FreshParity)
+                                        return {*channel->spec, region.bank, row};
+                        }
+                }
+                return NO_LOCATION; /* sentinel */
+        }
 #endif
 
     void tick()
@@ -647,7 +698,7 @@ public:
         if (pending.size()) {
             Request& req = pending.front();
             if (req.depart <= clk) {
-                if (req.hit_dram &&
+                if (!req.bypass_dram &&
                     req.depart - req.arrive > 1) { // this request really accessed a row
                   read_latency_sum += req.depart - req.arrive;
                   channel->update_serving_requests(
@@ -663,6 +714,7 @@ public:
 
 #ifdef MEMORY_CODING
         read_pattern_builder();
+        recoding_controller();
 #endif
 
         /*** 3. Should we schedule writes? ***/
