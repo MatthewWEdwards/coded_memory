@@ -150,6 +150,7 @@ public:
 #ifdef MEMORY_CODING
         // coding
         using XorCodedRegions = coding::XorCodedRegions<T>;
+        using CodedREgion = coding::CodedRegion<T>;
 
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
@@ -157,24 +158,24 @@ public:
         /* coded regions within banks */
         static constexpr int rows {(1 << 15)/16};
         static constexpr int half_rows {1 << 14};
-        coding::CodedRegion<T> region1[] {{half_rows - rows, rows, 0},  // a
-                                          {half_rows - rows, rows, 1},  // b
-                                          {half_rows - rows, rows, 2},  // c
-                                          {half_rows - rows, rows, 3},  // d
-                                          {half_rows - rows, rows, 4},  // e
-                                          {half_rows - rows, rows, 5},  // f
-                                          {half_rows - rows, rows, 6},  // g
-                                          {half_rows - rows, rows, 7},  // h
-                                          {half_rows - rows, rows, 8}}; // i
-        coding::CodedRegion<T> region2[] {{half_rows, rows, 0},  // a
-                                          {half_rows, rows, 1},  // b
-                                          {half_rows, rows, 2},  // c
-                                          {half_rows, rows, 3},  // d
-                                          {half_rows, rows, 4},  // e
-                                          {half_rows, rows, 5},  // f
-                                          {half_rows, rows, 6},  // g
-                                          {half_rows, rows, 7},  // h
-                                          {half_rows, rows, 8}}; // i
+        CodedRegion region1[] {{half_rows - rows, rows, 0},  // a
+                               {half_rows - rows, rows, 1},  // b
+                               {half_rows - rows, rows, 2},  // c
+                               {half_rows - rows, rows, 3},  // d
+                               {half_rows - rows, rows, 4},  // e
+                               {half_rows - rows, rows, 5},  // f
+                               {half_rows - rows, rows, 6},  // g
+                               {half_rows - rows, rows, 7},  // h
+                               {half_rows - rows, rows, 8}}; // i
+        CodedRegion region2[] {{half_rows, rows, 0},  // a
+                               {half_rows, rows, 1},  // b
+                               {half_rows, rows, 2},  // c
+                               {half_rows, rows, 3},  // d
+                               {half_rows, rows, 4},  // e
+                               {half_rows, rows, 5},  // f
+                               {half_rows, rows, 6},  // g
+                               {half_rows, rows, 7},  // h
+                               {half_rows, rows, 8}}; // i
 
         /* construct parity banks with these coded regions */
 #if CODING_SCHEME==1
