@@ -637,7 +637,10 @@ public:
 
         /*** Recode Scheduler ***/
 
+        /* sentinel value */
         const CodeLocation NO_LOCATION {*channel->spec, -1, -1};
+        /* map of read Request pointers for current recode opreations */
+        coding::RecodeRequestMap<T> recode_requests {*channel->spec};
 
         void recoding_controller()
         {
@@ -647,14 +650,19 @@ public:
                 if (location != NO_LOCATION) {
                         /* create a read request to recode this location */
                         vector<int> addr_vec {location.addr_vec()};
-                        addr_vec[0] = 0; // support only 1 channel for now
+                        addr_vec[0] = channel->id;
                         auto callback {[this, location](Request& req)
-                                       { code_status->set(location, Status::Updated); }};
-                        // TODO need to keep track of these things so we're not
-                        // sending duplicates, we can cancel...
-                        Request recode {addr_vec, Request::Type::READ, callback};
-                        recode.bypass_code_pattern_builders = true;
-                        readq.q.push_back(recode);
+                        {
+                                code_status->set(location, Status::Updated);
+                                recode_requests.set(location, nullptr);
+                        }};
+                        Request *recode {new Request(addr_vec, Request::Type::READ,
+                                                     callback)};
+                        recode->bypass_code_pattern_builders = true;
+                        /* place it on the read queue */
+                        readq.q.push_back(*recode);
+                        /* insert into the map of recode requests */
+                        recode_requests.set(location, recode);
                 }
         }
 
@@ -676,14 +684,19 @@ public:
                 for (const CodedRegion& region : regions) {
                         for (int row {region.start_row};
                              row < (region.start_row + region.n_rows); row++) {
-                                Status status {code_status->get({*channel->spec,
-                                                                 region.bank, row})};
-                                if (status == Status::FreshData ||
-                                    status == Status::FreshParity)
-                                        return {*channel->spec, region.bank, row};
+                                CodeLocation location {*channel->spec,
+                                                       region.bank, row};
+                                /* check status map */
+                                Status status {code_status->get(location)};
+                                /* check if there's already a read request */
+                                Request *read {recode_requests.get(location)};
+                                if ((status == Status::FreshData ||
+                                     status == Status::FreshParity) &&
+                                    read == nullptr)
+                                        return location;
                         }
                 }
-                return NO_LOCATION; /* sentinel */
+                return NO_LOCATION;
         }
 #endif
 
