@@ -122,6 +122,8 @@ public:
     bool print_cmd_trace = false;
 
 #ifdef MEMORY_CODING
+    coding::CodeStatusMap<T> *code_status;
+
     vector<coding::ParityBank<T>> parity_banks;
     long parity_bank_latency;
 #endif
@@ -150,14 +152,19 @@ public:
 #ifdef MEMORY_CODING
         // coding
         using XorCodedRegions = coding::XorCodedRegions<T>;
-        using CodedREgion = coding::CodedRegion<T>;
+        using CodedRegion = coding::CodedRegion<T>;
+
+        const int *sz {channel->spec->org_entry.count};
+        const int banks {sz[static_cast<int>(T::Level::Bank)]};
+        const int rows {sz[static_cast<int>(T::Level::Row)]};
+
+        code_status = new coding::CodeStatusMap<T>(banks, rows);
 
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
 
         /* coded regions within banks */
-        static constexpr int rows {(1 << 15)/16};
-        static constexpr int half_rows {1 << 14};
+        const int half_rows {rows/2};
         CodedRegion region1[] {{half_rows - rows, rows, 0},  // a
                                {half_rows - rows, rows, 1},  // b
                                {half_rows - rows, rows, 2},  // c
@@ -528,7 +535,7 @@ public:
 #ifdef MEMORY_CODING
         using ParityBank = coding::ParityBank<T>;
 
-        void coding_scheduler()
+        void read_pattern_builder()
         {
                 for (ParityBank& bank : parity_banks) {
                         /* update internal state */
@@ -566,12 +573,14 @@ public:
         {
                 using CodedRegion = coding::CodedRegion<T>;
                 using XorCodedRegions = coding::XorCodedRegions<T>;
+                using Status = typename coding::CodeStatusMap<T>::Status;
 
                 /* select all pending reads that could be used by this parity
                  * bank and were not previously scheduled by this function */
                 vector<reference_wrapper<Request>> candidate_pending;
                 for (Request& req : pending)
-                        if (bank.contains(req) && req.hit_dram)
+                        if (code_status->get(req) == Status::Updated &&
+                            bank.contains(req) && req.hit_dram)
                                 candidate_pending.push_back(req);
                 /* get a list of all the XOR regions needed to complete
                  * the parity */
@@ -585,8 +594,9 @@ public:
                  * other XOR region */
                 long depart {clk + parity_bank_latency};
                 for (const CodedRegion& other_region : other_regions) {
-                        auto can_use {[xor_regions, read, other_region](Request& req)
-                                      { return xor_regions.request_region(req) == other_region &&
+                        auto can_use {[this, xor_regions, read, other_region](Request& req)
+                                      { return code_status->get(req) == Status::Updated &&
+                                               xor_regions.request_region(req) == other_region &&
                                                xor_regions.same_request_row_numbers(read, req); }};
                         vector<reference_wrapper<Request>>::iterator
                                 row_pending {find_if(begin(candidate_pending),
@@ -652,7 +662,7 @@ public:
         refresh->tick_ref();
 
 #ifdef MEMORY_CODING
-        coding_scheduler();
+        read_pattern_builder();
 #endif
 
         /*** 3. Should we schedule writes? ***/

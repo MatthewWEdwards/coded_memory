@@ -2,12 +2,63 @@
 #define __CODING_H
 
 #include "Request.h"
+#include <cassert>
 #include <vector>
-
-using Request = ramulator::Request;
 
 namespace coding
 {
+using Request = ramulator::Request;
+
+template <typename T>
+class CodeStatusMap {
+public:
+        enum Status { Updated, FreshData, FreshParity };
+private:
+        const int banks;
+        const int rows;
+        Status **map;
+public:
+        CodeStatusMap(const int& banks, const int& rows) :
+                banks(banks),
+                rows(rows)
+        {
+                map = new Status*[banks];
+                for (int b = 0; b < banks; b++) {
+                        map[b] = new Status[rows];
+                        for (int r = 0; r < rows; r++)
+                                map[b][r] = Status::FreshData;
+                }
+        }
+        ~CodeStatusMap()
+        {
+                for (int b = 0; b < banks; b++)
+                        delete[] map[b];
+                delete[] map;
+        }
+
+        void set(const int& bank, const int& row, Status status)
+        {
+                assert(bank >= 0 && bank < banks && row >= 0 && row < rows);
+                map[bank][row] = status;
+        }
+        void set_row(const int& row, Status status)
+        {
+                assert(row >= 0 && row < rows);
+                for (int b = 0; b < banks; b++)
+                        map[b][row] = status;
+        }
+        Status get(const int& bank, const int& row) const
+        {
+                assert(bank >= 0 && bank < banks && row >= 0 && row < rows);
+                return map[bank][row];
+        }
+        Status get(const Request& req) const
+        {
+                int bank = req.addr_vec[static_cast<int>(T::Level::Bank)];
+                int row = req.addr_vec[static_cast<int>(T::Level::Row)];
+                return get(bank, row);
+        }
+};
 
 template <typename T>
 class CodedRegion {
