@@ -639,31 +639,15 @@ public:
 
         /* sentinel value */
         const CodeLocation NO_LOCATION {*channel->spec, -1, -1};
-        /* map of read Request pointers for current recode opreations */
-        coding::RecodeRequestMap<T> recode_requests {*channel->spec};
 
         void recoding_controller()
         {
                 using Status = typename coding::CodeStatusMap<T>::Status;
 
                 const CodeLocation location {get_location_to_recode()};
-                if (location != NO_LOCATION) {
-                        /* create a read request to recode this location */
-                        vector<int> addr_vec {location.addr_vec()};
-                        addr_vec[0] = channel->id;
-                        auto callback {[this, location](Request& req)
-                        {
-                                code_status->set(location, Status::Updated);
-                                recode_requests.set(location, nullptr);
-                        }};
-                        Request *recode {new Request(addr_vec, Request::Type::READ,
-                                                     callback)};
-                        recode->bypass_code_pattern_builders = true;
-                        /* place it on the read queue */
-                        readq.q.push_back(*recode);
-                        /* insert into the map of recode requests */
-                        recode_requests.set(location, recode);
-                }
+                if (location != NO_LOCATION)
+                        // TODO check that the bank is actually free to read from
+                        code_status->set(location, Status::Updated);
         }
 
         CodeLocation get_location_to_recode()
@@ -688,11 +672,8 @@ public:
                                                        region.bank, row};
                                 /* check status map */
                                 Status status {code_status->get(location)};
-                                /* check if there's already a read request */
-                                Request *read {recode_requests.get(location)};
-                                if ((status == Status::FreshData ||
-                                     status == Status::FreshParity) &&
-                                    read == nullptr)
+                                if (status == Status::FreshData ||
+                                    status == Status::FreshParity)
                                         return location;
                         }
                 }

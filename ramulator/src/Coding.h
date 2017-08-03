@@ -112,50 +112,6 @@ public:
 };
 
 template <typename T>
-class RecodeRequestMap {
-private:
-        const T& spec;
-        const int banks;
-        const int rows;
-        Request ***map;
-public:
-        RecodeRequestMap(const T& spec) :
-                spec(spec),
-                banks(spec.org_entry.count[static_cast<int>(T::Level::Rank)]*
-                      spec.org_entry.count[static_cast<int>(T::Level::Bank)]),
-                rows(spec.org_entry.count[static_cast<int>(T::Level::Row)])
-        {
-                map = new Request**[banks];
-                for (int b {0}; b < banks; b++) {
-                        map[b] = new Request*[rows];
-                        for (int r {0}; r < rows; r++)
-                                map[b][r] = nullptr;
-                }
-        }
-        ~RecodeRequestMap()
-        {
-                for (int b {0}; b < banks; b++)
-                        delete[] map[b];
-                delete[] map;
-        }
-
-        void set(const CodeLocation<T>& location, Request *req)
-        {
-                const int bank {location.bank};
-                const int row {location.row};
-                assert(bank >= 0 && bank < banks && row >= 0 && row < rows);
-                map[bank][row] = req;
-        }
-        Request *get(const CodeLocation<T>& location) const
-        {
-                const int bank {location.bank};
-                const int row {location.row};
-                assert(bank >= 0 && bank < banks && row >= 0 && row < rows);
-                return map[bank][row];
-        }
-};
-
-template <typename T>
 class CodedRegion {
 public:
         const int start_row;
