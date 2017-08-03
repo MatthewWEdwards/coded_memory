@@ -637,20 +637,7 @@ public:
 
         /*** Recode Scheduler ***/
 
-        /* sentinel value */
-        const CodeLocation NO_LOCATION {*channel->spec, -1, -1};
-
         void recoding_controller()
-        {
-                using Status = typename coding::CodeStatusMap<T>::Status;
-
-                const CodeLocation location {get_location_to_recode()};
-                if (location != NO_LOCATION)
-                        // TODO check that the bank is actually free to read from
-                        code_status->set(location, Status::Updated);
-        }
-
-        CodeLocation get_location_to_recode()
         {
                 using CodedRegion = coding::CodedRegion<T>;
                 using XorCodedRegions = coding::XorCodedRegions<T>;
@@ -670,14 +657,31 @@ public:
                              row < (region.start_row + region.n_rows); row++) {
                                 CodeLocation location {*channel->spec,
                                                        region.bank, row};
-                                /* check status map */
                                 Status status {code_status->get(location)};
-                                if (status == Status::FreshData ||
-                                    status == Status::FreshParity)
-                                        return location;
+                                if (status == Status::FreshData &&
+                                    memory_bank_is_free(location)) {
+                                        main_memory_recode(location);
+                                        return;
+                                }
                         }
                 }
-                return NO_LOCATION;
+        }
+
+        bool memory_bank_is_free(const CodeLocation& location)
+        {
+                /* a memory bank is free if ramulator's decode returns the read
+                 * command given a read command */
+                vector<int> addr_vec {location.addr_vec()};
+                addr_vec[0] = channel->id;
+                return channel->decode(T::Command::RD, addr_vec.data()) ==
+                       T::Command::RD;
+        }
+
+        void main_memory_recode(const CodeLocation& location)
+        {
+                using Status = typename coding::CodeStatusMap<T>::Status;
+
+                code_status->set(location, Status::Updated);
         }
 #endif
 
