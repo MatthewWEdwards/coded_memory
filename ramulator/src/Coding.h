@@ -191,7 +191,7 @@ public:
                 access_latency(latency),
                 xor_regions(xor_regions) {}
 
-        bool lock_for_read()
+        bool lock()
         {
                 if (!is_busy) {
                         is_busy = true;

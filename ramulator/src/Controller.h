@@ -533,17 +533,24 @@ public:
         using ParityBank = coding::ParityBank<T>;
         using CodeLocation = coding::CodeLocation<T>;
 
+        void schedule_served_request(Request& req, const long& depart)
+        {
+                req.bypass_dram = true;
+                req.depart = depart;
+                pending.push_back(req);
+                /* inserting in nonlinear order, so resort the pending queue */
+                pending.sort([](const Request& a, const Request& b)
+                             { return a.depart < b.depart; });
+        }
+
         /*** Read Pattern Builder ***/
 
         void read_pattern_builder()
         {
-                for (ParityBank& bank : parity_banks) {
-                        /* update internal state */
-                        bank.tick();
+                for (ParityBank& bank : parity_banks)
                         /* match queued reads to pending reads */
                         if (!bank.busy())
                                 schedule_queued_read_for_parity_bank(bank);
-                }
         }
 
         void schedule_queued_read_for_parity_bank(ParityBank& bank)
@@ -561,13 +568,14 @@ public:
                         bool schedulable {schedulable_result.first};
                         long depart {schedulable_result.second};
                         if (schedulable) {
-                                bank.lock_for_read();
-                                schedule_served_read(read, depart);
+                                bank.lock();
+                                schedule_served_request(read, depart);
                                 remove_read_from_readq(read);
                                 break;
                         }
                 }
         }
+
         pair<bool, long> can_schedule_queued_read_for_parity_bank(Request& read,
                                                                   ParityBank& bank)
         {
@@ -614,15 +622,6 @@ public:
                 return {true, depart};
         }
 
-        void schedule_served_read(Request& req, const long& depart)
-        {
-                req.bypass_dram = true;
-                req.depart = depart;
-                pending.push_back(req);
-                pending.sort([](const Request& a, const Request& b)
-                             { return a.depart < b.depart; });
-        }
-
         void remove_read_from_readq(const Request& req)
         {
                 for (auto read_it {std::begin(readq.q)};
@@ -633,6 +632,31 @@ public:
                         }
                 }
                 assert(false);
+        }
+
+        /*** Write Pattern Builder ***/
+
+        void write_pattern_builder()
+        {
+                for (ParityBank& bank : parity_banks)
+                        /* find queued writes to serve with parity banks instead
+                         * of main memory */
+                        if (!bank.busy())
+                                schedule_queued_write_for_parity_bank(bank);
+        }
+
+        void schedule_queued_write_for_parity_bank(ParityBank& bank)
+        {
+                /* select a queued write that could be served by this parity
+                 * bank */
+                auto can_serve {[bank](Request& req) { return bank.contains(req); }};
+                auto write_it {find_if(begin(writeq.q), end(writeq.q), can_serve)};
+                /* if one exists, serve it */
+                if (write_it != end(writeq.q)) {
+                        bank.lock();
+                        schedule_served_request(*write_it, clk + parity_bank_latency);
+                        writeq.q.erase(write_it);
+                }
         }
 
         /*** Recode Scheduler ***/
@@ -711,7 +735,11 @@ public:
         refresh->tick_ref();
 
 #ifdef MEMORY_CODING
+        for (ParityBank& bank : parity_banks)
+                /* update internal state */
+                bank.tick();
         read_pattern_builder();
+        write_pattern_builder();
         recoding_controller();
 #endif
 
