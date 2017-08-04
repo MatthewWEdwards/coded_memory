@@ -647,6 +647,8 @@ public:
 
         void schedule_queued_write_for_parity_bank(ParityBank& bank)
         {
+                using Status = typename coding::CodeStatusMap<T>::Status;
+
                 /* select a queued write that could be served by this parity
                  * bank */
                 auto can_serve {[bank](Request& req) { return bank.contains(req); }};
@@ -656,6 +658,9 @@ public:
                         bank.lock();
                         schedule_served_request(*write_it, clk + parity_bank_latency);
                         writeq.q.erase(write_it);
+
+                        CodeLocation location {*channel->spec, *write_it};
+                        code_status->set(location, Status::FreshParity);
                 }
         }
 
@@ -679,11 +684,16 @@ public:
                 for (const CodedRegion& region : regions) {
                         for (int row {region.start_row};
                              row < (region.start_row + region.n_rows); row++) {
+                                /* simulate the recode */
                                 CodeLocation location {*channel->spec,
                                                        region.bank, row};
                                 Status status {code_status->get(location)};
                                 if (status == Status::FreshData &&
                                     memory_bank_is_free(location)) {
+                                        main_memory_recode(location);
+                                        return;
+                                } else if (status == Status::FreshParity &&
+                                           memory_bank_is_free(location)) {
                                         main_memory_recode(location);
                                         return;
                                 }
