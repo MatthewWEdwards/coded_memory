@@ -531,7 +531,11 @@ public:
 
 #ifdef MEMORY_CODING
         using ParityBank = coding::ParityBank<T>;
+        using XorCodedRegions = coding::XorCodedRegions<T>;
+        using CodedRegion = coding::CodedRegion<T>;
+
         using CodeLocation = coding::CodeLocation<T>;
+        using CodeStatus = typename coding::CodeStatusMap<T>::Status;
 
         void schedule_served_request(Request& req, const long& depart)
         {
@@ -579,15 +583,11 @@ public:
         pair<bool, long> can_schedule_queued_read_for_parity_bank(Request& read,
                                                                   ParityBank& bank)
         {
-                using CodedRegion = coding::CodedRegion<T>;
-                using XorCodedRegions = coding::XorCodedRegions<T>;
-                using Status = typename coding::CodeStatusMap<T>::Status;
-
                 /* select all pending reads that could be used by this parity
                  * bank and were not previously scheduled by us */
                 vector<reference_wrapper<Request>> candidate_pending;
                 for (Request& req : pending)
-                        if (code_status->get(req) == Status::Updated &&
+                        if (code_status->get(req) == CodeStatus::Updated &&
                             bank.contains(req) && !req.bypass_code_pattern_builders)
                                 candidate_pending.push_back(req);
                 /* get a list of all the XOR regions needed to complete
@@ -603,7 +603,7 @@ public:
                 long depart {clk + parity_bank_latency};
                 for (const CodedRegion& other_region : other_regions) {
                         auto can_use {[this, xor_regions, read, other_region](Request& req)
-                                      { return code_status->get(req) == Status::Updated &&
+                                      { return code_status->get(req) == CodeStatus::Updated &&
                                                xor_regions.request_region(req) == other_region &&
                                                xor_regions.same_request_row_numbers(read, req); }};
                         vector<reference_wrapper<Request>>::iterator
@@ -647,8 +647,6 @@ public:
 
         void schedule_queued_write_for_parity_bank(ParityBank& bank)
         {
-                using Status = typename coding::CodeStatusMap<T>::Status;
-
                 /* select a queued write that could be served by this parity
                  * bank */
                 auto can_serve {[bank](Request& req) { return bank.contains(req); }};
@@ -660,7 +658,7 @@ public:
                         writeq.q.erase(write_it);
 
                         CodeLocation location {*channel->spec, *write_it};
-                        code_status->set(location, Status::FreshParity);
+                        code_status->set(location, CodeStatus::FreshParity);
                 }
         }
 
@@ -668,10 +666,6 @@ public:
 
         void recoding_controller()
         {
-                using CodedRegion = coding::CodedRegion<T>;
-                using XorCodedRegions = coding::XorCodedRegions<T>;
-                using Status = typename coding::CodeStatusMap<T>::Status;
-
                 /* get a list of all coded regions */
                 // TODO this is a little absurd, we probably need a global list
                 // of these things, especially for the dynamic coding scheduler
@@ -687,12 +681,12 @@ public:
                                 /* simulate the recode */
                                 CodeLocation location {*channel->spec,
                                                        region.bank, row};
-                                Status status {code_status->get(location)};
-                                if (status == Status::FreshData &&
+                                CodeStatus status {code_status->get(location)};
+                                if (status == CodeStatus::FreshData &&
                                     memory_bank_is_free(location)) {
                                         main_memory_recode(location);
                                         return;
-                                } else if (status == Status::FreshParity &&
+                                } else if (status == CodeStatus::FreshParity &&
                                            memory_bank_is_free(location)) {
                                         main_memory_recode(location);
                                         return;
@@ -713,9 +707,7 @@ public:
 
         void main_memory_recode(const CodeLocation& location)
         {
-                using Status = typename coding::CodeStatusMap<T>::Status;
-
-                code_status->set(location, Status::Updated);
+                code_status->set(location, CodeStatus::Updated);
         }
 #endif
 
