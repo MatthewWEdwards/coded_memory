@@ -11,48 +11,43 @@ namespace coding
 using Request = ramulator::Request;
 
 /* Note: ramulator addresses are composed of (Channel, Rank, Bank, Row, Column)
- * tuples. To address all possible banks, we address coded memory locations as
- * (Rank*#Banks+Bank, Row). */
+ * tuples. We address all rows with one compositse index of Rank, Bank, and Row. */
+
+int calc_log2(const int& val);
 
 template <typename T>
-class CodeLocation {
-private:
-        const T& spec;
-public:
-        const int bank;
-        const int row;
+unsigned long request_to_row_index(const T& spec, const Request& req)
+{
+        const int rank {req.addr_vec[static_cast<int>(T::Level::Rank)]};
+        const int bank {req.addr_vec[static_cast<int>(T::Level::Bank)]};
+        const int row {spec.org_entry.count[static_cast<int>(T::Level::Row)]};
+        const int bank_bits {calc_log2(spec.org_entry.count
+                                       [static_cast<int>(T::Level::Bank)])};
+        const int row_bits {calc_log2(spec.org_entry.count
+                                       [static_cast<int>(T::Level::Row)])};
+        return (rank << (bank_bits + row_bits)) +
+               (bank << row_bits) +
+               row;
+}
 
-        CodeLocation(const T& spec, const int& bank, const int& row) :
-                spec(spec),
-                bank(bank),
-                row(row) {}
-        CodeLocation(const T& spec, const Request& req) :
-                spec(spec),
-                bank(req.addr_vec[static_cast<int>(T::Level::Rank)]*
-                     spec.org_entry.count[static_cast<int>(T::Level::Bank)] +
-                     req.addr_vec[static_cast<int>(T::Level::Bank)]),
-                row(req.addr_vec[static_cast<int>(T::Level::Row)]) {}
-
-        bool operator ==(const CodeLocation<T>& other) const
-        {
-                return &spec == &other.spec && // bad hack but it works
-                       bank == other.bank && row == other.row;
-        }
-        bool operator !=(const CodeLocation<T>& other) const
-        {
-                return !(*this == other);
-        }
-        vector<int> addr_vec() const
-        {
-                vector<int> addr_vec(static_cast<int>(T::Level::MAX));
-                const int max_banks {spec.org_entry.count[static_cast<int>(T::Level::Bank)]};
-                addr_vec[static_cast<int>(T::Level::Rank)] = bank/max_banks;
-                addr_vec[static_cast<int>(T::Level::Bank)] = bank % max_banks;
-                addr_vec[static_cast<int>(T::Level::Row)] = row;
-                addr_vec[static_cast<int>(T::Level::Column)] = 0;
-                return addr_vec;
-        }
-};
+template <typename T>
+vector<int> row_index_to_addr_vec(const T& spec,
+                                  const unsigned long& row_index, const int& channel)
+{
+        const int bank_bits {calc_log2(spec.org_entry.count
+                                       [static_cast<int>(T::Level::Bank)])};
+        const int row_bits {calc_log2(spec.org_entry.count
+                                       [static_cast<int>(T::Level::Row)])};
+        const int rank {row_index >> (bank_bits + row_bits)};
+        const int bank {(row_index >> row_bits) & ((1 << (bank_bits + 1)) - 1)};
+        const int row {row_index & ((1 << (row_bits + 1)) - 1)};
+        vector<int> addr_vec(static_cast<int>(T::Level::MAX));
+        addr_vec[static_cast<int>(T::Level::Channel)] = channel;
+        addr_vec[static_cast<int>(T::Level::Rank)] = rank;
+        addr_vec[static_cast<int>(T::Level::Bank)] = bank;
+        addr_vec[static_cast<int>(T::Level::Row)] = row;
+        return addr_vec;
+}
 
 template <typename T>
 class CodeStatusMap {
@@ -60,79 +55,64 @@ public:
         enum Status { Updated, FreshData, FreshParity };
 private:
         const T& spec;
-        const int banks;
-        const int rows;
-        Status **map;
+        const int n_rows;
+        Status *map;
 public:
         CodeStatusMap(const T& spec) :
                 spec(spec),
-                banks(spec.org_entry.count[static_cast<int>(T::Level::Rank)]*
-                      spec.org_entry.count[static_cast<int>(T::Level::Bank)]),
-                rows(spec.org_entry.count[static_cast<int>(T::Level::Row)])
+                n_rows(spec.org_entry.count[static_cast<int>(T::Level::Rank)]*
+                       spec.org_entry.count[static_cast<int>(T::Level::Bank)]*
+                       spec.org_entry.count[static_cast<int>(T::Level::Row)])
         {
-                map = new Status*[banks];
-                for (int b {0}; b < banks; b++) {
-                        map[b] = new Status[rows];
-                        for (int r = 0; r < rows; r++)
-                                map[b][r] = Status::FreshData;
-                }
+                map = new Status*[n_rows];
+                for (int r {0}; r < n_rows; r++)
+                        map[r] = Status::FreshData;
         }
         ~CodeStatusMap()
         {
-                for (int b {0}; b < banks; b++)
-                        delete[] map[b];
                 delete[] map;
         }
 
-        void set(const CodeLocation<T>& location, const Status status)
+        void set(const unsigned long& row_index, const Status& status)
         {
-                const int bank {location.bank};
-                const int row {location.row};
-                assert(bank >= 0 && bank < banks && row >= 0 && row < rows);
-                map[bank][row] = status;
+                assert(row_index >= 0 && row_index < n_rows);
+                map[row_index] = status;
         }
-        void set_row(const int& row, const Status status)
+        Status get(const unsigned long& row_index) const
         {
-                assert(row >= 0 && row < rows);
-                for (int b {0}; b < banks; b++)
-                        map[b][row] = status;
-        }
-        Status get(const CodeLocation<T>& location) const
-        {
-                const int bank {location.bank};
-                const int row {location.row};
-                assert(bank >= 0 && bank < banks && row >= 0 && row < rows);
-                return map[bank][row];
+                assert(row_index >= 0 && row_index < n_rows);
+                return map[row_index];
         }
         inline Status get(const Request& req) const
         {
-                CodeLocation<T> location {spec, req};
-                return get(location);
+                return get(request_to_row_index(spec, req));
         }
 };
 
 template <typename T>
-class CodedRegion {
+class MemoryRegion {
 public:
         const int start_row;
         const int n_rows;
         const int bank;
+        unsigned long hits;
 
-        CodedRegion(const int& start_row, const int& n_rows, const int& bank) :
+        MemoryRegion(const int& start_row, const int& n_rows, const int& bank) :
                 start_row(start_row),
                 n_rows(n_rows),
-                bank(bank) {}
+                bank(bank),
+                hits(0) {}
 
-        bool operator ==(const CodedRegion<T>& other) const
+        bool operator ==(const MemoryRegion<T>& other) const
         {
                 return start_row == other.start_row && n_rows == other.n_rows &&
                        bank == other.bank;
         }
-        bool operator !=(const CodedRegion<T>& other) const
+        bool operator !=(const MemoryRegion<T>& other) const
         {
                 return !(*this == other);
         }
-        inline bool contains(const Request& req) const // FIXME
+        inline bool contains(const Request& req) const
         {
                 bool same_bank {req.addr_vec[(int)T::Level::Bank] == bank};
                 int req_row {req.addr_vec[(int)T::Level::Row]};
@@ -149,15 +129,15 @@ public:
 template <typename T>
 class XorCodedRegions {
 public:
-        const vector<CodedRegion<T>> regions;
-        const CodedRegion<T> NO_REGION {-1, -1, -1}; /* sentinel */
+        const vector<MemoryRegion<T>> regions;
+        const MemoryRegion<T> NO_REGION {-1, -1, -1}; /* sentinel */
 
-        XorCodedRegions(const vector<CodedRegion<T>>& regions) :
+        XorCodedRegions(const vector<MemoryRegion<T>>& regions) :
                 regions(regions) {}
 
-        const CodedRegion<T>& request_region(const Request& req) const
+        const MemoryRegion<T>& request_region(const Request& req) const
         {
-                for (const CodedRegion<T>& region : regions)
+                for (const MemoryRegion<T>& region : regions)
                         if (region.contains(req))
                                 return region;
                 return NO_REGION;
@@ -168,8 +148,8 @@ public:
         }
         bool same_request_row_numbers(const Request& a, const Request& b) const
         {
-                const CodedRegion<T>& a_region {request_region(a)};
-                const CodedRegion<T>& b_region {request_region(b)};
+                const MemoryRegion<T>& a_region {request_region(a)};
+                const MemoryRegion<T>& b_region {request_region(b)};
                 return a_region != NO_REGION && b_region != NO_REGION &&
                        a_region.row_number(a) == b_region.row_number(b);
         }

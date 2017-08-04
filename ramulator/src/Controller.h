@@ -126,6 +126,9 @@ public:
 
     vector<coding::ParityBank<T>> parity_banks;
     long parity_bank_latency;
+
+    vector<coding::MemoryRegion<T>> code_regions;
+    static constexpr int num_code_regions = 8;
 #endif
 
     /* Constructor */
@@ -152,17 +155,25 @@ public:
 #ifdef MEMORY_CODING
         // coding
         using XorCodedRegions = coding::XorCodedRegions<T>;
-        using CodedRegion = coding::CodedRegion<T>;
+        using MemoryRegion = coding::MemoryRegion<T>;
 
         code_status = new coding::CodeStatusMap<T>(*channel->spec);
 
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
 
-        /* coded regions within banks */
-        const int rows {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+        /* build a list of memory regions that can be selected for coding */
+        const int total_rows {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+        const int region_rows {total_rows/num_code_regions};
+        for (int i {0}; i < num_code_regions; i++) {
+                const int start_row {region_rows*i};
+                code_regions.push_back({start_row, region_rows,
+        // TODO
+
+        /* coded regions are portions of the address space that can be selected
+         * by for coding */
         const int half_rows {rows/2};
-        CodedRegion region1[] {{0, rows/8, 0},  // a
+        MemoryRegion region1[] {{0, rows/8, 0},  // a
                                {0, rows/8, 1},  // b
                                {0, rows/8, 2},  // c
                                {0, rows/8, 3},  // d
@@ -171,7 +182,7 @@ public:
                                {0, rows/8, 6},  // g
                                {0, rows/8, 7},  // h
                                {0, rows/8, 8}}; // i
-        CodedRegion region2[] {{half_rows, rows/8, 0},  // a
+        MemoryRegion region2[] {{half_rows, rows/8, 0},  // a
                                {half_rows, rows/8, 1},  // b
                                {half_rows, rows/8, 2},  // c
                                {half_rows, rows/8, 3},  // d
@@ -532,9 +543,7 @@ public:
 #ifdef MEMORY_CODING
         using ParityBank = coding::ParityBank<T>;
         using XorCodedRegions = coding::XorCodedRegions<T>;
-        using CodedRegion = coding::CodedRegion<T>;
-
-        using CodeLocation = coding::CodeLocation<T>;
+        using MemoryRegion = coding::MemoryRegion<T>;
         using CodeStatus = typename coding::CodeStatusMap<T>::Status;
 
         void schedule_served_request(Request& req, const long& depart)
@@ -593,15 +602,15 @@ public:
                 /* get a list of all the XOR regions needed to complete
                  * the parity */
                 const XorCodedRegions& xor_regions {bank.request_xor_regions(read)};
-                const CodedRegion& read_region {xor_regions.request_region(read)};
-                vector<reference_wrapper<const CodedRegion>> other_regions;
-                for (const CodedRegion& region : xor_regions.regions)
+                const MemoryRegion& read_region {xor_regions.request_region(read)};
+                vector<reference_wrapper<const MemoryRegion>> other_regions;
+                for (const MemoryRegion& region : xor_regions.regions)
                         if (region != read_region)
                                 other_regions.push_back(region);
                 /* find a pending read in the same row number for every
                  * other XOR region */
                 long depart {clk + parity_bank_latency};
-                for (const CodedRegion& other_region : other_regions) {
+                for (const MemoryRegion& other_region : other_regions) {
                         auto can_use {[this, xor_regions, read, other_region](Request& req)
                                       { return code_status->get(req) == CodeStatus::Updated &&
                                                xor_regions.request_region(req) == other_region &&
@@ -657,8 +666,9 @@ public:
                         schedule_served_request(*write_it, clk + parity_bank_latency);
                         writeq.q.erase(write_it);
 
-                        CodeLocation location {*channel->spec, *write_it};
-                        code_status->set(location, CodeStatus::FreshParity);
+                        const auto row coding::request_to_row_index(*channel->spec,
+                                                                    *write_it);
+                        code_status->set(row, CodeStatus::FreshParity);
                 }
         }
 
@@ -669,19 +679,17 @@ public:
                 /* get a list of all coded regions */
                 // TODO this is a little absurd, we probably need a global list
                 // of these things, especially for the dynamic coding scheduler
-                vector<reference_wrapper<const CodedRegion>> regions;
+                vector<reference_wrapper<const MemoryRegion>> regions;
                 for (const ParityBank& bank : parity_banks)
                         for (const XorCodedRegions& xor_regions : bank.xor_regions)
-                                for (const CodedRegion& region : xor_regions.regions)
+                                for (const MemoryRegion& region : xor_regions.regions)
                                         regions.push_back(region);
-                /* find a (bank, row) location that needs to be recoded */
-                for (const CodedRegion& region : regions) {
+                /* find a row that needs to be recoded */
+                for (const MemoryRegion& region : regions) {
                         for (int row {region.start_row};
                              row < (region.start_row + region.n_rows); row++) {
                                 /* simulate the recode */
-                                CodeLocation location {*channel->spec,
-                                                       region.bank, row};
-                                CodeStatus status {code_status->get(location)};
+                                CodeStatus status {code_status->get(row)};
                                 if (status == CodeStatus::FreshData &&
                                     memory_bank_is_free(location)) {
                                         main_memory_recode(location);
@@ -695,19 +703,19 @@ public:
                 }
         }
 
-        bool memory_bank_is_free(const CodeLocation& location)
+        bool memory_bank_is_free(const unsigned long& row_index)
         {
                 /* a memory bank is free if ramulator's decode returns the read
                  * command given a read command */
-                vector<int> addr_vec {location.addr_vec()};
-                addr_vec[0] = channel->id;
+                vector<int> addr_vec {coding::row_index_to_addr_vec(row_index,
+                                                                    channel->id)};
                 return channel->decode(T::Command::RD, addr_vec.data()) ==
                        T::Command::RD;
         }
 
-        void main_memory_recode(const CodeLocation& location)
+        inline void main_memory_recode(const unsigned long& row_index)
         {
-                code_status->set(location, CodeStatus::Updated);
+                code_status->set(row_index, CodeStatus::Updated);
         }
 #endif
 
