@@ -11,15 +11,21 @@ namespace coding
 using Request = ramulator::Request;
 
 /* Note: ramulator addresses are composed of (Channel, Rank, Bank, Row, Column)
- * tuples. We address all rows with one compositse index of Rank, Bank, and Row. */
+ * tuples. We address all rows with one composite index of Rank, Bank, and Row. */
 
 int calc_log2(const int& val);
 
 template <typename T>
-unsigned long request_to_row_index(const T& spec, const Request& req)
+inline unsigned long request_to_row_index(const T& spec, const Request& req)
 {
-        const int rank {req.addr_vec[static_cast<int>(T::Level::Rank)]};
-        const int bank {req.addr_vec[static_cast<int>(T::Level::Bank)]};
+        return addr_vec_to_row_index(spec, req.addr_vec);
+}
+
+template <typename T>
+unsigned long addr_vec_to_row_index(const T& spec, const vector<int>& addr_vec)
+{
+        const int rank {addr_vec[static_cast<int>(T::Level::Rank)]};
+        const int bank {addr_vec[static_cast<int>(T::Level::Bank)]};
         const int row {spec.org_entry.count[static_cast<int>(T::Level::Row)]};
         const int bank_bits {calc_log2(spec.org_entry.count
                                        [static_cast<int>(T::Level::Bank)])};
@@ -64,7 +70,7 @@ public:
                        spec.org_entry.count[static_cast<int>(T::Level::Bank)]*
                        spec.org_entry.count[static_cast<int>(T::Level::Row)])
         {
-                map = new Status*[n_rows];
+                map = new Status[n_rows];
                 for (int r {0}; r < n_rows; r++)
                         map[r] = Status::FreshData;
         }
@@ -92,21 +98,19 @@ public:
 template <typename T>
 class MemoryRegion {
 public:
-        const int start_row;
+        const int start_row_index;
         const int n_rows;
-        const int bank;
         unsigned long hits;
 
-        MemoryRegion(const int& start_row, const int& n_rows, const int& bank) :
-                start_row(start_row),
+        MemoryRegion(const int& start_row_index, const int& n_rows) :
+                start_row_index(start_row_index),
                 n_rows(n_rows),
-                bank(bank),
                 hits(0) {}
 
         bool operator ==(const MemoryRegion<T>& other) const
         {
-                return start_row == other.start_row && n_rows == other.n_rows &&
-                       bank == other.bank;
+                return start_row_index == other.start_row_index && n_rows == other.n_rows &&
+                       hits == other.hits;
         }
         bool operator !=(const MemoryRegion<T>& other) const
         {
@@ -114,15 +118,16 @@ public:
         }
         inline bool contains(const Request& req) const
         {
-                bool same_bank {req.addr_vec[(int)T::Level::Bank] == bank};
-                int req_row {req.addr_vec[(int)T::Level::Row]};
-                bool row_in_range {req_row >= start_row &&
-                                   req_row < start_row + n_rows};
-                return same_bank && row_in_range;
+                unsigned long row_index {request_to_row_index<T>(spec, req)};
+                return row_index >= start_row_index &&
+                       row_index < start_row_index + n_rows;
         }
         inline int row_number(const Request& req) const
         {
-                return req.addr_vec[(int)T::Level::Row] - start_row;
+                unsigned long row_index {request_to_row_index<T>(spec, req)};
+                int row_number {row_index - start_row_index};
+                assert(row_number >= 0 && row_number < n_rows);
+                return row_number;
         }
 };
 

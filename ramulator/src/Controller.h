@@ -163,8 +163,8 @@ public:
         parity_bank_latency = channel->spec->read_latency;
 
         /* build a list of memory regions that can be selected for coding */
-        const int total_rows {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
-        const int region_rows {total_rows/num_code_regions};
+        const int rows_in_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+        const int rows_in_region {total_rows/num_code_regions};
         for (int i {0}; i < num_code_regions; i++) {
                 const int start_row {region_rows*i};
                 code_regions.push_back({start_row, region_rows,
