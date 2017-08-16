@@ -27,7 +27,7 @@ unsigned long addr_vec_to_row_index(const T *spec, const vector<int>& addr_vec)
 {
         const int rank {addr_vec[static_cast<int>(T::Level::Rank)]};
         const int bank {addr_vec[static_cast<int>(T::Level::Bank)]};
-        const int row {spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+        const int row {addr_vec[static_cast<int>(T::Level::Row)]};
         const int bank_bits {calc_log2(spec->org_entry.count
                                        [static_cast<int>(T::Level::Bank)])};
         const int row_bits {calc_log2(spec->org_entry.count

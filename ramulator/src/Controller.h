@@ -173,7 +173,7 @@ public:
                                 upper_regions.push_back(bank_upper_region);
                                 this_bank++;
 #if CODING_SCHEME==1
-                                if (this_bank > 8) {
+                                if (this_bank >= 8) {
 #endif
                                         /* we've collected enough for the coding
                                          * scheme; build a complete topology */
@@ -190,6 +190,7 @@ public:
                         }
                 }
         }
+        assert(topologies.size() > 0);
 
         /* pick and construct an initial topology for the parity banks */
         ParityBankTopology init_topology {topologies[0]};
@@ -407,7 +408,7 @@ public:
 
         vector<int> location_addr_vec(const int& rank, const int& bank, const int& row)
         {
-                vector<int> addr_vec {static_cast<int>(T::Level::MAX)};
+                vector<int> addr_vec(static_cast<int>(T::Level::MAX));
                 addr_vec[static_cast<int>(T::Level::Channel)] = channel->id;
                 addr_vec[static_cast<int>(T::Level::Rank)] = rank;
                 addr_vec[static_cast<int>(T::Level::Bank)] = bank;
