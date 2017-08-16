@@ -27,25 +27,6 @@
 #include "Coding.h"
 #include <algorithm>
 #include <utility>
-
-#define A1 region1[0]
-#define A2 region2[0]
-#define B1 region1[1]
-#define B2 region2[1]
-#define C1 region1[2]
-#define C2 region2[2]
-#define D1 region1[3]
-#define D2 region2[3]
-#define E1 region1[4]
-#define E2 region2[4]
-#define F1 region1[5]
-#define F2 region2[5]
-#define G1 region1[6]
-#define G2 region2[6]
-#define H1 region1[7]
-#define H2 region2[7]
-#define I1 region1[8]
-#define I2 region2[8]
 #endif
 
 using namespace std;
@@ -128,7 +109,7 @@ public:
     long parity_bank_latency;
 
     vector<coding::MemoryRegion<T>> code_regions;
-    static constexpr int num_code_regions = 8;
+    static constexpr int code_regions_per_bank = 8;
 #endif
 
     /* Constructor */
@@ -154,191 +135,69 @@ public:
 
 #ifdef MEMORY_CODING
         // coding
-        using XorCodedRegions = coding::XorCodedRegions<T>;
         using MemoryRegion = coding::MemoryRegion<T>;
+        using ParityBankTopology = coding::ParityBankTopology<T>;
 
-        code_status = new coding::CodeStatusMap<T>(*channel->spec);
+        code_status = new coding::CodeStatusMap<T>(channel->spec);
 
         /* for now, parity bank latency = main memory latency */
         parity_bank_latency = channel->spec->read_latency;
 
-        /* build a list of memory regions that can be selected for coding */
-        const int rows_in_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
-        const int rows_in_region {total_rows/num_code_regions};
-        for (int i {0}; i < num_code_regions; i++) {
-                const int start_row {region_rows*i};
-                code_regions.push_back({start_row, region_rows,
-        // TODO
-
-        /* coded regions are portions of the address space that can be selected
-         * by for coding */
-        const int half_rows {rows/2};
-        MemoryRegion region1[] {{0, rows/8, 0},  // a
-                               {0, rows/8, 1},  // b
-                               {0, rows/8, 2},  // c
-                               {0, rows/8, 3},  // d
-                               {0, rows/8, 4},  // e
-                               {0, rows/8, 5},  // f
-                               {0, rows/8, 6},  // g
-                               {0, rows/8, 7},  // h
-                               {0, rows/8, 8}}; // i
-        MemoryRegion region2[] {{half_rows, rows/8, 0},  // a
-                               {half_rows, rows/8, 1},  // b
-                               {half_rows, rows/8, 2},  // c
-                               {half_rows, rows/8, 3},  // d
-                               {half_rows, rows/8, 4},  // e
-                               {half_rows, rows/8, 5},  // f
-                               {half_rows, rows/8, 6},  // g
-                               {half_rows, rows/8, 7},  // h
-                               {half_rows, rows/8, 8}}; // i
-
-        /* construct parity banks with these coded regions */
+        /* build a list of possible memory topologies that can be selected for
+         * coding based on the number of hits */
+        const int ranks {channel->spec->org_entry.count[static_cast<int>(T::Level::Rank)]};
+        const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
+        const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+        const int rows_per_region {rows_per_bank/code_regions_per_bank};
+        vector<ParityBankTopology> topologies;
+        /* divide memory into 8 subregions for coding */
+        for (int c {0}; c < code_regions_per_bank; c++) {
+                /* build list of memory regions by bank */
+                vector<MemoryRegion> lower_regions;
+                vector<MemoryRegion> upper_regions;
+                int this_bank {0};
+                /* loop through all banks (in all ranks) */
+                for (int r {0}; r < ranks; r++) {
+                        for (int b {0}; b < banks_per_rank; b++) {
+                                int start_row {c*rows_per_region};
+                                vector<int> this_addr_vec {location_addr_vec(r, b, start_row)};
+                                unsigned long this_row_index {coding::addr_vec_to_row_index(channel->spec,
+                                                                                            this_addr_vec)};
+                                MemoryRegion bank_lower_region {channel->spec,
+                                                                this_row_index,
+                                                                rows_per_region/2};
+                                lower_regions.push_back(bank_lower_region);
+                                MemoryRegion bank_upper_region {channel->spec,
+                                                                this_row_index + rows_per_region/2,
+                                                                rows_per_region/2};
+                                upper_regions.push_back(bank_upper_region);
+                                this_bank++;
 #if CODING_SCHEME==1
-        vector<XorCodedRegions> bank1_xor {{{A1, B1}},
-                                           {{A2, B2}}};
-        parity_banks.push_back({bank1_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank2_xor {{{C1, D1}},
-                                           {{C2, D2}}};
-        parity_banks.push_back({bank2_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank3_xor {{{A1, D1}},
-                                           {{A2, D2}}};
-        parity_banks.push_back({bank3_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank4_xor {{{B1, C1}},
-                                           {{B2, C2}}};
-        parity_banks.push_back({bank4_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank5_xor {{{B1, D1}},
-                                           {{B2, D2}}};
-        parity_banks.push_back({bank5_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank6_xor {{{A1, C1}},
-                                           {{A2, C2}}};
-        parity_banks.push_back({bank6_xor, parity_bank_latency});
-        /*********************************************************/
-        vector<XorCodedRegions> bank7_xor {{{E1, F1}},
-                                           {{E2, F2}}};
-        parity_banks.push_back({bank7_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank8_xor {{{G1, H1}},
-                                           {{G2, H2}}};
-        parity_banks.push_back({bank8_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank9_xor {{{E1, H1}},
-                                           {{E2, H2}}};
-        parity_banks.push_back({bank9_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank10_xor {{{F1, G1}},
-                                            {{F2, G2}}};
-        parity_banks.push_back({bank10_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank11_xor {{{F1, H1}},
-                                            {{F2, H2}}};
-        parity_banks.push_back({bank11_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank12_xor {{{E1, G1}},
-                                            {{E2, G2}}};
-        parity_banks.push_back({bank12_xor, parity_bank_latency});
-#elif CODING_SCHEME==2
-        vector<XorCodedRegions> bank1_xor {{{A1, B1}},
-                                           {{E1, E2}},
-                                           {{A2, B2}},
-                                           {{E1}}};
-        parity_banks.push_back({bank1_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank2_xor {{{C1, D1}},
-                                           {{F1, F2}},
-                                           {{C2, D2}},
-                                           {{F1}}};
-        parity_banks.push_back({bank2_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank3_xor {{{A1, D1}},
-                                           {{G1, G2}},
-                                           {{A2, A2}},
-                                           {{G1}}};
-        parity_banks.push_back({bank3_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank4_xor {{{B1, C1}},
-                                           {{H1, H2}},
-                                           {{B2, C2}},
-                                           {{H1}}};
-        parity_banks.push_back({bank4_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank5_xor {{{B1, D1}},
-                                           {{A1, C1}},
-                                           {{B2, D2}},
-                                           {{A2, C2}}};
-        parity_banks.push_back({bank5_xor, parity_bank_latency});
-        /*********************************************************/
-        vector<XorCodedRegions> bank6_xor {{{E1, F1}},
-                                           {{A1, B1}},
-                                           {{E2, F2}},
-                                           {{A1}}};
-        parity_banks.push_back({bank6_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank7_xor {{{G1, H1}},
-                                           {{C1, D1}},
-                                           {{G2, H2}},
-                                           {{B1}}};
-        parity_banks.push_back({bank7_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank8_xor {{{E1, H1}},
-                                           {{A1, D1}},
-                                           {{E2, H2}},
-                                           {{C1}}};
-        parity_banks.push_back({bank8_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank9_xor {{{F1, G1}},
-                                           {{B1, C1}},
-                                           {{F2, G2}},
-                                           {{D1}}};
-        parity_banks.push_back({bank9_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank10_xor {{{F1, H1}},
-                                            {{E1, G1}},
-                                            {{F2, H2}},
-                                            {{E2, G2}}};
-        parity_banks.push_back({bank10_xor, parity_bank_latency});
-#elif CODING_SCHEME==3
-        vector<XorCodedRegions> bank1_xor {{{A1, B1, C1}},
-                                           {{A2, B2, C2}}};
-        parity_banks.push_back({bank1_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank2_xor {{{D1, E1, F1}},
-                                           {{D2, E2, F2}}};
-        parity_banks.push_back({bank2_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank3_xor {{{G1, H1, I1}},
-                                           {{G2, H2, I2}}};
-        parity_banks.push_back({bank3_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank4_xor {{{A1, D1, G1}},
-                                           {{A2, D2, G2}}};
-        parity_banks.push_back({bank4_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank5_xor {{{B1, E1, H1}},
-                                           {{B2, E2, H2}}};
-        parity_banks.push_back({bank5_xor, parity_bank_latency});
-        /*********************************************************/
-        vector<XorCodedRegions> bank6_xor {{{C1, F1, I1}},
-                                           {{C2, F2, I2}}};
-        parity_banks.push_back({bank6_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank7_xor {{{A1, E1, I1}},
-                                           {{A2, E2, I2}}};
-        parity_banks.push_back({bank7_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank8_xor {{{B1, F1, G1}},
-                                           {{B2, F2, G2}}};
-        parity_banks.push_back({bank8_xor, parity_bank_latency});
-
-        vector<XorCodedRegions> bank9_xor {{{C1, D1, H1}},
-                                           {{C2, D2, H2}}};
-        parity_banks.push_back({bank9_xor, parity_bank_latency});
+                                if (this_bank > 8) {
 #endif
+                                        /* we've collected enough for the coding
+                                         * scheme; build a complete topology */
+                                        ParityBankTopology topology =
+#if CODING_SCHEME==1
+                                                coding::ParityBankTopology_SchemeI<T>
+#endif
+                                                (lower_regions, upper_regions);
+                                        topologies.push_back(topology);
+                                        lower_regions.clear();
+                                        upper_regions.clear();
+                                        this_bank = 0;
+                                }
+                        }
+                }
+        }
 
+        /* pick and construct an initial topology for the parity banks */
+        ParityBankTopology init_topology {topologies[0]};
+#if CODING_SCHEME==1
+        for (int pb {0}; pb < 12; pb++)
+                parity_banks.push_back({init_topology.xor_regions_for_parity_bank[pb],
+                                        parity_bank_latency});
+#endif
 #endif
 
         // regStats
@@ -546,6 +405,16 @@ public:
         using MemoryRegion = coding::MemoryRegion<T>;
         using CodeStatus = typename coding::CodeStatusMap<T>::Status;
 
+        vector<int> location_addr_vec(const int& rank, const int& bank, const int& row)
+        {
+                vector<int> addr_vec {static_cast<int>(T::Level::MAX)};
+                addr_vec[static_cast<int>(T::Level::Channel)] = channel->id;
+                addr_vec[static_cast<int>(T::Level::Rank)] = rank;
+                addr_vec[static_cast<int>(T::Level::Bank)] = bank;
+                addr_vec[static_cast<int>(T::Level::Row)] = row;
+                return addr_vec;
+        }
+
         void schedule_served_request(Request& req, const long& depart)
         {
                 req.bypass_dram = true;
@@ -666,9 +535,9 @@ public:
                         schedule_served_request(*write_it, clk + parity_bank_latency);
                         writeq.q.erase(write_it);
 
-                        const auto row coding::request_to_row_index(*channel->spec,
-                                                                    *write_it);
-                        code_status->set(row, CodeStatus::FreshParity);
+                        const auto row_index {coding::request_to_row_index(channel->spec,
+                                                                           *write_it)};
+                        code_status->set(row_index, CodeStatus::FreshParity);
                 }
         }
 
@@ -686,17 +555,18 @@ public:
                                         regions.push_back(region);
                 /* find a row that needs to be recoded */
                 for (const MemoryRegion& region : regions) {
-                        for (int row {region.start_row};
-                             row < (region.start_row + region.n_rows); row++) {
+                        for (int row_index {region.start_row_index};
+                             row_index < (region.start_row_index + region.n_rows);
+                             row_index++) {
                                 /* simulate the recode */
-                                CodeStatus status {code_status->get(row)};
+                                CodeStatus status {code_status->get(row_index)};
                                 if (status == CodeStatus::FreshData &&
-                                    memory_bank_is_free(location)) {
-                                        main_memory_recode(location);
+                                    memory_bank_is_free(row_index)) {
+                                        main_memory_recode(row_index);
                                         return;
                                 } else if (status == CodeStatus::FreshParity &&
-                                           memory_bank_is_free(location)) {
-                                        main_memory_recode(location);
+                                           memory_bank_is_free(row_index)) {
+                                        main_memory_recode(row_index);
                                         return;
                                 }
                         }
@@ -707,8 +577,9 @@ public:
         {
                 /* a memory bank is free if ramulator's decode returns the read
                  * command given a read command */
-                vector<int> addr_vec {coding::row_index_to_addr_vec(row_index,
-                                                                    channel->id)};
+                auto addr_vec {coding::row_index_to_addr_vec<T>(channel->spec,
+                                                                row_index,
+                                                                channel->id)};
                 return channel->decode(T::Command::RD, addr_vec.data()) ==
                        T::Command::RD;
         }
