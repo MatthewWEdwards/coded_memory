@@ -609,7 +609,9 @@ public:
                                 return;
                         }
                 }
-                assert(false);
+                /* should theoretically never happen, but there are some
+                 * nonsensical requests where addr_vec = {0, 0, -1, -1, -1} */
+                //assert(false);
         }
 #endif
 
