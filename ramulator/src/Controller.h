@@ -602,20 +602,26 @@ public:
         void coding_region_controller()
         {
                 if (coding_region_counter >= coding_region_reschedule_ticks) {
+                        /* find the coding topology with the most hits */
                         auto most_hits_index {std::max_element(topology_hits.begin(),
                                                                topology_hits.end())
                                               - topology_hits.begin()};
-                        topology_hits.assign(topology_hits.size(), 0);
+                        /* switch the parity banks to it */
                         switch_coding_region(topologies[most_hits_index]);
+                        /* reset tracking counters */
+                        topology_hits.assign(topology_hits.size(), 0);
                 }
         }
 
         void switch_coding_region(const coding::ParityBankTopology<T>& new_topology)
         {
+                /* copy the parity bank config of the new topology into the
+                 * active one */
                 size_t n_parity_banks {topologies[0].n_parity_banks};
                 for (int b {0}; b < n_parity_banks; b++) {
                         auto regions_list {new_topology.xor_regions_for_parity_bank[b]};
-
+                        /* convoluted workaround since the copy-assignment
+                         * operator is implicitly deleted for XorCodedRegions */
                         parity_banks[b].xor_regions.clear();
                         for (int xr {0}; xr < regions_list.size(); xr++) {
                                 vector<coding::MemoryRegion<T>> regions
