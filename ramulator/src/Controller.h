@@ -106,6 +106,11 @@ public:
     coding::CodeStatusMap<T> *code_status;
 
     vector<coding::ParityBank<T>> parity_banks;
+
+    vector<coding::ParityBankTopology<T>> topologies;
+    vector<unsigned long> topology_hits;
+    coding::ParityBankTopology<T> *active_topology;
+
     long parity_bank_latency;
 
     vector<coding::MemoryRegion<T>> code_regions;
@@ -149,7 +154,6 @@ public:
         const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
         const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
         const int rows_per_region {rows_per_bank/code_regions_per_bank};
-        vector<ParityBankTopology> topologies;
         /* divide memory into 8 subregions for coding */
         for (int c {0}; c < code_regions_per_bank; c++) {
                 /* build list of memory regions by bank */
@@ -194,11 +198,11 @@ public:
 
         /* pick and construct an initial topology for the parity banks */
         ParityBankTopology init_topology {topologies[0]};
-#if CODING_SCHEME==1
-        for (int pb {0}; pb < 12; pb++)
+        for (int pb {0}; pb < init_topology.n_parity_banks; pb++)
                 parity_banks.push_back({init_topology.xor_regions_for_parity_bank[pb],
                                         parity_bank_latency});
-#endif
+        active_topology = &topologies[0];
+        topology_hits.resize(topologies.size(), 0);
 #endif
 
         // regStats
@@ -589,6 +593,24 @@ public:
         {
                 code_status->set(row_index, CodeStatus::Updated);
         }
+
+        /*** Coded Memory Region Controller ***/
+
+        void coding_region_controller()
+        {
+
+        }
+
+        void coding_region_hit(const Request& req)
+        {
+                for (int i {0}; i < topologies.size(); i++) {
+                        if (topologies[i].contains(req)) {
+                                topology_hits[i]++;
+                                return;
+                        }
+                }
+                assert(false);
+        }
 #endif
 
     void tick()
@@ -623,6 +645,7 @@ public:
         read_pattern_builder();
         write_pattern_builder();
         recoding_controller();
+        coding_region_controller();
 #endif
 
         /*** 3. Should we schedule writes? ***/
@@ -685,6 +708,9 @@ public:
               }
               write_transaction_bytes += tx;
             }
+#ifdef MEMORY_CODING
+            coding_region_hit(*req);
+#endif
         }
 
         // issue command on behalf of request

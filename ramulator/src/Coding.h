@@ -175,8 +175,20 @@ template <typename T>
 class ParityBankTopology {
 public:
         vector<vector<XorCodedRegions<T>>> xor_regions_for_parity_bank;
+        unsigned int n_parity_banks;
 
         virtual ~ParityBankTopology() {}
+
+        const bool contains(const Request& req) const
+        {
+                for (int b {0}; b < n_parity_banks; b++) {
+                        auto bank_regions {xor_regions_for_parity_bank[b]};
+                        for (XorCodedRegions<T>& regions : bank_regions)
+                                if (regions.contains(req))
+                                        return true;
+                }
+                return false;
+        }
 };
 
 template <typename T>
@@ -250,6 +262,8 @@ public:
                 vector<XorCodedRegions<T>> bank12_xor {{{E1, G1}},
                                                        {{E2, G2}}};
                 this->xor_regions_for_parity_bank.push_back(bank12_xor);
+
+                this->n_parity_banks = 12;
         }
 };
 
