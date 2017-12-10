@@ -105,9 +105,7 @@ public:
 #ifdef MEMORY_CODING
     coding::CodeStatusMap<T> *code_status;
 
-    vector<coding::ParityBankTopology<T>> topologies;
-    coding::ParityBankTopology<T> *active_topology;
-
+    vector<coding::ParityBank<T>> parity_banks;
     long parity_bank_latency;
 
     vector<coding::MemoryRegion<T>> code_regions;
@@ -151,6 +149,7 @@ public:
         const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
         const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
         const int rows_per_region {rows_per_bank/code_regions_per_bank};
+        vector<ParityBankTopology> topologies;
         /* divide memory into 8 subregions for coding */
         for (int c {0}; c < code_regions_per_bank; c++) {
                 /* build list of memory regions by bank */
@@ -182,8 +181,7 @@ public:
 #if CODING_SCHEME==1
                                                 coding::ParityBankTopology_SchemeI<T>
 #endif
-                                                (lower_regions, upper_regions,
-                                                 parity_bank_latency);
+                                                (lower_regions, upper_regions);
                                         topologies.push_back(topology);
                                         lower_regions.clear();
                                         upper_regions.clear();
@@ -195,7 +193,12 @@ public:
         assert(topologies.size() > 0);
 
         /* pick and construct an initial topology for the parity banks */
-        active_topology = &topologies[0];
+        ParityBankTopology init_topology {topologies[0]};
+#if CODING_SCHEME==1
+        for (int pb {0}; pb < 12; pb++)
+                parity_banks.push_back({init_topology.xor_regions_for_parity_bank[pb],
+                                        parity_bank_latency});
+#endif
 #endif
 
         // regStats
@@ -427,7 +430,7 @@ public:
 
         void read_pattern_builder()
         {
-                for (ParityBank& bank : active_topology->parity_banks)
+                for (ParityBank& bank : parity_banks)
                         /* match queued reads to pending reads */
                         if (!bank.busy())
                                 schedule_queued_read_for_parity_bank(bank);
@@ -514,7 +517,7 @@ public:
 
         void write_pattern_builder()
         {
-                for (ParityBank& bank : active_topology->parity_banks)
+                for (ParityBank& bank : parity_banks)
                         /* find queued writes to serve with parity banks instead
                          * of main memory */
                         if (!bank.busy())
@@ -547,7 +550,7 @@ public:
                 // TODO this is a little absurd, we probably need a global list
                 // of these things, especially for the dynamic coding scheduler
                 vector<reference_wrapper<const MemoryRegion>> regions;
-                for (const ParityBank& bank : active_topology->parity_banks)
+                for (const ParityBank& bank : parity_banks)
                         for (const XorCodedRegions& xor_regions : bank.xor_regions)
                                 for (const MemoryRegion& region : xor_regions.regions)
                                         regions.push_back(region);
@@ -614,7 +617,7 @@ public:
         refresh->tick_ref();
 
 #ifdef MEMORY_CODING
-        for (ParityBank& bank : active_topology->parity_banks)
+        for (ParityBank& bank : parity_banks)
                 /* update internal state */
                 bank.tick();
         read_pattern_builder();
