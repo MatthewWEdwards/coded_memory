@@ -172,88 +172,6 @@ public:
 };
 
 template <typename T>
-class ParityBankTopology {
-public:
-        vector<vector<XorCodedRegions<T>>> xor_regions_for_parity_bank;
-
-        virtual ~ParityBankTopology() {}
-};
-
-template <typename T>
-class ParityBankTopology_SchemeI : public ParityBankTopology<T> {
-public:
-#define A1 lower_regions[0]
-#define A2 upper_regions[0]
-#define B1 lower_regions[1]
-#define B2 upper_regions[1]
-#define C1 lower_regions[2]
-#define C2 upper_regions[2]
-#define D1 lower_regions[3]
-#define D2 upper_regions[3]
-#define E1 lower_regions[4]
-#define E2 upper_regions[4]
-#define F1 lower_regions[5]
-#define F2 upper_regions[5]
-#define G1 lower_regions[6]
-#define G2 upper_regions[6]
-#define H1 lower_regions[7]
-#define H2 upper_regions[7]
-#define I1 lower_regions[8]
-#define I2 upper_regions[8]
-        ParityBankTopology_SchemeI(const vector<MemoryRegion<T>>& lower_regions,
-                                   const vector<MemoryRegion<T>>& upper_regions)
-        {
-                vector<XorCodedRegions<T>> bank1_xor {{{A1, B1}},
-                                                      {{A2, B2}}};
-                this->xor_regions_for_parity_bank.push_back(bank1_xor);
-
-                vector<XorCodedRegions<T>> bank2_xor {{{C1, D1}},
-                                                      {{C2, D2}}};
-                this->xor_regions_for_parity_bank.push_back(bank2_xor);
-
-                vector<XorCodedRegions<T>> bank3_xor {{{A1, D1}},
-                                                      {{A2, D2}}};
-                this->xor_regions_for_parity_bank.push_back(bank3_xor);
-
-                vector<XorCodedRegions<T>> bank4_xor {{{B1, C1}},
-                                                      {{B2, C2}}};
-                this->xor_regions_for_parity_bank.push_back(bank4_xor);
-
-                vector<XorCodedRegions<T>> bank5_xor {{{B1, D1}},
-                                                      {{B2, D2}}};
-                this->xor_regions_for_parity_bank.push_back(bank5_xor);
-
-                vector<XorCodedRegions<T>> bank6_xor {{{A1, C1}},
-                                                      {{A2, C2}}};
-                this->xor_regions_for_parity_bank.push_back(bank6_xor);
-                /*********************************************************/
-                vector<XorCodedRegions<T>> bank7_xor {{{E1, F1}},
-                                                      {{E2, F2}}};
-                this->xor_regions_for_parity_bank.push_back(bank7_xor);
-
-                vector<XorCodedRegions<T>> bank8_xor {{{G1, H1}},
-                                                      {{G2, H2}}};
-                this->xor_regions_for_parity_bank.push_back(bank8_xor);
-
-                vector<XorCodedRegions<T>> bank9_xor {{{E1, H1}},
-                                                      {{E2, H2}}};
-                this->xor_regions_for_parity_bank.push_back(bank9_xor);
-
-                vector<XorCodedRegions<T>> bank10_xor {{{F1, G1}},
-                                                       {{F2, G2}}};
-                this->xor_regions_for_parity_bank.push_back(bank10_xor);
-
-                vector<XorCodedRegions<T>> bank11_xor {{{F1, H1}},
-                                                       {{F2, H2}}};
-                this->xor_regions_for_parity_bank.push_back(bank11_xor);
-
-                vector<XorCodedRegions<T>> bank12_xor {{{E1, G1}},
-                                                       {{E2, G2}}};
-                this->xor_regions_for_parity_bank.push_back(bank12_xor);
-        }
-};
-
-template <typename T>
 class ParityBank {
 private:
         unsigned long clock {0};
@@ -302,6 +220,100 @@ public:
                         if (xor_region.request_region(req) != xor_region.NO_REGION)
                                 return xor_region;
                 return NO_XOR_REGIONS;
+        }
+};
+
+template <typename T>
+class ParityBankTopology {
+public:
+        vector<coding::ParityBank<T>> parity_banks;
+
+        virtual ~ParityBankTopology() {}
+
+        void build_parity_banks(const vector<vector<XorCodedRegions<T>>> xor_regions_for_parity_bank,
+                                const long latency)
+        {
+                for (auto xor_regions : xor_regions_for_parity_bank)
+                        parity_banks.push_back({xor_regions, latency});
+        }
+};
+
+template <typename T>
+class ParityBankTopology_SchemeI : public ParityBankTopology<T> {
+public:
+#define A1 lower_regions[0]
+#define A2 upper_regions[0]
+#define B1 lower_regions[1]
+#define B2 upper_regions[1]
+#define C1 lower_regions[2]
+#define C2 upper_regions[2]
+#define D1 lower_regions[3]
+#define D2 upper_regions[3]
+#define E1 lower_regions[4]
+#define E2 upper_regions[4]
+#define F1 lower_regions[5]
+#define F2 upper_regions[5]
+#define G1 lower_regions[6]
+#define G2 upper_regions[6]
+#define H1 lower_regions[7]
+#define H2 upper_regions[7]
+#define I1 lower_regions[8]
+#define I2 upper_regions[8]
+        ParityBankTopology_SchemeI(const vector<MemoryRegion<T>>& lower_regions,
+                                   const vector<MemoryRegion<T>>& upper_regions,
+                                   const long latency)
+        {
+                vector<vector<XorCodedRegions<T>>> xor_regions_for_parity_bank;
+
+                vector<XorCodedRegions<T>> bank1_xor {{{A1, B1}},
+                                                      {{A2, B2}}};
+                xor_regions_for_parity_bank.push_back(bank1_xor);
+
+                vector<XorCodedRegions<T>> bank2_xor {{{C1, D1}},
+                                                      {{C2, D2}}};
+                xor_regions_for_parity_bank.push_back(bank2_xor);
+
+                vector<XorCodedRegions<T>> bank3_xor {{{A1, D1}},
+                                                      {{A2, D2}}};
+                xor_regions_for_parity_bank.push_back(bank3_xor);
+
+                vector<XorCodedRegions<T>> bank4_xor {{{B1, C1}},
+                                                      {{B2, C2}}};
+                xor_regions_for_parity_bank.push_back(bank4_xor);
+
+                vector<XorCodedRegions<T>> bank5_xor {{{B1, D1}},
+                                                      {{B2, D2}}};
+                xor_regions_for_parity_bank.push_back(bank5_xor);
+
+                vector<XorCodedRegions<T>> bank6_xor {{{A1, C1}},
+                                                      {{A2, C2}}};
+                xor_regions_for_parity_bank.push_back(bank6_xor);
+                /*********************************************************/
+                vector<XorCodedRegions<T>> bank7_xor {{{E1, F1}},
+                                                      {{E2, F2}}};
+                xor_regions_for_parity_bank.push_back(bank7_xor);
+
+                vector<XorCodedRegions<T>> bank8_xor {{{G1, H1}},
+                                                      {{G2, H2}}};
+                xor_regions_for_parity_bank.push_back(bank8_xor);
+
+                vector<XorCodedRegions<T>> bank9_xor {{{E1, H1}},
+                                                      {{E2, H2}}};
+                xor_regions_for_parity_bank.push_back(bank9_xor);
+
+                vector<XorCodedRegions<T>> bank10_xor {{{F1, G1}},
+                                                       {{F2, G2}}};
+                xor_regions_for_parity_bank.push_back(bank10_xor);
+
+                vector<XorCodedRegions<T>> bank11_xor {{{F1, H1}},
+                                                       {{F2, H2}}};
+                xor_regions_for_parity_bank.push_back(bank11_xor);
+
+                vector<XorCodedRegions<T>> bank12_xor {{{E1, G1}},
+                                                       {{E2, G2}}};
+                xor_regions_for_parity_bank.push_back(bank12_xor);
+
+                this->build_parity_banks(xor_regions_for_parity_bank, latency);
         }
 };
 
