@@ -273,15 +273,18 @@ private:
         unsigned long clock {0};
         unsigned long will_finish {0};
         bool is_busy = false;
-        const unsigned long access_latency;
+        unsigned long access_latency;
 public:
-        const vector<XorCodedRegions<T>> xor_regions;
+        vector<XorCodedRegions<T>> xor_regions;
         const XorCodedRegions<T> NO_XOR_REGIONS {{}}; /* sentinel */
 
-        ParityBank(const vector<XorCodedRegions<T>>& xor_regions,
-                   const unsigned long& latency) :
-                access_latency(latency),
-                xor_regions(xor_regions) {}
+        ParityBank(const unsigned long& latency) :
+                access_latency(latency) {}
+        ParityBank& operator=(const ParityBank& other)
+        {
+                access_latency = other.access_latency;
+                return *this;
+        }
 
         bool lock()
         {

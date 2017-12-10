@@ -115,6 +115,9 @@ public:
 
     vector<coding::MemoryRegion<T>> code_regions;
     static constexpr int code_regions_per_bank = 8;
+
+    unsigned long coding_region_counter;
+    static constexpr unsigned long coding_region_reschedule_ticks = 1e6;
 #endif
 
     /* Constructor */
@@ -196,13 +199,13 @@ public:
         }
         assert(topologies.size() > 0);
 
-        /* pick and construct an initial topology for the parity banks */
+        /* init parity banks */
         ParityBankTopology init_topology {topologies[0]};
-        for (int pb {0}; pb < init_topology.n_parity_banks; pb++)
-                parity_banks.push_back({init_topology.xor_regions_for_parity_bank[pb],
-                                        parity_bank_latency});
-        active_topology = &topologies[0];
+        parity_banks.resize(topologies[0].n_parity_banks, {parity_bank_latency});
+
+        /* init coding region controller */
         topology_hits.resize(topologies.size(), 0);
+        switch_coding_region(topologies[0]);
 #endif
 
         // regStats
@@ -598,7 +601,28 @@ public:
 
         void coding_region_controller()
         {
+                if (coding_region_counter >= coding_region_reschedule_ticks) {
+                        auto most_hits_index {std::max_element(topology_hits.begin(),
+                                                               topology_hits.end())
+                                              - topology_hits.begin()};
+                        topology_hits.assign(topology_hits.size(), 0);
+                        switch_coding_region(topologies[most_hits_index]);
+                }
+        }
 
+        void switch_coding_region(const coding::ParityBankTopology<T>& new_topology)
+        {
+                size_t n_parity_banks {topologies[0].n_parity_banks};
+                for (int b {0}; b < n_parity_banks; b++) {
+                        auto regions_list {new_topology.xor_regions_for_parity_bank[b]};
+
+                        parity_banks[b].xor_regions.clear();
+                        for (int xr {0}; xr < regions_list.size(); xr++) {
+                                vector<coding::MemoryRegion<T>> regions
+                                                {regions_list[xr].regions};
+                                parity_banks[b].xor_regions.push_back({regions});
+                        }
+                }
         }
 
         void coding_region_hit(const Request& req)
