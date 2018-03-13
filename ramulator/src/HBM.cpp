@@ -8,7 +8,7 @@
 using namespace std;
 using namespace ramulator;
 
-string HBM::standard_name = "HBM";
+string ramulator::HBM::standard_name = "HBM";
 
 map<string, enum HBM::Org> HBM::org_map = {
     {"HBM_1Gb", HBM::Org::HBM_1Gb},

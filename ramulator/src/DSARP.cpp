@@ -19,7 +19,7 @@
 using namespace std;
 using namespace ramulator;
 
-string DSARP::standard_name = "DSARP";
+string ramulator::DSARP::standard_name = "DSARP";
 
 map<string, enum DSARP::Org> DSARP::org_map = {
   {"DSARP_8Gb_x8", DSARP::Org::DSARP_8Gb_x8},

@@ -9,7 +9,7 @@
 using namespace std;
 using namespace ramulator;
 
-string TLDRAM::standard_name = "TLDRAM";
+string ramulator::TLDRAM::standard_name = "TLDRAM";
 
 map<string, enum TLDRAM::Org> TLDRAM::org_map = {
     {"TLDRAM_512Mb_x4", TLDRAM::Org::TLDRAM_512Mb_x4},

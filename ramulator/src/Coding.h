@@ -268,6 +268,64 @@ public:
 };
 
 template <typename T>
+class ParityBankTopology_SchemeII : public ParityBankTopology<T> {
+public:
+        ParityBankTopology_SchemeII(const vector<MemoryRegion<T>>& regions)
+		{
+				auto A = regions[0];
+				auto B = regions[1];
+				auto C = regions[2];
+				auto D = regions[3];
+				auto E = regions[4];
+				auto F = regions[5];
+				auto G = regions[6];
+				auto H = regions[7];
+				auto I = regions[8];
+                vector<XorCodedRegions<T>> bank1_xor {{{A, B}},
+                                                      {{E}}};
+                this->xor_regions_for_parity_bank.push_back(bank1_xor);
+
+                vector<XorCodedRegions<T>> bank2_xor {{{A, C}},
+                                                      {{F}}};
+                this->xor_regions_for_parity_bank.push_back(bank2_xor);
+
+                vector<XorCodedRegions<T>> bank3_xor {{{A, D}},
+                                                      {{G}}};
+                this->xor_regions_for_parity_bank.push_back(bank3_xor);
+
+                vector<XorCodedRegions<T>> bank4_xor {{{B, C}},
+                                                      {{H }}};
+                this->xor_regions_for_parity_bank.push_back(bank4_xor);
+
+                vector<XorCodedRegions<T>> bank5_xor {{{B, D}},
+                                                      {{G, H}}};
+                this->xor_regions_for_parity_bank.push_back(bank5_xor);
+
+                vector<XorCodedRegions<T>> bank6_xor {{{E, F}},
+                                                      {{A}}};
+                this->xor_regions_for_parity_bank.push_back(bank6_xor);
+
+                vector<XorCodedRegions<T>> bank7_xor {{{E, G}},
+                                                      {{B}}};
+                this->xor_regions_for_parity_bank.push_back(bank7_xor);
+
+                vector<XorCodedRegions<T>> bank8_xor {{{E, H}},
+                                                      {{C}}};
+                this->xor_regions_for_parity_bank.push_back(bank8_xor);
+
+                vector<XorCodedRegions<T>> bank9_xor {{{F, G}},
+                                                      {{D}}};
+                this->xor_regions_for_parity_bank.push_back(bank9_xor);
+
+                vector<XorCodedRegions<T>> bank10_xor {{{F, H}},
+                                                       {{C, D}}};
+                this->xor_regions_for_parity_bank.push_back(bank10_xor);
+
+                this->n_parity_banks = 10;
+        }
+};
+
+template <typename T>
 class ParityBank {
 private:
         unsigned long clock {0};

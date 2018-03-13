@@ -20,8 +20,7 @@
 #include "SALP.h"
 #include "TLDRAM.h"
 
-#define MEMORY_CODING
-#define CODING_SCHEME 1
+#include "Macros.h"
 
 #ifdef MEMORY_CODING
 #include "Coding.h"
@@ -160,8 +159,10 @@ public:
         /* divide memory into 8 subregions for coding */
         for (int c {0}; c < code_regions_per_bank; c++) {
                 /* build list of memory regions by bank */
+				//TODO: Remove compiler directives and use OO methods
                 vector<MemoryRegion> lower_regions;
                 vector<MemoryRegion> upper_regions;
+                vector<MemoryRegion> regions;
                 int this_bank {0};
                 /* loop through all banks (in all ranks) */
                 for (int r {0}; r < ranks; r++) {
@@ -178,20 +179,32 @@ public:
                                                                 this_row_index + rows_per_region/2,
                                                                 rows_per_region/2};
                                 upper_regions.push_back(bank_upper_region);
+
+								MemoryRegion bank_region {channel->spec,
+														  this_row_index,
+													      rows_per_region};
+								regions.push_back(bank_region);
+
                                 this_bank++;
-#if CODING_SCHEME==1
+
+#if CODING_SCHEME>=1
                                 if (this_bank >= 8) {
 #endif
                                         /* we've collected enough for the coding
                                          * scheme; build a complete topology */
                                         ParityBankTopology topology =
 #if CODING_SCHEME==1
-                                                coding::ParityBankTopology_SchemeI<T>
+                                                coding::ParityBankTopology_SchemeI<T> (lower_regions, upper_regions);
 #endif
-                                                (lower_regions, upper_regions);
+
+#if CODING_SCHEME==2
+                                                //coding::ParityBankTopology_SchemeI<T> (lower_regions, upper_regions);
+												coding::ParityBankTopology_SchemeII<T>(regions);
+#endif
                                         topologies.push_back(topology);
                                         lower_regions.clear();
                                         upper_regions.clear();
+										regions.clear();
                                         this_bank = 0;
                                 }
                         }
