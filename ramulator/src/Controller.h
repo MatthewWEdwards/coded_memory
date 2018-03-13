@@ -160,8 +160,6 @@ public:
         for (int c {0}; c < code_regions_per_bank; c++) {
                 /* build list of memory regions by bank */
 				//TODO: Remove compiler directives and use OO methods
-                vector<MemoryRegion> lower_regions;
-                vector<MemoryRegion> upper_regions;
                 vector<MemoryRegion> regions;
                 int this_bank {0};
                 /* loop through all banks (in all ranks) */
@@ -171,15 +169,6 @@ public:
                                 vector<int> this_addr_vec {location_addr_vec(r, b, start_row)};
                                 unsigned long this_row_index {coding::addr_vec_to_row_index(channel->spec,
                                                                                             this_addr_vec)};
-                                MemoryRegion bank_lower_region {channel->spec,
-                                                                this_row_index,
-                                                                rows_per_region/2};
-                                lower_regions.push_back(bank_lower_region);
-                                MemoryRegion bank_upper_region {channel->spec,
-                                                                this_row_index + rows_per_region/2,
-                                                                rows_per_region/2};
-                                upper_regions.push_back(bank_upper_region);
-
 								MemoryRegion bank_region {channel->spec,
 														  this_row_index,
 													      rows_per_region};
@@ -187,23 +176,13 @@ public:
 
                                 this_bank++;
 
-#if CODING_SCHEME>=1
-                                if (this_bank >= 8) {
-#endif
+                                if (this_bank >= NUM_BANKS)
+								{
                                         /* we've collected enough for the coding
                                          * scheme; build a complete topology */
-                                        ParityBankTopology topology =
-#if CODING_SCHEME==1
-                                                coding::ParityBankTopology_SchemeI<T> (lower_regions, upper_regions);
-#endif
-
-#if CODING_SCHEME==2
-                                                //coding::ParityBankTopology_SchemeI<T> (lower_regions, upper_regions);
-												coding::ParityBankTopology_SchemeII<T>(regions);
-#endif
+                                        ParityBankTopology topology = 
+											ParityBankTopologyConstructor(regions);
                                         topologies.push_back(topology);
-                                        lower_regions.clear();
-                                        upper_regions.clear();
 										regions.clear();
                                         this_bank = 0;
                                 }
