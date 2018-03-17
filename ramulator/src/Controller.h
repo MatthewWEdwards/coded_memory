@@ -125,6 +125,8 @@ public:
         scheduler(new Scheduler<T>(this)),
         rowpolicy(new RowPolicy<T>(this)),
         rowtable(new RowTable<T>(this)),
+		//TODO: Create a seperate rowtable for parity banks
+		//TODO: Create a table for monitering rows fetched from xor regions
         refresh(new Refresh<T>(this)),
         cmd_trace_files(channel->children.size())
     {
@@ -159,7 +161,6 @@ public:
         /* divide memory into 8 subregions for coding */
         for (int c {0}; c < code_regions_per_bank; c++) {
                 /* build list of memory regions by bank */
-				//TODO: Remove compiler directives and use OO methods
                 vector<MemoryRegion> regions;
                 int this_bank {0};
                 /* loop through all banks (in all ranks) */
@@ -189,7 +190,7 @@ public:
                         }
                 }
         }
-        assert(topologies.size() > 0);
+        assert(topologies.size() > 0); // FIXME: Currently, we do not support schemes s.t. T::Level::Bank < NUM_BANKS. 
 
         /* init parity banks */
         ParityBankTopology init_topology {topologies[0]};
@@ -473,13 +474,16 @@ public:
                 const XorCodedRegions& xor_regions {bank.request_xor_regions(read)};
                 const MemoryRegion& read_region {xor_regions.request_region(read)};
                 vector<reference_wrapper<const MemoryRegion>> other_regions;
+				vector<Request> requests_to_schedule;
                 for (const MemoryRegion& region : xor_regions.regions)
                         if (region != read_region)
                                 other_regions.push_back(region);
                 /* find a pending read in the same row number for every
-                 * other XOR region */
+                 * other XOR region 
+				 * TODO: also check if open rows and normal banks are available */
                 long depart {clk + parity_bank_latency};
                 for (const MemoryRegion& other_region : other_regions) {
+						// Check pending reads
                         auto can_use {[this, xor_regions, read, other_region](Request& req)
                                       { return code_status->get(req) == CodeStatus::Updated &&
                                                xor_regions.request_region(req) == other_region &&
@@ -488,12 +492,46 @@ public:
                                 row_pending {find_if(begin(candidate_pending),
                                                      end(candidate_pending),
                                                      can_use)};
-                        if (row_pending != end(candidate_pending))
+                        if (row_pending != end(candidate_pending)){
                                 depart = max<long>(depart, row_pending->get().depart);
-                        else
-                                /* couldn't find a match for a region,
-                                 * this read request can't be scheduled */
-                                return {false, -1};
+								continue;
+						}
+						
+						// Check open rows TODO: Check that this is correct
+						bool open_row_match = false;
+						for(auto open_row = rowtable->table.begin(); 
+							open_row != rowtable->table.end(); open_row++){
+							vector<int> open_req_addr = open_row->first;
+							open_req_addr.push_back(open_row->second.row);
+							open_req_addr.push_back(read.addr_vec[static_cast<int>(T::Level::Column)]);
+							Request open_req = Request(open_req_addr, Request::Type::READ, 
+											   	   read.callback, read.coreid);
+							if(other_region.contains(open_req) && 
+							   xor_regions.same_request_row_numbers(read, open_req)){
+								// Check if the bank will be busy
+								bool bank_busy = false;
+								for(row_pending : candidate_pending){
+									if(open_req.addr_vec[static_cast<int>(T::Level::Bank)] == 
+									  row_pending.get().addr_vec[static_cast<int>(T::Level::Bank)]){
+										bank_busy = true;
+										break;
+									}
+								}
+								if(!bank_busy){
+									// Request to be scheduled if parity read is scheduled
+									// TODO: Actually Schedule these reads
+									requests_to_schedule.push_back(open_req);
+									break;
+								}
+							}
+						}
+						if(open_row_match) {continue;}
+						
+						// Check open banks TODO
+						
+						/* couldn't find a match for a region,
+						 * this read request can't be scheduled */
+						return {false, -1};
                 }
                 /* we were able to complete the parity, return
                  * max(pending request(s) time(s), parity bank read latency) */

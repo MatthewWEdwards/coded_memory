@@ -191,19 +191,21 @@ public:
         }
 };
 
-template <typename T>
-class ParityBankTopology_Scheme1 : public ParityBankTopology<T> {
-public:
+/* Macros refer to notation used in "Achieving Multi-Port Memory Performance on Single-Port
+ * Memory with Coding Techniques."
+ */
 #define A1 regions[0]
 #define B1 regions[1]
-#define B2 regions[1]
 #define C1 regions[2]
 #define D1 regions[3]
 #define E1 regions[4]
 #define F1 regions[5]
 #define G1 regions[6]
 #define H1 regions[7]
-#define I1 regions[8]
+
+template <typename T>
+class ParityBankTopology_Scheme1 : public ParityBankTopology<T> {
+public:
         ParityBankTopology_Scheme1(const vector<MemoryRegion<T>>& regions)
         {
                 vector<XorCodedRegions<T>> bank1_xor {{{A1, B1}},
@@ -310,8 +312,6 @@ public:
 template <typename T>
 class ParityBankTopology_Scheme3 : public ParityBankTopology<T> {
 public:
-// In the paper, Scheme 3 seperates data into nine groups, A-H and Z. Scheme 1 uses A-I.
-// Here, Z == I.
         ParityBankTopology_Scheme3(const vector<MemoryRegion<T>>& regions)
 		{
                 vector<XorCodedRegions<T>> bank1_xor {{{A1, B1, C1}},
@@ -322,7 +322,7 @@ public:
 													 {{}}};
                 this->xor_regions_for_parity_bank.push_back(bank2_xor);
 
-                vector<XorCodedRegions<T>> bank3_xor {{{A1, E1, I1}},
+                vector<XorCodedRegions<T>> bank3_xor {{{A1, E1}},
 													 {{}}};
                 this->xor_regions_for_parity_bank.push_back(bank3_xor);
 
@@ -334,7 +334,7 @@ public:
 													 {{}}};
                 this->xor_regions_for_parity_bank.push_back(bank5_xor);
 
-                vector<XorCodedRegions<T>> bank6_xor {{{C1, F1, I1}},
+                vector<XorCodedRegions<T>> bank6_xor {{{C1, F1}},
 													 {{}}};
                 this->xor_regions_for_parity_bank.push_back(bank6_xor);
 
@@ -346,7 +346,7 @@ public:
 													 {{}}};
                 this->xor_regions_for_parity_bank.push_back(bank8_xor);
 
-                vector<XorCodedRegions<T>> bank9_xor {{{G1, H1, I1}},
+                vector<XorCodedRegions<T>> bank9_xor {{{G1, H1}},
 													 {{}}};
                 this->xor_regions_for_parity_bank.push_back(bank9_xor);
 
