@@ -2,6 +2,7 @@
 #define __MACROS_H
 
 #define MEMORY_CODING
+#define DEBUG
 #define CODING_SCHEME 3
 
 #define NUM_BANKS 8

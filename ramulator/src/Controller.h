@@ -479,8 +479,7 @@ public:
                         if (region != read_region)
                                 other_regions.push_back(region);
                 /* find a pending read in the same row number for every
-                 * other XOR region 
-				 * TODO: also check if open rows and normal banks are available */
+                 * other XOR region */
                 long depart {clk + parity_bank_latency};
                 for (const MemoryRegion& other_region : other_regions) {
 						// Check pending reads
@@ -496,38 +495,6 @@ public:
                                 depart = max<long>(depart, row_pending->get().depart);
 								continue;
 						}
-						
-						// Check open rows TODO: Check that this is correct
-						bool open_row_match = false;
-						for(auto open_row = rowtable->table.begin(); 
-							open_row != rowtable->table.end(); open_row++){
-							vector<int> open_req_addr = open_row->first;
-							open_req_addr.push_back(open_row->second.row);
-							open_req_addr.push_back(read.addr_vec[static_cast<int>(T::Level::Column)]);
-							Request open_req = Request(open_req_addr, Request::Type::READ, 
-											   	   read.callback, read.coreid);
-							if(other_region.contains(open_req) && 
-							   xor_regions.same_request_row_numbers(read, open_req)){
-								// Check if the bank will be busy
-								bool bank_busy = false;
-								for(row_pending : candidate_pending){
-									if(open_req.addr_vec[static_cast<int>(T::Level::Bank)] == 
-									  row_pending.get().addr_vec[static_cast<int>(T::Level::Bank)]){
-										bank_busy = true;
-										break;
-									}
-								}
-								if(!bank_busy){
-									// Request to be scheduled if parity read is scheduled
-									// TODO: Actually Schedule these reads
-									requests_to_schedule.push_back(open_req);
-									break;
-								}
-							}
-						}
-						if(open_row_match) {continue;}
-						
-						// Check open banks TODO
 						
 						/* couldn't find a match for a region,
 						 * this read request can't be scheduled */
@@ -708,6 +675,32 @@ public:
         write_pattern_builder();
         recoding_controller();
         coding_region_controller();
+#endif
+#ifdef DEBUG
+		cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
+		for(auto pending_read : pending){
+			cout << "{";
+			for(auto num = pending_read.addr_vec.begin();
+				num != pending_read.addr_vec.end();
+				num++){
+				cout << *num;
+				if(num + 1 != pending_read.addr_vec.end())
+					cout << ", ";
+			}
+			cout << "}" << " Arrive = " << pending_read.arrive << ", Depart = " << pending_read.depart << endl;  
+		}
+		cout << "Readq " << ", size = " << readq.q.size() << endl;
+		for(auto read_queue : readq.q){
+			cout << "{";
+			for(auto num = read_queue.addr_vec.begin();
+				num != read_queue.addr_vec.end();
+				num++){
+				cout << *num;
+				if(num + 1 != read_queue.addr_vec.end())
+					cout << ", ";
+			}
+			cout << "}" << " Arrive = " << read_queue.arrive << endl;
+		}
 #endif
 
         /*** 3. Should we schedule writes? ***/
