@@ -3,7 +3,7 @@
 
 #define MEMORY_CODING
 #define DEBUG
-#define CODING_SCHEME 3
+#define CODING_SCHEME 1
 
 #define NUM_BANKS 8
 
