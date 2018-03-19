@@ -687,19 +687,42 @@ public:
 				if(num + 1 != pending_read.addr_vec.end())
 					cout << ", ";
 			}
-			cout << "}" << " Arrive = " << pending_read.arrive << ", Depart = " << pending_read.depart << endl;  
+			cout << "}" << " Arrive = " << pending_read.arrive 
+			<< ", Depart = " << pending_read.depart 
+			<< ", CoreID = " << pending_read.coreid << endl;
 		}
 		cout << "Readq " << ", size = " << readq.q.size() << endl;
-		for(auto read_queue : readq.q){
+		for(auto read_queue = readq.q.begin();
+			read_queue != readq.q.end();
+			read_queue++){
 			cout << "{";
-			for(auto num = read_queue.addr_vec.begin();
-				num != read_queue.addr_vec.end();
+			for(auto num = read_queue->addr_vec.begin();
+				num != read_queue->addr_vec.end();
 				num++){
 				cout << *num;
-				if(num + 1 != read_queue.addr_vec.end())
+				if(num + 1 != read_queue->addr_vec.end())
 					cout << ", ";
 			}
-			cout << "}" << " Arrive = " << read_queue.arrive << endl;
+			cout << "}" << " Arrive = " << read_queue->arrive 
+			<< ", Is Ready = " << is_ready(read_queue)  
+			<< ", CoreID = " << read_queue->coreid << endl;
+		}
+
+		cout << "Writeq " << ", size = " << writeq.q.size() << endl;
+		for(auto write_queue = writeq.q.begin();
+			write_queue != writeq.q.end();
+			write_queue++){
+			cout << "{";
+			for(auto num = write_queue->addr_vec.begin();
+				num != write_queue->addr_vec.end();
+				num++){
+				cout << *num;
+				if(num + 1 != write_queue->addr_vec.end())
+					cout << ", ";
+			}
+			cout << "}" << " Arrive = " << write_queue->arrive 
+			<< ", Is Ready = " << is_ready(write_queue)  
+			<< ", CoreID = " << write_queue->coreid << endl;
 		}
 #endif
 
