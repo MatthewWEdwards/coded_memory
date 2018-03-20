@@ -5,6 +5,7 @@
 #include <cassert>
 #include <utility>
 #include <vector>
+#include <deque>
 
 namespace coding
 {
@@ -66,9 +67,11 @@ template <typename T>
 class CodeStatusMap {
 public:
         enum Status { Updated, FreshData, FreshParity };
+		deque<pair<unsigned long /* row index */, unsigned long/* cycle_to_update_on */>> update_queue {};
 private:
         const T *spec;
         const int n_rows;
+		const int update_interval = 1;
         Status *map;
 public:
         CodeStatusMap(const T *spec) :
@@ -86,16 +89,27 @@ public:
                 delete[] map;
         }
 
-        void set(const unsigned long& row_index, const Status& status)
+        void set(const unsigned long& row_index, const Status& status, unsigned long serve_time)
         {
                 assert(row_index >= 0 && row_index < n_rows);
+				assert(status != Status::Updated);
                 map[row_index] = status;
+				update_queue.push_back(
+					pair<unsigned long, unsigned long>(row_index, serve_time + update_interval));
         }
+
+		void clear(const unsigned long& row_index)
+		{
+                assert(row_index >= 0 && row_index < n_rows);
+                map[row_index] = Status::Updated;
+		}
+
         Status get(const unsigned long& row_index) const
         {
                 assert(row_index >= 0 && row_index < n_rows);
                 return map[row_index];
         }
+
         inline Status get(const Request& req) const
         {
                 return get(request_to_row_index(spec, req));

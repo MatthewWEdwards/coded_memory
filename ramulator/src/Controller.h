@@ -537,12 +537,13 @@ public:
                 /* if one exists, serve it */
                 if (write_it != end(writeq.q)) {
                         bank.lock();
-                        schedule_served_request(*write_it, clk + parity_bank_latency);
+						int serve_time = clk + parity_bank_latency;
+                        schedule_served_request(*write_it, serve_time);
                         writeq.q.erase(write_it);
 
                         const auto row_index {coding::request_to_row_index(channel->spec,
                                                                            *write_it)};
-                        code_status->set(row_index, CodeStatus::FreshParity);
+                        code_status->set(row_index, CodeStatus::FreshParity, serve_time);
                 }
         }
 
@@ -550,32 +551,17 @@ public:
 
         void recoding_controller()
         {
-                /* get a list of all coded regions */
-                // TODO this is a little absurd, we probably need a global list
-                // of these things, especially for the dynamic coding scheduler
-                vector<reference_wrapper<const MemoryRegion>> regions;
-                for (const ParityBank& bank : parity_banks)
-                        for (const XorCodedRegions& xor_regions : bank.xor_regions)
-                                for (const MemoryRegion& region : xor_regions.regions)
-                                        regions.push_back(region);
-                /* find a row that needs to be recoded */
-                for (const MemoryRegion& region : regions) {
-                        for (int row_index {region.start_row_index};
-                             row_index < (region.start_row_index + region.n_rows);
-                             row_index++) {
-                                /* simulate the recode */
-                                CodeStatus status {code_status->get(row_index)};
-                                if (status == CodeStatus::FreshData &&
-                                    memory_bank_is_free(row_index)) {
-                                        main_memory_recode(row_index);
-                                        return;
-                                } else if (status == CodeStatus::FreshParity &&
-                                           memory_bank_is_free(row_index)) {
-                                        main_memory_recode(row_index);
-                                        return;
-                                }
-                        }
-                }
+
+			for(auto recode_queue_it = code_status->update_queue.begin();
+				recode_queue_it != code_status->update_queue.end() && 
+				recode_queue_it->second < clk; /* while there are recodings to be done */
+				recode_queue_it++)
+			{
+				if(memory_bank_is_free(recode_queue_it->first)){
+					main_memory_recode(recode_queue_it->first);
+					//TODO: Lock Bank? how long does the record take? Is this basically a write request?
+				}
+			}
         }
 
         bool memory_bank_is_free(const unsigned long& row_index)
@@ -591,7 +577,7 @@ public:
 
         inline void main_memory_recode(const unsigned long& row_index)
         {
-                code_status->set(row_index, CodeStatus::Updated);
+                code_status->clear(row_index);
         }
 
         /*** Coded Memory Region Controller ***/
@@ -724,7 +710,7 @@ public:
 			<< ", Is Ready = " << is_ready(write_queue)  
 			<< ", CoreID = " << write_queue->coreid << endl;
 		}
-#endif
+#endif /* DEBUG */
 
         /*** 3. Should we schedule writes? ***/
         if (!write_mode) {
