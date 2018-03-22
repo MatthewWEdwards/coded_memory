@@ -161,6 +161,12 @@ public:
                 return row_index >= start_row_index &&
                        row_index < start_row_index + n_rows;
         }
+        inline bool contains(const unsigned long row_index) const
+        {
+                return row_index >= start_row_index &&
+                       row_index < start_row_index + n_rows;
+        }
+
         inline int row_number(const Request& req) const
         {
                 const unsigned long row_index {request_to_row_index<T>(spec, req)};
@@ -190,6 +196,16 @@ public:
         {
                 return request_region(req) != NO_REGION;
         }
+        inline bool contains(const unsigned long row_index) const
+        {
+				for(auto region : regions){
+					if(region.contains(row_index)){
+						return true;
+					}
+				}
+				return false;
+        }
+
         bool same_request_row_numbers(const Request& a, const Request& b) const
         {
                 const MemoryRegion<T>& a_region {request_region(a)};
@@ -203,6 +219,7 @@ template <typename T>
 class ParityBankTopology {
 public:
         vector<vector<XorCodedRegions<T>>> xor_regions_for_parity_bank;
+		vector<pair<unsigned int, unsigned int>> row_regions;
         unsigned int n_parity_banks;
 
         virtual ~ParityBankTopology() {}
@@ -285,6 +302,11 @@ public:
                 this->xor_regions_for_parity_bank.push_back(bank12_xor);
 
                 this->n_parity_banks = 12;
+		
+				for(auto region : regions){
+					this->row_regions.push_back(
+						pair<unsigned int, unsigned int>(region.start_row_index, region.n_rows));
+				}
         }
 };
 
@@ -334,6 +356,11 @@ public:
                 this->xor_regions_for_parity_bank.push_back(bank10_xor);
 
                 this->n_parity_banks = 10;
+
+				for(auto region : regions){
+					this->row_regions.push_back(
+						pair<unsigned int, unsigned int>(region.start_row_index, region.n_rows));
+				}
         }
 };
 
@@ -379,6 +406,11 @@ public:
                 this->xor_regions_for_parity_bank.push_back(bank9_xor);
 
                 this->n_parity_banks = 9;
+
+				for(auto region : regions){
+					this->row_regions.push_back(
+						pair<unsigned int, unsigned int>(region.start_row_index, region.n_rows));
+				}
         }
 };
 

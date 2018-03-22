@@ -199,6 +199,7 @@ public:
         /* init coding region controller */
         topology_hits.resize(topologies.size(), 0);
         switch_coding_region(topologies[0]);
+		active_topology = &topologies[0];
 #endif
 
         // regStats
@@ -551,15 +552,53 @@ public:
 
         void recoding_controller(unsigned long bank_busy_flags)
         {
+			// Attempt one recode per bank
 			for(int bank = 0;
 				bank < channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
 				bank++){
-				auto queue_front = code_status->update_queues[bank].front();
-				if(bank_busy_flags & (0x1 << bank) != 0 /* If the bank isn't busy */){
-					main_memory_recode(queue_front.first);
-					code_status->update_queues[bank].pop_front();
-					return;
-					//TODO: Lock Bank? how long does the record take? Is this basically a write request?
+				
+				// If the bank is busy, abort attempt
+				// TODO: randomly select a bank?
+				if(bank_busy_flags & (0x1 << bank) == 0 )
+					continue;
+
+				// TODO: Only recode the current encoded rows in the topology
+				for(auto recode_req = code_status->update_queues[bank].begin();
+					recode_req != code_status->update_queues[bank].end();
+					recode_req++){
+					bool to_recode = false;
+					bool can_recode = true; 
+
+					
+					for(int parity_bank = 0; parity_bank < parity_banks.size(); parity_bank++){
+						if(active_topology->row_regions[bank].first < recode_req->first && 
+						   active_topology->row_regions[bank].first + active_topology->row_regions[bank].second > recode_req->first){
+							to_recode = true;
+						}
+					}
+						
+					
+					//for(auto parity_bank : parity_banks){
+					//	for(auto xor_region : parity_bank.xor_regions){
+					//		if(xor_region.contains(recode_req->first)){
+					//			to_recode = true;
+					//			break;
+					//		}
+					//	}
+					if(to_recode && parity_banks[bank].busy()){
+						// Cannot schedule recode at this time
+						can_recode = false;
+						break;
+					//	}
+					}
+				
+					if(can_recode){
+						main_memory_recode(recode_req->first);
+						code_status->update_queues[bank].erase(recode_req);
+						//TODO: Lock Bank? how long does the record take? 
+						// Is this basically a write request?
+						break;
+					}
 				}
 			}
         }
@@ -791,13 +830,13 @@ public:
 
 			// issue command on behalf of request
 			auto cmd = get_first_cmd(req);
-			issue_cmd(cmd, get_addr_vec(cmd, req));
+			issue_cmd(cmd, get_addr_vec(cmd, req)); //TODO: Understand implications of ignore this line
 
 			// check whether this is the last command (which finishes the request)
-			if (cmd != channel->spec->translate[int(req->type)]){
-				++req;
-				continue;
-			}
+			//if (cmd != channel->spec->translate[int(req->type)]){
+			//	++req;
+			//	continue;
+			//}
 
 			// set a future completion time for read requests
 			if (req->type == Request::Type::READ) {
