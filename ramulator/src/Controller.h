@@ -537,7 +537,7 @@ public:
                 /* if one exists, serve it */
                 if (write_it != end(writeq.q)) {
                         bank.lock();
-						int serve_time = clk + parity_bank_latency;
+						unsigned long serve_time = clk + parity_bank_latency;
                         schedule_served_request(*write_it, serve_time);
                         writeq.q.erase(write_it);
 
@@ -549,16 +549,16 @@ public:
 
         /*** Recode Scheduler ***/
 
-        void recoding_controller()
+        void recoding_controller(unsigned long bank_busy_flags)
         {
-
-			for(auto recode_queue_it = code_status->update_queue.begin();
-				recode_queue_it != code_status->update_queue.end() && 
-				recode_queue_it->second < clk; /* while there are recodings to be done */
-				recode_queue_it++)
-			{
-				if(memory_bank_is_free(recode_queue_it->first)){
-					main_memory_recode(recode_queue_it->first);
+			for(int bank = 0;
+				bank < channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
+				bank++){
+				auto queue_front = code_status->update_queues[bank].front();
+				if(bank_busy_flags & (0x1 << bank) != 0 /* If the bank isn't busy */){
+					main_memory_recode(queue_front.first);
+					code_status->update_queues[bank].pop_front();
+					return;
 					//TODO: Lock Bank? how long does the record take? Is this basically a write request?
 				}
 			}
@@ -578,6 +578,7 @@ public:
         inline void main_memory_recode(const unsigned long& row_index)
         {
                 code_status->clear(row_index);
+					
         }
 
         /*** Coded Memory Region Controller ***/
@@ -659,7 +660,6 @@ public:
                 bank.tick();
         read_pattern_builder();
         write_pattern_builder();
-        recoding_controller();
         coding_region_controller();
 #endif
 #ifdef DEBUG
@@ -735,7 +735,7 @@ public:
 		while(req != queue->q.end()){
 			int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
 			uint32_t bank_flag = 0x1 << req_bank;
-			if( bank_flag & bank_busy_flags != 0){
+			if((bank_flag & bank_busy_flags) != 0){
 				++req;
 				continue;
 			}
@@ -785,6 +785,7 @@ public:
 			  write_transaction_bytes += tx;
 			}
 #ifdef MEMORY_CODING
+			recoding_controller(bank_busy_flags);
 			coding_region_hit(*req);
 #endif
 

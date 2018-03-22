@@ -67,7 +67,8 @@ template <typename T>
 class CodeStatusMap {
 public:
         enum Status { Updated, FreshData, FreshParity };
-		deque<pair<unsigned long /* row index */, unsigned long/* cycle_to_update_on */>> update_queue {};
+		vector<deque<pair<unsigned long /* row index */, unsigned long/* cycle_to_update_on */>>> update_queues;
+
 private:
         const T *spec;
         const int n_rows;
@@ -81,8 +82,20 @@ public:
                        spec->org_entry.count[static_cast<int>(T::Level::Row)])
         {
                 map = new Status[n_rows];
-                for (int r {0}; r < n_rows; r++)
+				for(int bank = 0;
+					bank < spec->org_entry.count[static_cast<int>(T::Level::Bank)];
+					bank++){
+					deque<pair<unsigned long, unsigned long>> new_queue;
+					update_queues.push_back(new_queue);
+				}
+
+                for (int r {0}; r < n_rows; r++){
                         map[r] = Status::FreshData;
+						auto addr = row_index_to_addr_vec(spec, r, 0);
+						update_queues[addr[static_cast<int>(T::Level::Bank)]].push_back( 
+							pair<unsigned long, unsigned long>(r, 0));
+				}
+					
         }
         ~CodeStatusMap()
         {
@@ -94,7 +107,8 @@ public:
                 assert(row_index >= 0 && row_index < n_rows);
 				assert(status != Status::Updated);
                 map[row_index] = status;
-				update_queue.push_back(
+				auto addr = row_index_to_addr_vec(spec, row_index, 0);
+				update_queues[addr[static_cast<int>(T::Level::Bank)]].push_back(
 					pair<unsigned long, unsigned long>(row_index, serve_time + update_interval));
         }
 
