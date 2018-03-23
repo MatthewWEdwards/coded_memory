@@ -1,7 +1,6 @@
 #ifndef __CONTROLLER_H
 #define __CONTROLLER_H
 
-#define DEBUG
 #define NUM_BANKS 8
 
 #include <cassert>
@@ -99,6 +98,7 @@ public:
     bool record_cmd_trace = false;
     /* Commands to stdout */
     bool print_cmd_trace = false;
+    bool print_queues = false;
 	
     coding::CodeStatusMap<T> *code_status;
 
@@ -130,6 +130,7 @@ public:
     {
         record_cmd_trace = configs.record_cmd_trace();
         print_cmd_trace = configs.print_cmd_trace();
+		print_queues = configs.print_queues();
         if (record_cmd_trace){
             if (configs["cmd_trace_prefix"] != "") {
               cmd_trace_prefix = configs["cmd_trace_prefix"];
@@ -698,55 +699,9 @@ public:
 			write_pattern_builder();
 			coding_region_controller();
 		}
-#ifdef DEBUG
-		cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
-		for(auto pending_read : pending){
-			cout << "{";
-			for(auto num = pending_read.addr_vec.begin();
-				num != pending_read.addr_vec.end();
-				num++){
-				cout << *num;
-				if(num + 1 != pending_read.addr_vec.end())
-					cout << ", ";
-			}
-			cout << "}" << " Arrive = " << pending_read.arrive 
-			<< ", Depart = " << pending_read.depart 
-			<< ", CoreID = " << pending_read.coreid << endl;
-		}
-		cout << "Readq " << ", size = " << readq.q.size() << endl;
-		for(auto read_queue = readq.q.begin();
-			read_queue != readq.q.end();
-			read_queue++){
-			cout << "{";
-			for(auto num = read_queue->addr_vec.begin();
-				num != read_queue->addr_vec.end();
-				num++){
-				cout << *num;
-				if(num + 1 != read_queue->addr_vec.end())
-					cout << ", ";
-			}
-			cout << "}" << " Arrive = " << read_queue->arrive 
-			<< ", Is Ready = " << is_ready(read_queue)  
-			<< ", CoreID = " << read_queue->coreid << endl;
-		}
-
-		cout << "Writeq " << ", size = " << writeq.q.size() << endl;
-		for(auto write_queue = writeq.q.begin();
-			write_queue != writeq.q.end();
-			write_queue++){
-			cout << "{";
-			for(auto num = write_queue->addr_vec.begin();
-				num != write_queue->addr_vec.end();
-				num++){
-				cout << *num;
-				if(num + 1 != write_queue->addr_vec.end())
-					cout << ", ";
-			}
-			cout << "}" << " Arrive = " << write_queue->arrive 
-			<< ", Is Ready = " << is_ready(write_queue)  
-			<< ", CoreID = " << write_queue->coreid << endl;
-		}
-#endif /* DEBUG */
+	
+		if(print_queues)
+			print_bank_queues();
 
         /*** 3. Should we schedule writes? ***/
         if (!write_mode) {
@@ -830,10 +785,10 @@ public:
 			issue_cmd(cmd, get_addr_vec(cmd, req)); //TODO: Understand implications of ignore this line
 
 			// check whether this is the last command (which finishes the request)
-			//if (cmd != channel->spec->translate[int(req->type)]){
-			//	++req;
-			//	continue;
-			//}
+			if (cmd != channel->spec->translate[int(req->type)]){
+				++req;
+				continue;
+			}
 
 			// set a future completion time for read requests
 			if (req->type == Request::Type::READ) {
@@ -909,6 +864,56 @@ public:
       record_write_conflicts[coreid] = write_row_conflicts[coreid];
 #endif
     }
+
+	void print_bank_queues(){
+		cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
+		for(auto pending_read : pending){
+			cout << "{";
+			for(auto num = pending_read.addr_vec.begin();
+				num != pending_read.addr_vec.end();
+				num++){
+				cout << *num;
+				if(num + 1 != pending_read.addr_vec.end())
+					cout << ", ";
+			}
+			cout << "}" << " Arrive = " << pending_read.arrive 
+			<< ", Depart = " << pending_read.depart 
+			<< ", CoreID = " << pending_read.coreid << endl;
+		}
+		cout << "Readq " << ", size = " << readq.q.size() << endl;
+		for(auto read_queue = readq.q.begin();
+			read_queue != readq.q.end();
+			read_queue++){
+			cout << "{";
+			for(auto num = read_queue->addr_vec.begin();
+				num != read_queue->addr_vec.end();
+				num++){
+				cout << *num;
+				if(num + 1 != read_queue->addr_vec.end())
+					cout << ", ";
+			}
+			cout << "}" << " Arrive = " << read_queue->arrive 
+			<< ", Is Ready = " << is_ready(read_queue)  
+			<< ", CoreID = " << read_queue->coreid << endl;
+		}
+
+		cout << "Writeq " << ", size = " << writeq.q.size() << endl;
+		for(auto write_queue = writeq.q.begin();
+			write_queue != writeq.q.end();
+			write_queue++){
+			cout << "{";
+			for(auto num = write_queue->addr_vec.begin();
+				num != write_queue->addr_vec.end();
+				num++){
+				cout << *num;
+				if(num + 1 != write_queue->addr_vec.end())
+					cout << ", ";
+			}
+			cout << "}" << " Arrive = " << write_queue->arrive 
+			<< ", Is Ready = " << is_ready(write_queue)  
+			<< ", CoreID = " << write_queue->coreid << endl;
+		}
+	}
 
 private:
     typename T::Command get_first_cmd(list<Request>::iterator req)

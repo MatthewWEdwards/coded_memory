@@ -111,6 +111,16 @@ public:
       }
       return false;
     }
+    bool print_queues() const {
+      // the default value is false
+      if (options.find("print_queues") != options.end()) {
+        if ((options.find("print_queues"))->second == "on") {
+          return true;
+        }
+        return false;
+      }
+      return false;
+    }
 };
 
 
