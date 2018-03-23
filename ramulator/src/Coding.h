@@ -414,6 +414,22 @@ public:
         }
 };
 
+
+template <typename T>												
+ParityBankTopology<T> ParityBankTopologyConstructor(const vector<MemoryRegion<T>>& regions, int coding_scheme)
+{
+	switch(coding_scheme)
+	{
+	case 1:
+		return ParityBankTopology_Scheme1<T>(regions);
+	case 2:
+		return ParityBankTopology_Scheme2<T>(regions);
+	case 3:
+		return ParityBankTopology_Scheme3<T>(regions);
+	}
+	return ParityBankTopology_Scheme1<T>(regions); // Default
+}
+
 template <typename T>
 class ParityBank {
 private:

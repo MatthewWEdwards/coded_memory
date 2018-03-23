@@ -1,6 +1,9 @@
 #ifndef __CONTROLLER_H
 #define __CONTROLLER_H
 
+#define DEBUG
+#define NUM_BANKS 8
+
 #include <cassert>
 #include <cstdio>
 #include <deque>
@@ -20,13 +23,9 @@
 #include "SALP.h"
 #include "TLDRAM.h"
 
-#include "Macros.h"
-
-#ifdef MEMORY_CODING
 #include "Coding.h"
 #include <algorithm>
 #include <utility>
-#endif
 
 using namespace std;
 
@@ -100,8 +99,7 @@ public:
     bool record_cmd_trace = false;
     /* Commands to stdout */
     bool print_cmd_trace = false;
-
-#ifdef MEMORY_CODING
+	
     coding::CodeStatusMap<T> *code_status;
 
     vector<coding::ParityBank<T>> parity_banks;
@@ -117,7 +115,7 @@ public:
 
     unsigned long coding_region_counter;
     static constexpr unsigned long coding_region_reschedule_ticks = 1e6;
-#endif
+	int memory_coding; // Memory coding scheme
 
     /* Constructor */
     Controller(const Config& configs, DRAM<T>* channel) :
@@ -142,65 +140,66 @@ public:
                 cmd_trace_files[i].open(prefix + to_string(i) + suffix);
         }
 
-#ifdef MEMORY_CODING
         // coding
-        using MemoryRegion = coding::MemoryRegion<T>;
-        using ParityBankTopology = coding::ParityBankTopology<T>;
+		memory_coding = configs.get_memory_coding();
+		if(memory_coding){
+			using MemoryRegion = coding::MemoryRegion<T>;
+			using ParityBankTopology = coding::ParityBankTopology<T>;
 
-        code_status = new coding::CodeStatusMap<T>(channel->spec);
+			code_status = new coding::CodeStatusMap<T>(channel->spec);
 
-        /* for now, parity bank latency = main memory latency */
-        parity_bank_latency = channel->spec->read_latency;
+			/* for now, parity bank latency = main memory latency */
+			parity_bank_latency = channel->spec->read_latency;
 
-        /* build a list of possible memory topologies that can be selected for
-         * coding based on the number of hits */
-        const int ranks {channel->spec->org_entry.count[static_cast<int>(T::Level::Rank)]};
-        const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
-        const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
-        const int rows_per_region {rows_per_bank/code_regions_per_bank};
-        /* divide memory into 8 subregions for coding */
-        for (int c {0}; c < code_regions_per_bank; c++) {
-                /* build list of memory regions by bank */
-                vector<MemoryRegion> regions;
-                int this_bank {0};
-                /* loop through all banks (in all ranks) */
-                for (int r {0}; r < ranks; r++) {
-                        for (int b {0}; b < banks_per_rank; b++) {
-                                int start_row {c*rows_per_region};
-                                vector<int> this_addr_vec {location_addr_vec(r, b, start_row)};
-                                unsigned long this_row_index {coding::addr_vec_to_row_index(channel->spec,
-                                                                                            this_addr_vec)};
-								MemoryRegion bank_region {channel->spec,
-														  this_row_index,
-													      rows_per_region};
-								regions.push_back(bank_region);
+			/* build a list of possible memory topologies that can be selected for
+			 * coding based on the number of hits */
+			const int ranks {channel->spec->org_entry.count[static_cast<int>(T::Level::Rank)]};
+			const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
+			const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+			const int rows_per_region {rows_per_bank/code_regions_per_bank};
+			/* divide memory into 8 subregions for coding */
+			for (int c {0}; c < code_regions_per_bank; c++) {
+					/* build list of memory regions by bank */
+					vector<MemoryRegion> regions;
+					int this_bank {0};
+					/* loop through all banks (in all ranks) */
+					for (int r {0}; r < ranks; r++) {
+							for (int b {0}; b < banks_per_rank; b++) {
+									int start_row {c*rows_per_region};
+									vector<int> this_addr_vec {location_addr_vec(r, b, start_row)};
+									unsigned long this_row_index {coding::addr_vec_to_row_index(channel->spec,
+																								this_addr_vec)};
+									MemoryRegion bank_region {channel->spec,
+															  this_row_index,
+															  rows_per_region};
+									regions.push_back(bank_region);
 
-                                this_bank++;
+									this_bank++;
 
-                                if (this_bank >= NUM_BANKS)
-								{
-                                        /* we've collected enough for the coding
-                                         * scheme; build a complete topology */
-                                        ParityBankTopology topology = 
-											ParityBankTopologyConstructor(regions);
-                                        topologies.push_back(topology);
-										regions.clear();
-                                        this_bank = 0;
-                                }
-                        }
-                }
-        }
-        assert(topologies.size() > 0); // FIXME: Currently, we do not support schemes s.t. T::Level::Bank < NUM_BANKS. 
+									if (this_bank >= NUM_BANKS)
+									{
+											/* we've collected enough for the coding
+											 * scheme; build a complete topology */
+											ParityBankTopology topology = 
+												coding::ParityBankTopologyConstructor(regions, memory_coding);
+											topologies.push_back(topology);
+											regions.clear();
+											this_bank = 0;
+									}
+							}
+					}
+			}
+			assert(topologies.size() > 0); // FIXME: Currently, we do not support schemes s.t. T::Level::Bank < NUM_BANKS. 
 
-        /* init parity banks */
-        ParityBankTopology init_topology {topologies[0]};
-        parity_banks.resize(topologies[0].n_parity_banks, {parity_bank_latency});
+			/* init parity banks */
+			ParityBankTopology init_topology {topologies[0]};
+			parity_banks.resize(topologies[0].n_parity_banks, {parity_bank_latency});
 
-        /* init coding region controller */
-        topology_hits.resize(topologies.size(), 0);
-        switch_coding_region(topologies[0]);
-		active_topology = &topologies[0];
-#endif
+			/* init coding region controller */
+			topology_hits.resize(topologies.size(), 0);
+			switch_coding_region(topologies[0]);
+			active_topology = &topologies[0];
+		}
 
         // regStats
 
@@ -401,7 +400,6 @@ public:
         return true;
     }
 
-#ifdef MEMORY_CODING
         using ParityBank = coding::ParityBank<T>;
         using XorCodedRegions = coding::XorCodedRegions<T>;
         using MemoryRegion = coding::MemoryRegion<T>;
@@ -559,7 +557,7 @@ public:
 				
 				// If the bank is busy, abort attempt
 				// TODO: randomly select a bank?
-				if(bank_busy_flags & (0x1 << bank) == 0 )
+				if((bank_busy_flags & (0x1 << bank)) == 0 )
 					continue;
 
 				// TODO: Only recode the current encoded rows in the topology
@@ -666,7 +664,6 @@ public:
                  * nonsensical requests where addr_vec = {0, 0, -1, -1, -1} */
                 //assert(false);
         }
-#endif
 
     void tick()
     {
@@ -693,14 +690,14 @@ public:
         /*** 2. Refresh scheduler ***/
         refresh->tick_ref();
 
-#ifdef MEMORY_CODING
-        for (ParityBank& bank : parity_banks)
-                /* update internal state */
-                bank.tick();
-        read_pattern_builder();
-        write_pattern_builder();
-        coding_region_controller();
-#endif
+		if(memory_coding){
+			for (ParityBank& bank : parity_banks)
+					/* update internal state */
+					bank.tick();
+			read_pattern_builder();
+			write_pattern_builder();
+			coding_region_controller();
+		}
 #ifdef DEBUG
 		cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
 		for(auto pending_read : pending){
@@ -823,10 +820,10 @@ public:
 			  }
 			  write_transaction_bytes += tx;
 			}
-#ifdef MEMORY_CODING
-			recoding_controller(bank_busy_flags);
-			coding_region_hit(*req);
-#endif
+			if(memory_coding){
+				recoding_controller(bank_busy_flags);
+				coding_region_hit(*req);
+			}
 
 			// issue command on behalf of request
 			auto cmd = get_first_cmd(req);
