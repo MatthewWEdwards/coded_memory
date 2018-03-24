@@ -56,6 +56,8 @@ void Config::parse(const string& fname)
           mem_tick = atoi(tokens[1].c_str());
         } else if (tokens[0] == "memory_coding") {
           memory_coding = atoi(tokens[1].c_str());
+        } else if (tokens[0] == "alpha") {
+          alpha = atof(tokens[1].c_str());
         } else if (tokens[0] == "expected_limit_insts") {
           expected_limit_insts = atoi(tokens[1].c_str());
         }

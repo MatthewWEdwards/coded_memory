@@ -21,7 +21,8 @@ private:
     int cpu_tick;
     int mem_tick;
     int core_num = 0;
-	int memory_coding;
+	int memory_coding = 1;
+	double alpha = .125;
     long expected_limit_insts = 0;
 
 public:
@@ -61,6 +62,7 @@ public:
     int get_mem_tick() const {return mem_tick;}
     int get_core_num() const {return core_num;}
     int get_memory_coding() const {return memory_coding;}
+    double get_alpha() const {return alpha;}
     long get_expected_limit_insts() const {return expected_limit_insts;}
     bool has_l3_cache() const {
       if (options.find("cache") != options.end()) {
