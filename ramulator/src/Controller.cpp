@@ -88,79 +88,82 @@ void Controller<TLDRAM>::tick(){
     }
 
     /*** 4. Find the best command to schedule, if any ***/
-    Queue* queue = !write_mode ? &readq : &writeq;
+    coding::BankQueue* queue = !write_mode ? &readq : &writeq;
     if (otherq.size())
         queue = &otherq;  // "other" requests are rare, so we give them precedence over reads/writes
 
-    auto req = scheduler->get_head(queue->q);
-    if (req == queue->q.end() || !is_ready(req)) {
-        // we couldn't find a command to schedule -- let's try to be speculative
-        auto cmd = TLDRAM::Command::PRE;
-        vector<int> victim = rowpolicy->get_victim(cmd);
-        if (!victim.empty()){
-            issue_cmd(cmd, victim);
-        }
-        return;  // nothing more to be done this cycle
+	for(unsigned int bank = 0; bank < num_banks; bank++)
+	{
+		auto req = scheduler->get_head(queue->queues[bank]);
+		if (req == queue->queues[bank].end() || !is_ready(req)) {
+			// we couldn't find a command to schedule -- let's try to be speculative
+			auto cmd = TLDRAM::Command::PRE;
+			vector<int> victim = rowpolicy->get_victim(cmd);
+			if (!victim.empty()){
+				issue_cmd(cmd, victim);
+			}
+			return;  // nothing more to be done this cycle
+		}
+
+		if (req->is_first_command) {
+			int coreid = req->coreid;
+			req->is_first_command = false;
+			if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
+			  channel->update_serving_requests(req->addr_vec.data(), 1, clk);
+			}
+			int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
+			if (req->type == Request::Type::READ) {
+				if (is_row_hit(req)) {
+					++read_row_hits[coreid];
+					++row_hits;
+				} else if (is_row_open(req)) {
+					++read_row_conflicts[coreid];
+					++row_conflicts;
+				} else {
+					++read_row_misses[coreid];
+					++row_misses;
+				}
+			  read_transaction_bytes += tx;
+			} else if (req->type == Request::Type::WRITE) {
+			  if (is_row_hit(req)) {
+				  ++write_row_hits[coreid];
+				  ++row_hits;
+			  } else if (is_row_open(req)) {
+				  ++write_row_conflicts[coreid];
+				  ++row_conflicts;
+			  } else {
+				  ++write_row_misses[coreid];
+				  ++row_misses;
+			  }
+			  write_transaction_bytes += tx;
+			}
+		}
+
+		/*** 5. Change a read request to a migration request ***/
+		if (req->type == Request::Type::READ) {
+			req->type = Request::Type::EXTENSION;
+		}
+
+		// issue command on behalf of request
+		auto cmd = get_first_cmd(req);
+		issue_cmd(cmd, get_addr_vec(cmd, req));
+
+		// check whether this is the last command (which finishes the request)
+		if (cmd != channel->spec->translate[int(req->type)])
+			return;
+
+		// set a future completion time for read requests
+		if (req->type == Request::Type::READ || req->type == Request::Type::EXTENSION) {
+			req->depart = clk + channel->spec->read_latency;
+			pending.push_back(*req);
+		}
+		if (req->type == Request::Type::WRITE) {
+			channel->update_serving_requests(req->addr_vec.data(), -1, clk);
+		}
+
+		// remove request from queue
+		queue->queues[bank].erase(req);
     }
-
-    if (req->is_first_command) {
-        int coreid = req->coreid;
-        req->is_first_command = false;
-        if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
-          channel->update_serving_requests(req->addr_vec.data(), 1, clk);
-        }
-        int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
-        if (req->type == Request::Type::READ) {
-            if (is_row_hit(req)) {
-                ++read_row_hits[coreid];
-                ++row_hits;
-            } else if (is_row_open(req)) {
-                ++read_row_conflicts[coreid];
-                ++row_conflicts;
-            } else {
-                ++read_row_misses[coreid];
-                ++row_misses;
-            }
-          read_transaction_bytes += tx;
-        } else if (req->type == Request::Type::WRITE) {
-          if (is_row_hit(req)) {
-              ++write_row_hits[coreid];
-              ++row_hits;
-          } else if (is_row_open(req)) {
-              ++write_row_conflicts[coreid];
-              ++row_conflicts;
-          } else {
-              ++write_row_misses[coreid];
-              ++row_misses;
-          }
-          write_transaction_bytes += tx;
-        }
-    }
-
-    /*** 5. Change a read request to a migration request ***/
-    if (req->type == Request::Type::READ) {
-        req->type = Request::Type::EXTENSION;
-    }
-
-    // issue command on behalf of request
-    auto cmd = get_first_cmd(req);
-    issue_cmd(cmd, get_addr_vec(cmd, req));
-
-    // check whether this is the last command (which finishes the request)
-    if (cmd != channel->spec->translate[int(req->type)])
-        return;
-
-    // set a future completion time for read requests
-    if (req->type == Request::Type::READ || req->type == Request::Type::EXTENSION) {
-        req->depart = clk + channel->spec->read_latency;
-        pending.push_back(*req);
-    }
-    if (req->type == Request::Type::WRITE) {
-        channel->update_serving_requests(req->addr_vec.data(), -1, clk);
-    }
-
-    // remove request from queue
-    queue->q.erase(req);
 }
 
 } /* namespace ramulator */

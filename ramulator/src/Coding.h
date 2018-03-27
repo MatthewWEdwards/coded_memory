@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <list>
 
 namespace coding
 {
@@ -64,6 +65,38 @@ vector<int> row_index_to_addr_vec(const T *spec,
     return addr_vec;
 }
 
+class BankQueue {
+public:
+        vector<list<Request>> queues;
+        unsigned int max = 10;
+		
+		BankQueue() {}
+
+		BankQueue(uint32_t num_banks)
+		{
+			queues.resize(num_banks);
+		}
+
+        unsigned int size() 
+		{
+			unsigned int sz = 0;
+			for(auto queue : queues)
+			{
+				sz  += queue.size();
+			}
+			return sz;
+        }
+
+        unsigned int size(unsigned int queue_idx)
+		{
+			return queues[queue_idx].size();
+		}
+
+		unsigned int get_num_queues()
+		{
+			return queues.size();
+		}
+};
 
 template <typename T>
 class MemoryRegion {

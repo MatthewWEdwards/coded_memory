@@ -49,15 +49,19 @@ void Refresh<DSARP>::early_inject_refresh() {
 
   // OoO bank-level refresh
   vector<bool> is_bank_occupied(max_rank_count * max_bank_count, false);
-  Controller<DSARP>::Queue& rdq = ctrl->readq;
+  coding::BankQueue& rdq = ctrl->readq;
 
   // Figure out which banks are idle in order to refresh one of them
-  for (auto req: rdq.q)
+
+  for(unsigned int bank = 0; bank < ctrl->num_banks; bank++)
   {
-    assert(req.addr_vec[level_chan] == ctrl->channel->id);
-    int ridx = req.addr_vec[level_rank] * max_bank_count;
-    int bidx = req.addr_vec[level_bank];
-    is_bank_occupied[ridx+bidx] = true;
+    for (auto req: rdq.queues[bank])
+    {
+      assert(req.addr_vec[level_chan] == ctrl->channel->id);
+      int ridx = req.addr_vec[level_rank] * max_bank_count;
+      int bidx = req.addr_vec[level_bank];
+      is_bank_occupied[ridx+bidx] = true;
+    }
   }
 
   // Try to pick an idle bank to refresh per rank
@@ -74,18 +78,20 @@ void Refresh<DSARP>::early_inject_refresh() {
 
       // Pending refresh
       bool pending_ref = false;
-      for (Request req : ctrl->otherq.q)
-        if (req.type == Request::Type::REFRESH
-            && req.addr_vec[level_chan] == ctrl->channel->id
-            && req.addr_vec[level_rank] == r && req.addr_vec[level_bank] == bidx)
-          pending_ref = true;
-      if (pending_ref)
-        continue;
+	  for(unsigned int queue_idx = 0; queue_idx < ctrl->otherq.queues.size(); queue_idx++)
+	    for (Request req : ctrl->otherq.queues[queue_idx])
+	  	if (req.type == Request::Type::REFRESH
+	  		&& req.addr_vec[level_chan] == ctrl->channel->id
+	  		&& req.addr_vec[level_rank] == r && req.addr_vec[level_bank] == bidx)
+	  	  pending_ref = true;
+	    if (pending_ref)
+	      continue;
 
       // Only pull in refreshes when we are almost running out of credits
-      if ((*(bank_refresh_backlog[r]))[bidx] >= backlog_early_pull_threshold ||
-          ctrl->otherq.q.size() >= ctrl->otherq.max)
-        continue;
+	  for(unsigned int queue_idx = 0; queue_idx < ctrl->otherq.queues.size(); queue_idx++)
+		if ((*(bank_refresh_backlog[r]))[bidx] >= backlog_early_pull_threshold ||	
+		  ctrl->otherq.queues[queue_idx].size() >= ctrl->otherq.max)
+			continue;
 
       // Refresh now
       refresh_target(ctrl, r, bidx, subarray_ref_counters[r][bidx]);
@@ -122,12 +128,13 @@ void Refresh<DSARP>::inject_refresh(bool b_ref_rank) {
         bool ref_now = false;
         // 1. Any pending refrehes?
         bool pending_ref = false;
-        for (Request req : ctrl->otherq.q) {
-          if (req.type == Request::Type::REFRESH) {
-            pending_ref = true;
-            break;
+	    for(unsigned int queue_idx = 0; queue_idx < ctrl->otherq.queues.size(); queue_idx++)
+          for (Request req : ctrl->otherq.queues[queue_idx]) {
+            if (req.type == Request::Type::REFRESH) {
+              pending_ref = true;
+              break;
+            }
           }
-        }
 
         // 2. Track readq
         if (!pending_ref && ctrl->readq.size() == 0)
@@ -166,12 +173,14 @@ void Refresh<DSARP>::wrp() {
   {
     // Pending refresh in the rank?
     bool pending_ref = false;
-    for (Request req : ctrl->otherq.q) {
-      if (req.type == Request::Type::REFRESH && req.addr_vec[level_rank] == ref_rid) {
-        pending_ref = true;
-        break;
+		
+    for(unsigned int queue_idx = 0; queue_idx < ctrl->otherq.queues.size(); queue_idx++)
+      for (Request req : ctrl->otherq.queues[queue_idx]) {
+        if (req.type == Request::Type::REFRESH && req.addr_vec[level_rank] == ref_rid) {
+          pending_ref = true;
+          break;
+        }
       }
-    }
     if (pending_ref)
       continue;
 
@@ -181,20 +190,22 @@ void Refresh<DSARP>::wrp() {
       sorted_bank_demand.push_back(wrq_idx(0,b));
     // Filter out all the writes to this rank
     int total_wr = 0;
-    for (auto req : ctrl->writeq.q) {
-      if (req.addr_vec[level_rank] == ref_rid) {
-        sorted_bank_demand[req.addr_vec[level_bank]].first++;
-        total_wr++;
+	for(unsigned int queue_idx = 0; queue_idx < ctrl->writeq.queues.size(); queue_idx++)
+      for (auto req : ctrl->writeq.queues[queue_idx]) {
+        if (req.addr_vec[level_rank] == ref_rid) {
+          sorted_bank_demand[req.addr_vec[level_bank]].first++;
+          total_wr++;
+        }
       }
-    }
     // If there's no write, just skip.
     if (total_wr == 0)
       continue;
 
     // Add read
-    for (auto req : ctrl->readq.q)
-      if (req.addr_vec[level_rank] == ref_rid)
-        sorted_bank_demand[req.addr_vec[level_bank]].first++;
+	for(unsigned int bank = 0; bank < ctrl->num_banks; bank++)
+		for (auto req : ctrl->readq.queues[bank])
+		  if (req.addr_vec[level_rank] == ref_rid)
+			sorted_bank_demand[req.addr_vec[level_bank]].first++;
 
     // Sort based on the entries
     std::sort(sorted_bank_demand.begin(), sorted_bank_demand.end(), wrq_comp);
@@ -214,7 +225,7 @@ void Refresh<DSARP>::wrp() {
 
     // Make sure we don't exceed the credit
     if ((*(bank_refresh_backlog[ref_rid]))[ref_bid] < backlog_max
-        && ctrl->otherq.q.size() < ctrl->otherq.max) {
+        && ctrl->otherq.size() < ctrl->otherq.max) {
       refresh_target(ctrl, ref_rid, ref_bid, subarray_ref_counters[ref_rid][ref_bid]);
       // Get 1 ref credit
       (*(bank_refresh_backlog[ref_rid]))[ref_bid]++;

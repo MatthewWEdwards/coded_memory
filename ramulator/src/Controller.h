@@ -1,8 +1,6 @@
 #ifndef __CONTROLLER_H
 #define __CONTROLLER_H
 
-#define NUM_BANKS 8
-
 #include <cassert>
 #include <cstdio>
 #include <deque>
@@ -71,6 +69,7 @@ protected:
 public:
     /* Member Variables */
     long clk = 0;
+	unsigned long num_banks = 8;
     DRAM<T>* channel;
 
     Scheduler<T>* scheduler;  // determines the highest priority request whose commands will be issued
@@ -78,18 +77,11 @@ public:
     RowTable<T>* rowtable;  // tracks metadata about rows (e.g., which are open and for how long)
     Refresh<T>* refresh;
 
-    struct Queue {
-        list<Request> q;
-        unsigned int max = 32;
-        unsigned int size() {
-            return q.size();
-        }
-    };
-
 //===Request Holders==============================================================================//
-    Queue readq;  // queue for read requests
-    Queue writeq;  // queue for write requests
-    Queue otherq;  // queue for all "other" requests (e.g., refresh)
+    coding::BankQueue readq; 
+    coding::BankQueue writeq;
+    coding::BankQueue otherq;
+
     list<Request> pending;  // read requests that are about to receive data from DRAM
     bool write_mode = false;  // whether write requests should be prioritized over reads
 
@@ -124,6 +116,11 @@ public:
         refresh(new Refresh<T>(this)),
         cmd_trace_files(channel->children.size())
     {
+		num_banks = channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
+		readq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);
+		writeq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);
+        otherq = coding::BankQueue(1);
+
         record_cmd_trace = configs.record_cmd_trace();
         print_cmd_trace = configs.print_cmd_trace();
         print_queues = configs.print_queues();
@@ -176,7 +173,7 @@ public:
 
                         this_bank++;
 
-                        if (this_bank >= NUM_BANKS)
+                        if (this_bank >= num_banks)
                         {
                             /* we've collected enough for the coding scheme; build a complete topology */
                             ParityBankTopology topology =
@@ -372,7 +369,7 @@ public:
     }
 
 //===Member Functions=============================================================================//
-    Queue& get_queue(Request::Type type)
+    coding::BankQueue& get_queue(Request::Type type)
     {
         switch (int(type)) {
         case int(Request::Type::READ):
@@ -386,21 +383,24 @@ public:
 
     bool enqueue(Request& req)
     {
-        Queue& queue = get_queue(req.type);
-        if (queue.max == queue.size())
+        coding::BankQueue& queue = get_queue(req.type);
+		unsigned int bank = req.addr_vec[static_cast<int>(T::Level::Bank)];
+		if(req.type == Request::Type::REFRESH)
+			bank = 0;
+        if ((num_banks * queue.max) == queue.size())
             return false;
 
         req.arrive = clk;
-        queue.q.push_back(req);
+        queue.queues[bank].push_back(req);
         // shortcut for read requests, if a write to same addr exists
         // necessary for coherence
-        if (req.type == Request::Type::READ && find_if(writeq.q.begin(), writeq.q.end(),
+        if (req.type == Request::Type::READ && find_if(writeq.queues[bank].begin(), writeq.queues[bank].end(),
         [req](Request& wreq) {
         return req.addr == wreq.addr;
-    }) != writeq.q.end()) {
+    }) != writeq.queues[bank].end()) {
             req.depart = clk + 1;
             pending.push_back(req);
-            readq.q.pop_back();
+            readq.queues[bank].pop_back();
         }
         return true;
     }
@@ -445,10 +445,11 @@ public:
     {
         /* select all queued reads that could be served by this parity
          * bank */
-        vector<reference_wrapper<Request>> candidate_reads;
-        for (Request& req : readq.q)
-            if (bank.contains(req))
-                candidate_reads.push_back(req);
+        vector<reference_wrapper<Request>> candidate_reads;	
+		for (unsigned int bank_idx = 0; bank_idx < num_banks; bank_idx++)
+			for (Request& req : readq.queues[bank_idx])
+				if (bank.contains(req))
+					candidate_reads.push_back(req);
         /* try to schedule each candidate read */
         for (Request& read : candidate_reads) {
             pair<bool, long> schedulable_result
@@ -468,7 +469,7 @@ public:
             ParityBank& bank)
     {
         /* select all pending reads that could be used by this parity
-         * bank and were not previously scheduled by us TODO: why not previously scheduled by us? */
+         * bank and were not previously scheduled by us */
         vector<reference_wrapper<Request>> candidate_pending;
         for (Request& req : pending)
             if (code_status->get(req) == CodeStatus::Updated && bank.contains(req) )
@@ -512,10 +513,11 @@ public:
 
     void remove_read_from_readq(const Request& req)
     {
-        for (auto read_it {std::begin(readq.q)};
-                read_it != std::end(readq.q); ++read_it) {
+		unsigned int bank_num = req.addr_vec[static_cast<int>(T::Level::Bank)];
+        for (auto read_it {std::begin(readq.queues[bank_num])};
+                read_it != std::end(readq.queues[bank_num]); ++read_it) {
             if (&(*read_it) == &req) { // FIXME: implement comparison?
-                readq.q.erase(read_it);
+                readq.queues[bank_num].erase(read_it);
                 return;
             }
         }
@@ -539,18 +541,23 @@ public:
         auto can_serve {[bank](Request& req) {
             return bank.contains(req);
         }};
-        auto write_it {find_if(begin(writeq.q), end(writeq.q), can_serve)};
-        /* if one exists, serve it */
-        if (write_it != end(writeq.q)) {
-            bank.lock();
-            unsigned long serve_time = clk + parity_bank_latency;
-            schedule_served_request(*write_it, serve_time);
-            writeq.q.erase(write_it);
+		for(unsigned int bank_idx = 0; bank_idx < num_banks; bank_idx++)
+		{
+			auto write_it {find_if(begin(writeq.queues[bank_idx]), end(writeq.queues[bank_idx]), can_serve)};
+			/* if one exists, serve it */
+			//TODO: Why only one write?
+			if (write_it != end(writeq.queues[bank_idx])) {
+				bank.lock();
+				unsigned long serve_time = clk + parity_bank_latency;
+				schedule_served_request(*write_it, serve_time);
+				writeq.queues[bank_idx].erase(write_it);
 
-            const auto row_index {coding::request_to_row_index(channel->spec,
-                        *write_it)};
-            code_status->set(row_index, CodeStatus::FreshParity, serve_time);
-        }
+				const auto row_index {coding::request_to_row_index(channel->spec,
+							*write_it)};
+				code_status->set(row_index, CodeStatus::FreshParity, serve_time);
+				return;
+			}
+		}
     }
 
 //===ReCoding Scheduler===========================================================================//
@@ -707,103 +714,106 @@ public:
         /*** 3. Should we schedule writes? ***/
         if (!write_mode) {
             // yes -- write queue is almost full or read queue is empty
-            if (writeq.size() >= int(0.8 * writeq.max) || readq.size() == 0)
+            if (writeq.size() >= int(0.8 * (num_banks * writeq.max)) || readq.size() == 0)
                 write_mode = true;
         }
         else {
             // no -- write queue is almost empty and read queue is not empty
-            if (writeq.size() <= int(0.2 * writeq.max) && readq.size() != 0)
+            if (writeq.size() <= int(0.2 * (num_banks * writeq.max)) && readq.size() != 0)
                 write_mode = false;
         }
 
         /*** 4. Find the best command to schedule, if any ***/
-        Queue* queue = !write_mode ? &readq : &writeq;
+        coding::BankQueue* queue = !write_mode ? &readq : &writeq;
         if (otherq.size())
             queue = &otherq;  // "other" requests are rare, so we give them precedence over reads/writes
 
         uint32_t bank_busy_flags = 0x0;
-        auto req = queue->q.begin();
-        //TODO: Split read/write queue into bank queues.
-        while(req != queue->q.end()) {
-            int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
-            uint32_t bank_flag = 0x1 << req_bank;
-            if((bank_flag & bank_busy_flags) != 0) {
-                ++req;
-                continue;
-            }
+		for(unsigned int bank = 0; bank < queue->queues.size(); bank++)
+		{
+			auto req = queue->queues[bank].begin();
+			//TODO: Split read/write queue into bank queues.
+			while(req != queue->queues[bank].end()) {
+				int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
+				uint32_t bank_flag = 0x1 << req_bank;
+				if((bank_flag & bank_busy_flags) != 0) {
+					++req;
+					continue;
+				}
 
-            if (!is_ready(req)) {
-                // we couldn't find a command to schedule -- let's try to be speculative
-                auto cmd = T::Command::PRE;
-                vector<int> victim = rowpolicy->get_victim(cmd);
-                if (!victim.empty()) {
-                    issue_cmd(cmd, victim);
-                }
-                ++req;
-                continue;  // nothing more to be done this req
-            }
+				if (!is_ready(req)) {
+					// we couldn't find a command to schedule -- let's try to be speculative
+					auto cmd = T::Command::PRE;
+					vector<int> victim = rowpolicy->get_victim(cmd);
+					if (!victim.empty()) {
+						issue_cmd(cmd, victim);
+					}
+					++req;
+					continue;  // nothing more to be done this req
+				}
 
-            bank_busy_flags |= bank_flag;
+				bank_busy_flags |= bank_flag;
 
-            req->is_first_command = false;
-            int coreid = req->coreid;
-            if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
-                channel->update_serving_requests(req->addr_vec.data(), 1, clk);
-            }
-            int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
-            if (req->type == Request::Type::READ) {
-                if (is_row_hit(req)) {
-                    ++read_row_hits[coreid];
-                    ++row_hits;
-                } else if (is_row_open(req)) {
-                    ++read_row_conflicts[coreid];
-                    ++row_conflicts;
-                } else {
-                    ++read_row_misses[coreid];
-                    ++row_misses;
-                }
-                read_transaction_bytes += tx;
-            } else if (req->type == Request::Type::WRITE) {
-                if (is_row_hit(req)) {
-                    ++write_row_hits[coreid];
-                    ++row_hits;
-                } else if (is_row_open(req)) {
-                    ++write_row_conflicts[coreid];
-                    ++row_conflicts;
-                } else {
-                    ++write_row_misses[coreid];
-                    ++row_misses;
-                }
-                write_transaction_bytes += tx;
-            }
-            if(memory_coding) {
-                recoding_controller(bank_busy_flags);
-                coding_region_hit(*req);
-            }
+				req->is_first_command = false;
+				int coreid = req->coreid;
+				if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
+					channel->update_serving_requests(req->addr_vec.data(), 1, clk);
+				}
+				int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
+				if (req->type == Request::Type::READ) {
+					if (is_row_hit(req)) {
+						++read_row_hits[coreid];
+						++row_hits;
+					} else if (is_row_open(req)) {
+						++read_row_conflicts[coreid];
+						++row_conflicts;
+					} else {
+						++read_row_misses[coreid];
+						++row_misses;
+					}
+					read_transaction_bytes += tx;
+				} else if (req->type == Request::Type::WRITE) {
+					if (is_row_hit(req)) {
+						++write_row_hits[coreid];
+						++row_hits;
+					} else if (is_row_open(req)) {
+						++write_row_conflicts[coreid];
+						++row_conflicts;
+					} else {
+						++write_row_misses[coreid];
+						++row_misses;
+					}
+					write_transaction_bytes += tx;
+				}
+				if(memory_coding) {
+					recoding_controller(bank_busy_flags);
+					coding_region_hit(*req);
+				}
 
-            // issue command on behalf of request
-            auto cmd = get_first_cmd(req);
-            issue_cmd(cmd, get_addr_vec(cmd, req)); //TODO: Understand implications of ignore this line
+				// issue command on behalf of request
+				auto cmd = get_first_cmd(req);
+				issue_cmd(cmd, get_addr_vec(cmd, req)); //TODO: Understand implications of ignore this line
 
-            // check whether this is the last command (which finishes the request)
-            if (cmd != channel->spec->translate[int(req->type)]) {
-                ++req;
-                continue;
-            }
+				// check whether this is the last command (which finishes the request)
+				if (cmd != channel->spec->translate[int(req->type)]) {
+					++req;
+					continue;
+				}
 
-            // set a future completion time for read requests
-            if (req->type == Request::Type::READ) {
-                req->depart = clk + channel->spec->read_latency;
-                pending.push_back(*req);
-            }
+				// set a future completion time for read requests
+				if (req->type == Request::Type::READ) {
+					req->depart = clk + channel->spec->read_latency;
+					pending.push_back(*req);
+				}
 
-            if (req->type == Request::Type::WRITE) {
-                channel->update_serving_requests(req->addr_vec.data(), -1, clk);
-            }
+				if (req->type == Request::Type::WRITE) {
+					channel->update_serving_requests(req->addr_vec.data(), -1, clk);
+				}
 
-            // remove request from queue
-            req = queue->q.erase(req);
-        }
+				// remove request from queue
+				req = queue->queues[bank].erase(req);
+			}
+		}
     }
 
     bool is_ready(list<Request>::iterator req)
@@ -881,39 +891,42 @@ public:
                  << ", Depart = " << pending_read.depart
                  << ", CoreID = " << pending_read.coreid << endl;
         }
-        cout << "Readq " << ", size = " << readq.q.size() << endl;
-        for(auto read_queue = readq.q.begin();
-                read_queue != readq.q.end();
-                read_queue++) {
-            cout << "{";
-            for(auto num = read_queue->addr_vec.begin();
-                    num != read_queue->addr_vec.end();
-                    num++) {
-                cout << *num;
-                if(num + 1 != read_queue->addr_vec.end())
-                    cout << ", ";
-            }
-            cout << "}" << " Arrive = " << read_queue->arrive
-                 << ", Is Ready = " << is_ready(read_queue)
-                 << ", CoreID = " << read_queue->coreid << endl;
-        }
+		for(unsigned int bank = 0; bank < num_banks; bank++)
+		{
+			cout << "Readq" << ", bank = " << bank << ", size = " << readq.queues[bank].size() << endl;
+			for(auto read_queue = readq.queues[bank].begin();
+					read_queue != readq.queues[bank].end();
+					read_queue++) {
+				cout << "{";
+				for(auto num = read_queue->addr_vec.begin();
+						num != read_queue->addr_vec.end();
+						num++) {
+					cout << *num;
+					if(num + 1 != read_queue->addr_vec.end())
+						cout << ", ";
+				}
+				cout << "}" << " Arrive = " << read_queue->arrive
+					 << ", Is Ready = " << is_ready(read_queue)
+					 << ", CoreID = " << read_queue->coreid << endl;
+			}
 
-        cout << "Writeq " << ", size = " << writeq.q.size() << endl;
-        for(auto write_queue = writeq.q.begin();
-                write_queue != writeq.q.end();
-                write_queue++) {
-            cout << "{";
-            for(auto num = write_queue->addr_vec.begin();
-                    num != write_queue->addr_vec.end();
-                    num++) {
-                cout << *num;
-                if(num + 1 != write_queue->addr_vec.end())
-                    cout << ", ";
-            }
-            cout << "}" << " Arrive = " << write_queue->arrive
-                 << ", Is Ready = " << is_ready(write_queue)
-                 << ", CoreID = " << write_queue->coreid << endl;
-        }
+			cout << "Writeq" << ", bank = " << bank << ", size = " << writeq.queues[bank].size() << endl;
+			for(auto write_queue = writeq.queues[bank].begin();
+					write_queue != writeq.queues[bank].end();
+					write_queue++) {
+				cout << "{";
+				for(auto num = write_queue->addr_vec.begin();
+						num != write_queue->addr_vec.end();
+						num++) {
+					cout << *num;
+					if(num + 1 != write_queue->addr_vec.end())
+						cout << ", ";
+				}
+				cout << "}" << " Arrive = " << write_queue->arrive
+					 << ", Is Ready = " << is_ready(write_queue)
+					 << ", CoreID = " << write_queue->coreid << endl;
+			}
+		}
     }
 
 private:
@@ -939,7 +952,7 @@ private:
             else {
                 int bank_id = addr_vec[int(T::Level::Bank)];
                 if (channel->spec->standard_name == "DDR4" || channel->spec->standard_name == "GDDR5")
-                    bank_id += addr_vec[int(T::Level::Bank) - 1] * channel->spec->org_entry.count[int(T::Level::Bank)];
+                    bank_id += addr_vec[int(T::Level::Bank) - 1] * num_banks;
                 file<<','<<bank_id<<endl;
             }
         }
