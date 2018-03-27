@@ -158,8 +158,10 @@ int main(int argc, const char *argv[])
       stats_out = argv[4];
       trace_start = 5;
     } else {
-      Stats::statlist.output(standard+".stats");
-      stats_out = standard + string(".stats");
+      stats_out = string("results/") + standard + string("_") 
+				  + to_string(configs.get_memory_coding()) + string("_") 
+		          + to_string(configs.get_alpha()) + string(".stats");
+      Stats::statlist.output(stats_out);
     }
     std::vector<const char*> files(&argv[trace_start], &argv[argc]);
     configs.set_core_num(argc - trace_start);

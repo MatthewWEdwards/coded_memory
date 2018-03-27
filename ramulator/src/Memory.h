@@ -281,6 +281,7 @@ public:
         }
     }
 
+	//TODO: HERE BE ROW INDEX TO ADDR
     bool send(Request req)
     {
         req.addr_vec.resize(addr_bits.size());

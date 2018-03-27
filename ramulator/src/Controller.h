@@ -112,7 +112,7 @@ public:
     vector<coding::MemoryRegion<T>> code_regions;
     static constexpr int code_regions_per_bank = 8;
     unsigned long coding_region_counter;
-    static constexpr unsigned long coding_region_reschedule_ticks = 1e6;
+    static constexpr unsigned long coding_region_reschedule_ticks = 1e3; //TODO: Dynamic coding
     int memory_coding; // Memory coding scheme
 	double alpha;
 
@@ -157,6 +157,8 @@ public:
             };
             const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
             const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
+//TODO: Remove Succeeding line
+            const int col_per_row {channel->spec->org_entry.count[static_cast<int>(T::Level::Column)]};
             const int rows_per_region {rows_per_bank*alpha};
             /* divide memory into subregions for coding */
             for (int c {0}; c < code_regions_per_bank; c++) {
@@ -468,8 +470,7 @@ public:
          * bank and were not previously scheduled by us TODO: why not previously scheduled by us? */
         vector<reference_wrapper<Request>> candidate_pending;
         for (Request& req : pending)
-            if (code_status->get(req) == CodeStatus::Updated &&
-                    bank.contains(req) && !req.bypass_code_pattern_builders)
+            if (code_status->get(req) == CodeStatus::Updated && bank.contains(req) )
                 candidate_pending.push_back(req);
         /* get a list of all the XOR regions needed to complete the parity */
         const XorCodedRegions& xor_regions {
@@ -624,6 +625,7 @@ public:
             switch_coding_region(topologies[most_hits_index]);
             /* reset tracking counters */
             topology_hits.assign(topology_hits.size(), 0);
+			coding_region_counter = 0;
         }
     }
 
@@ -689,6 +691,7 @@ public:
                 bank.tick();
             read_pattern_builder();
             write_pattern_builder();
+			coding_region_counter++;
             coding_region_controller();
         }
 
