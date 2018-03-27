@@ -109,8 +109,6 @@ public:
     vector<unsigned long> topology_hits;
     coding::ParityBankTopology<T> *active_topology;
     long parity_bank_latency;
-    vector<coding::MemoryRegion<T>> code_regions;
-    static constexpr int code_regions_per_bank = 8;
     unsigned long coding_region_counter;
     static constexpr unsigned long coding_region_reschedule_ticks = 1e3; //TODO: Dynamic coding
     int memory_coding; // Memory coding scheme
@@ -160,6 +158,7 @@ public:
 //TODO: Remove Succeeding line
             const int col_per_row {channel->spec->org_entry.count[static_cast<int>(T::Level::Column)]};
             const int rows_per_region {rows_per_bank*alpha};
+			const int code_regions_per_bank = rows_per_bank * alpha;
             /* divide memory into subregions for coding */
             for (int c {0}; c < code_regions_per_bank; c++) {
                 vector<MemoryRegion> regions;
@@ -197,8 +196,10 @@ public:
 
             /* init coding region controller */
             topology_hits.resize(topologies.size(), 0);
-            switch_coding_region(topologies[0]);
             active_topology = &topologies[0];
+		
+			/* init code status map */
+			switch_coding_regions(*active_topology);
         }
 
 //===Statistics===================================================================================//
@@ -622,20 +623,24 @@ public:
                                                    topology_hits.end())
                                   - topology_hits.begin()};
             /* switch the parity banks to it */
-            switch_coding_region(topologies[most_hits_index]);
+			if(active_topology != &topologies[most_hits_index])
+			{
+				active_topology = &topologies[most_hits_index];
+				switch_coding_regions(*active_topology);
+			}
             /* reset tracking counters */
             topology_hits.assign(topology_hits.size(), 0);
 			coding_region_counter = 0;
         }
     }
-
-    void switch_coding_region(const coding::ParityBankTopology<T>& new_topology)
-    {
+	
+	void switch_coding_regions(coding::ParityBankTopology<T>& active_topology)
+	{
         /* copy the parity bank config of the new topology into the
          * active one */
         size_t n_parity_banks {topologies[0].n_parity_banks};
         for (int b {0}; b < n_parity_banks; b++) {
-            auto regions_list {new_topology.xor_regions_for_parity_bank[b]};
+            auto regions_list {active_topology.xor_regions_for_parity_bank[b]};
             /* convoluted workaround since the copy-assignment
              * operator is implicitly deleted for XorCodedRegions */
             parity_banks[b].xor_regions.clear();
@@ -645,7 +650,8 @@ public:
                 parity_banks[b].xor_regions.push_back({regions});
             }
         }
-    }
+		code_status->topology_reset(active_topology, clk);
+	}
 
     void coding_region_hit(const Request& req)
     {
