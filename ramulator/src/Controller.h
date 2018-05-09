@@ -732,7 +732,6 @@ public:
 		for(unsigned int bank = 0; bank < queue->queues.size(); bank++)
 		{
 			auto req = queue->queues[bank].begin();
-			//TODO: Split read/write queue into bank queues.
 			while(req != queue->queues[bank].end()) {
 				int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
 				uint32_t bank_flag = 0x1 << req_bank;

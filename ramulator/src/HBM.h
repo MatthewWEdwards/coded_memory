@@ -152,7 +152,7 @@ public:
     } org_table[int(Org::MAX)] = {
         {1<<10, 128, {0, 0, 4, 2, 1<<13, 1<<(6+1)}},
         {2<<10, 128, {0, 0, 4, 2, 1<<14, 1<<(6+1)}},
-        {4<<10, 128, {0, 0, 4, 4, 1<<14, 1<<(6+1)}},
+        {4<<10, 128, {0, 0, 4, 8, 1<<14, 1<<(6+1)}}, // TODO: Changed to 8 banks from 4.
     }, org_entry;
 
     void set_channel_number(int channel);
