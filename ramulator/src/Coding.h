@@ -508,7 +508,7 @@ public:
         assert(row_index >= 0 && row_index < n_rows);
 		if(map.find(row_index) != map.end())
 			return map.at(row_index);
-		//TODO: This should never happen but it does
+		// FIXME: This should never happen but it does
 		else
 			return Status::FreshData;
     }
@@ -521,12 +521,12 @@ public:
 	void topology_reset(ParityBankTopology<T>& new_topology, long clk)
 	{
 		uint32_t n_rows = 0;
-		map.clear();
+		map.clear(); // FIXME: This causes memory leaks
 		for(int row_region_idx= 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
 		{
 			auto row_region = new_topology.row_regions[row_region_idx];
 			n_rows += row_region.second;
-			update_queues[row_region_idx].clear();
+			update_queues[row_region_idx].clear(); // FIXME: This causes memory leaks(?)
 			for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
 			{
 				map.emplace(row_region.first + row_in_bank, Status::FreshData);

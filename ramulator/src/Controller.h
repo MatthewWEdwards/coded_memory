@@ -550,10 +550,9 @@ public:
 				bank.lock();
 				unsigned long serve_time = clk + parity_bank_latency;
 				schedule_served_request(*write_it, serve_time);
-				writeq.queues[bank_idx].erase(write_it);
-
 				const auto row_index {coding::request_to_row_index(channel->spec,
 							*write_it)};
+				writeq.queues[bank_idx].erase(write_it);
 				code_status->set(row_index, CodeStatus::FreshParity, serve_time);
 				return;
 			}
@@ -673,6 +672,7 @@ public:
         //assert(false);
     }
 
+//===Controller==========================================================================//
     void tick()
     {
         clk++;
@@ -817,12 +817,14 @@ public:
 
     bool is_ready(list<Request>::iterator req)
     {
+		return true; //FIXME: Workaround
         typename T::Command cmd = get_first_cmd(req);
         return channel->check(cmd, req->addr_vec.data(), clk);
     }
 
     bool is_ready(typename T::Command cmd, const vector<int>& addr_vec)
     {
+		return true; // FIXME: Workaround
         return channel->check(cmd, addr_vec.data(), clk);
     }
 
@@ -874,6 +876,7 @@ public:
         record_write_conflicts[coreid] = write_row_conflicts[coreid];
 #endif
     }
+//===Debug==========================================================================//
 
     void print_bank_queues() {
         cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
