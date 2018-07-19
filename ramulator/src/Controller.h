@@ -22,6 +22,7 @@
 
 #include "Coding.h"
 #include "AccessScheduler.h"
+#include "Debug.h"
 #include <algorithm>
 #include <utility>
 
@@ -313,12 +314,9 @@ public:
     coding::BankQueue& get_queue(Request::Type type)
     {
         switch (int(type)) {
-        case int(Request::Type::READ):
-            return readq;
-        case int(Request::Type::WRITE):
-            return writeq;
-        default:
-            return otherq;
+			case int(Request::Type::READ): return readq;
+			case int(Request::Type::WRITE): return writeq;
+			default: return otherq;
         }
     }
 
@@ -380,7 +378,7 @@ public:
 
 		/*** 2.2 Print Bank Queue Traces ***/
         if(print_queues)
-            print_bank_queues();
+            Debug::print_bank_queues(clk, num_banks, readq, writeq, pending);
 
         /*** 3. Should we schedule writes? TODO: Mix read and write mode? ***/
         if (!write_mode) {
@@ -548,60 +546,6 @@ public:
         record_write_misses[coreid] = write_row_misses[coreid];
         record_write_conflicts[coreid] = write_row_conflicts[coreid];
 #endif
-    }
-//===Debug==========================================================================//
-
-    void print_bank_queues() {
-        cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
-        for(auto pending_read : pending) {
-            cout << "{";
-            for(auto num = pending_read.addr_vec.begin();
-                    num != pending_read.addr_vec.end();
-                    num++) {
-                cout << *num;
-                if(num + 1 != pending_read.addr_vec.end())
-                    cout << ", ";
-            }
-            cout << "}" << " Arrive = " << pending_read.arrive
-                 << ", Depart = " << pending_read.depart
-                 << ", CoreID = " << pending_read.coreid << endl;
-        }
-		for(unsigned int bank = 0; bank < num_banks; bank++)
-		{
-			cout << "Readq" << ", bank = " << bank << ", size = " << readq.queues[bank].size() << endl;
-			for(auto read_queue = readq.queues[bank].begin();
-					read_queue != readq.queues[bank].end();
-					read_queue++) {
-				cout << "{";
-				for(auto num = read_queue->addr_vec.begin();
-						num != read_queue->addr_vec.end();
-						num++) {
-					cout << *num;
-					if(num + 1 != read_queue->addr_vec.end())
-						cout << ", ";
-				}
-				cout << "}" << " Arrive = " << read_queue->arrive
-					 << ", Is Ready = " << is_ready(read_queue)
-					 << ", CoreID = " << read_queue->coreid << endl;
-			}
-
-			cout << "Writeq" << ", bank = " << bank << ", size = " << writeq.queues[bank].size() << endl;
-			for(auto write_queue = writeq.queues[bank].begin();
-					write_queue != writeq.queues[bank].end();
-					write_queue++) {
-				cout << "{";
-				for(auto num = write_queue->addr_vec.begin();
-						num != write_queue->addr_vec.end();
-						num++) {
-					cout << *num;
-					if(num + 1 != write_queue->addr_vec.end())
-						cout << ", ";
-				}
-				cout << "}" << " Arrive = " << write_queue->arrive
-					 << ", Is Ready = " << is_ready(write_queue)
-					 << ", CoreID = " << write_queue->coreid << endl;
-			}
-		}
     }
 
 private:

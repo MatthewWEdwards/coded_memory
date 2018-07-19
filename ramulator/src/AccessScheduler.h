@@ -3,6 +3,7 @@
 
 #include "Coding.h"
 #include "Request.h"
+#include "CodeStatusMap.h"
 
 namespace coding
 {
@@ -49,7 +50,6 @@ public:
 		};
 		const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
 		const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
-		const int col_per_row {channel->spec->org_entry.count[static_cast<int>(T::Level::Column)]};
 		const int rows_per_region {rows_per_bank*alpha};
 		const int code_regions_per_bank = ceil(1 / alpha);
 
@@ -385,4 +385,4 @@ private:
 
 }
 
-#endif
+#endif /* AccessScheduler.h */
