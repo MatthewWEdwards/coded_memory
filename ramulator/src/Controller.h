@@ -21,6 +21,7 @@
 #include "TLDRAM.h"
 
 #include "Coding.h"
+#include "AccessScheduler.h"
 #include <algorithm>
 #include <utility>
 
@@ -76,6 +77,7 @@ public:
     RowPolicy<T>* rowpolicy;  // determines the row-policy (e.g., closed-row vs. open-row)
     RowTable<T>* rowtable;  // tracks metadata about rows (e.g., which are open and for how long)
     Refresh<T>* refresh;
+	coding::AccessScheduler<T> * access_scheduler;
 
 //===Request Holders==============================================================================//
     coding::BankQueue readq; 
@@ -152,7 +154,6 @@ public:
             };
             const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
             const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
-//TODO: Remove Succeeding line
             const int col_per_row {channel->spec->org_entry.count[static_cast<int>(T::Level::Column)]};
             const int rows_per_region {rows_per_bank*alpha};
 			const int code_regions_per_bank = rows_per_bank * alpha;
@@ -197,6 +198,9 @@ public:
 		
 			/* init code status map */
 			switch_coding_regions(*active_topology);
+
+			access_scheduler = new coding::AccessScheduler<T>(&readq, &writeq, code_status, &pending, parity_bank_latency, channel->spec);
+			
         }
 
 //===Statistics===================================================================================//
@@ -354,6 +358,7 @@ public:
         delete rowtable;
         delete channel;
         delete refresh;
+		delete access_scheduler;
         for (auto& file : cmd_trace_files)
             file.close();
         cmd_trace_files.clear();
@@ -387,7 +392,7 @@ public:
 		unsigned int bank = req.addr_vec[static_cast<int>(T::Level::Bank)];
 		if(req.type == Request::Type::REFRESH)
 			bank = 0;
-        if ((num_banks * queue.max) == queue.size())
+        if (queue.max == queue.queues[bank].size())
             return false;
 
         req.arrive = clk;
@@ -398,13 +403,14 @@ public:
         [req](Request& wreq) {
         return req.addr == wreq.addr;
     }) != writeq.queues[bank].end()) {
-            req.depart = clk + 1;
-            pending.push_back(req);
-            readq.queues[bank].pop_back();
+			req.depart = clk + 1;
+			pending.push_back(req);
+			readq.queues[bank].pop_back();
         }
         return true;
     }
 
+	// TODO: Move this block somewhere that makes sense
     using ParityBank = coding::ParityBank<T>;
     using XorCodedRegions = coding::XorCodedRegions<T>;
     using MemoryRegion = coding::MemoryRegion<T>;
@@ -418,145 +424,6 @@ public:
         addr_vec[static_cast<int>(T::Level::Bank)] = bank;
         addr_vec[static_cast<int>(T::Level::Row)] = row;
         return addr_vec;
-    }
-
-    void schedule_served_request(Request& req, const long& depart)
-    {
-        req.bypass_dram = true;
-        req.depart = depart;
-        pending.push_back(req);
-        /* inserting in nonlinear order, so resort the pending queue */
-        pending.sort([](const Request& a, const Request& b)
-        {
-            return a.depart < b.depart;
-        });
-    }
-
-//===Read Pattern Builder=========================================================================//
-    void read_pattern_builder()
-    {
-        for (ParityBank& bank : parity_banks)
-            /* match queued reads to pending reads */
-            if (!bank.busy())
-                schedule_queued_read_for_parity_bank(bank);
-    }
-
-    void schedule_queued_read_for_parity_bank(ParityBank& bank)
-    {
-        /* select all queued reads that could be served by this parity
-         * bank */
-        vector<reference_wrapper<Request>> candidate_reads;	
-		for (unsigned int bank_idx = 0; bank_idx < num_banks; bank_idx++)
-			for (Request& req : readq.queues[bank_idx])
-				if (bank.contains(req))
-					candidate_reads.push_back(req);
-        /* try to schedule each candidate read */
-        for (Request& read : candidate_reads) {
-            pair<bool, long> schedulable_result
-            {can_schedule_queued_read_for_parity_bank(read, bank)};
-            bool schedulable {schedulable_result.first};
-            long depart {schedulable_result.second};
-            if (schedulable) {
-                bank.lock();
-                schedule_served_request(read, depart);
-                remove_read_from_readq(read);
-                break;
-            }
-        }
-    }
-
-    pair<bool, long> can_schedule_queued_read_for_parity_bank(Request& read,
-            ParityBank& bank)
-    {
-        /* select all pending reads that could be used by this parity
-         * bank and were not previously scheduled by us */
-        vector<reference_wrapper<Request>> candidate_pending;
-        for (Request& req : pending)
-            if (code_status->get(req) == CodeStatus::Updated && bank.contains(req) )
-                candidate_pending.push_back(req);
-        /* get a list of all the XOR regions needed to complete the parity */
-        const XorCodedRegions& xor_regions {
-            bank.request_xor_regions(read)
-        };
-        const MemoryRegion& read_region {xor_regions.request_region(read)};
-        vector<reference_wrapper<const MemoryRegion>> other_regions;
-        vector<Request> requests_to_schedule;
-        for (const MemoryRegion& region : xor_regions.regions)
-            if (region != read_region)
-                other_regions.push_back(region);
-        /* find a pending read in the same row number for every other XOR region */
-        long depart {clk + parity_bank_latency};
-        for (const MemoryRegion& other_region : other_regions) {
-            // Check pending reads
-            auto can_use {[this, xor_regions, read, other_region](Request& req)
-            {   return code_status->get(req) == CodeStatus::Updated &&
-                       xor_regions.request_region(req) == other_region &&
-                       xor_regions.same_request_row_numbers(read, req);
-            }};
-            vector<reference_wrapper<Request>>::iterator
-                                            row_pending {find_if(begin(candidate_pending),
-                                                    end(candidate_pending),
-                                                    can_use)};
-            if (row_pending != end(candidate_pending)) {
-                depart = max<long>(depart, row_pending->get().depart);
-                continue;
-            }
-
-            /* couldn't find a match for a region,
-             * this read request can't be scheduled */
-            return {false, -1};
-        }
-        /* we were able to complete the parity, return
-         * max(pending request(s) time(s), parity bank read latency) */
-        return {true, depart};
-    }
-
-    void remove_read_from_readq(const Request& req)
-    {
-		unsigned int bank_num = req.addr_vec[static_cast<int>(T::Level::Bank)];
-        for (auto read_it {std::begin(readq.queues[bank_num])};
-                read_it != std::end(readq.queues[bank_num]); ++read_it) {
-            if (&(*read_it) == &req) { // FIXME: implement comparison?
-                readq.queues[bank_num].erase(read_it);
-                return;
-            }
-        }
-        assert(false);
-    }
-
-//===Write Pattern Builder========================================================================//
-    void write_pattern_builder()
-    {
-        for (ParityBank& bank : parity_banks)
-            /* find queued writes to serve with parity banks instead
-             * of main memory */
-            if (!bank.busy())
-                schedule_queued_write_for_parity_bank(bank);
-    }
-
-    void schedule_queued_write_for_parity_bank(ParityBank& bank)
-    {
-        /* select a queued write that could be served by this parity
-         * bank */
-        auto can_serve {[bank](Request& req) {
-            return bank.contains(req);
-        }};
-		for(unsigned int bank_idx = 0; bank_idx < num_banks; bank_idx++)
-		{
-			auto write_it {find_if(begin(writeq.queues[bank_idx]), end(writeq.queues[bank_idx]), can_serve)};
-			/* if one exists, serve it */
-			//TODO: Why only one write?
-			if (write_it != end(writeq.queues[bank_idx])) {
-				bank.lock();
-				unsigned long serve_time = clk + parity_bank_latency;
-				schedule_served_request(*write_it, serve_time);
-				const auto row_index {coding::request_to_row_index(channel->spec,
-							*write_it)};
-				writeq.queues[bank_idx].erase(write_it);
-				code_status->set(row_index, CodeStatus::FreshParity, serve_time);
-				return;
-			}
-		}
     }
 
 //===ReCoding Scheduler===========================================================================//
@@ -682,16 +549,17 @@ public:
 
         /*** 1. Serve completed reads ***/
         if (pending.size()) {
-            Request& req = pending.front();
-            if (req.depart <= clk) {
-                if (!req.bypass_dram &&
-                        req.depart - req.arrive > 1) { // this request really accessed a row
-                    read_latency_sum += req.depart - req.arrive;
+            for(auto req = pending.begin(); req->depart <= clk; req = pending.begin()){
+                if (!req->bypass_dram &&
+                        req->depart - req->arrive > 1) { // this request really accessed a row
+                    read_latency_sum += req->depart - req->arrive;
                     channel->update_serving_requests(
-                        req.addr_vec.data(), -1, clk);
+                        req->addr_vec.data(), -1, clk);
                 }
-                req.callback(req);
-                pending.pop_front();
+                req->callback(*req);
+                pending.pop_front(); 
+				if(!pending.size())
+					break;
             }
         }
 
@@ -702,8 +570,8 @@ public:
             for (ParityBank& bank : parity_banks)
                 /* update internal state */
                 bank.tick();
-            read_pattern_builder();
-            write_pattern_builder();
+            access_scheduler->read_pattern_builder(parity_banks, clk);
+            access_scheduler->write_pattern_builder(parity_banks, clk);
 			coding_region_counter++;
             coding_region_controller();
         }
@@ -714,12 +582,12 @@ public:
         /*** 3. Should we schedule writes? ***/
         if (!write_mode) {
             // yes -- write queue is almost full or read queue is empty
-            if (writeq.size() >= int(0.8 * (num_banks * writeq.max)) || readq.size() == 0)
+            if (writeq.size() >= int(0.8 * writeq.max) || readq.size() == 0 )
                 write_mode = true;
         }
         else {
             // no -- write queue is almost empty and read queue is not empty
-            if (writeq.size() <= int(0.2 * (num_banks * writeq.max)) && readq.size() != 0)
+            if (writeq.size() <= int(0.2 * writeq.max) && readq.size() != 0)
                 write_mode = false;
         }
 
