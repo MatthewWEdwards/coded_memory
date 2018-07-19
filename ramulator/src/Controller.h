@@ -98,14 +98,11 @@ public:
 
 //===Memory Coding Structures=====================================================================//
     coding::CodeStatusMap<T> *code_status;
-    vector<coding::ParityBank<T>> parity_banks;
     vector<coding::ParityBankTopology<T>> topologies;
     vector<unsigned long> topology_hits;
     coding::ParityBankTopology<T> *active_topology;
     long parity_bank_latency;
-    unsigned long coding_region_counter;
-    static constexpr unsigned long coding_region_reschedule_ticks = 1e3; //TODO: Dynamic coding
-    int memory_coding; // Memory coding scheme
+    int memory_coding; // Memory coding scheme. If 0, then vanilla ramulator is run.
 	double alpha;
 
 //===Constructor==================================================================================//
@@ -114,7 +111,7 @@ public:
         scheduler(new Scheduler<T>(this)),
         rowpolicy(new RowPolicy<T>(this)),
         rowtable(new RowTable<T>(this)),
-        //TODO: Create a seperate rowtable for parity banks
+        //TODO: Create a seperate rowtable for parity banks? Remove RowTable altogether?
         refresh(new Refresh<T>(this)),
         cmd_trace_files(channel->children.size())
     {
@@ -136,71 +133,11 @@ public:
                 cmd_trace_files[i].open(prefix + to_string(i) + suffix);
         }
 
-//===Prepare Memory Coding========================================================================//
+		// Prepare access scheduler
         memory_coding = configs.get_memory_coding();
         alpha = configs.get_alpha();
         if(memory_coding) {
-            using MemoryRegion = coding::MemoryRegion<T>;
-            using ParityBankTopology = coding::ParityBankTopology<T>;
-            code_status = new coding::CodeStatusMap<T>(channel->spec);
-
-            /* for now, parity bank latency = main memory latency */
-            parity_bank_latency = channel->spec->read_latency;
-
-            /* build a list of possible memory topologies that can be selected for
-             * coding based on the number of hits */
-            const int ranks {
-                channel->spec->org_entry.count[static_cast<int>(T::Level::Rank)]
-            };
-            const int banks_per_rank {channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]};
-            const int rows_per_bank {channel->spec->org_entry.count[static_cast<int>(T::Level::Row)]};
-            const int col_per_row {channel->spec->org_entry.count[static_cast<int>(T::Level::Column)]};
-            const int rows_per_region {rows_per_bank*alpha};
-			const int code_regions_per_bank = rows_per_bank * alpha;
-            /* divide memory into subregions for coding */
-            for (int c {0}; c < code_regions_per_bank; c++) {
-                vector<MemoryRegion> regions;
-                int this_bank {0};
-                for (int r {0}; r < ranks; r++) {
-                    for (int b {0}; b < banks_per_rank; b++) {
-                        int start_row {c*rows_per_region};
-                        vector<int> this_addr_vec {location_addr_vec(r, b, start_row)};
-                        unsigned long this_row_index {coding::addr_vec_to_row_index(channel->spec,
-                                                      this_addr_vec)};
-                        MemoryRegion bank_region {channel->spec,
-                                                  this_row_index,
-                                                  rows_per_region};
-                        regions.push_back(bank_region);
-
-                        this_bank++;
-
-                        if (this_bank >= num_banks)
-                        {
-                            /* we've collected enough for the coding scheme; build a complete topology */
-                            ParityBankTopology topology =
-                                coding::ParityBankTopologyConstructor(regions, memory_coding);
-                            topologies.push_back(topology);
-                            regions.clear();
-                            this_bank = 0;
-                        }
-                    }
-                }
-            }
-            assert(topologies.size() > 0); 
-
-            /* init parity banks */
-            ParityBankTopology init_topology {topologies[0]};
-            parity_banks.resize(topologies[0].n_parity_banks, {parity_bank_latency});
-
-            /* init coding region controller */
-            topology_hits.resize(topologies.size(), 0);
-            active_topology = &topologies[0];
-		
-			/* init code status map */
-			switch_coding_regions(*active_topology);
-
-			access_scheduler = new coding::AccessScheduler<T>(&readq, &writeq, code_status, &pending, parity_bank_latency, channel->spec);
-			
+			access_scheduler = new coding::AccessScheduler<T>(memory_coding, alpha, channel);
         }
 
 //===Statistics===================================================================================//
@@ -373,7 +310,6 @@ public:
         channel->finish(dram_cycles);
     }
 
-//===Member Functions=============================================================================//
     coding::BankQueue& get_queue(Request::Type type)
     {
         switch (int(type)) {
@@ -410,136 +346,8 @@ public:
         return true;
     }
 
-	// TODO: Move this block somewhere that makes sense
-    using ParityBank = coding::ParityBank<T>;
-    using XorCodedRegions = coding::XorCodedRegions<T>;
-    using MemoryRegion = coding::MemoryRegion<T>;
-    using CodeStatus = typename coding::CodeStatusMap<T>::Status;
-
-    vector<int> location_addr_vec(const int& rank, const int& bank, const int& row)
-    {
-        vector<int> addr_vec(static_cast<int>(T::Level::MAX));
-        addr_vec[static_cast<int>(T::Level::Channel)] = channel->id;
-        addr_vec[static_cast<int>(T::Level::Rank)] = rank;
-        addr_vec[static_cast<int>(T::Level::Bank)] = bank;
-        addr_vec[static_cast<int>(T::Level::Row)] = row;
-        return addr_vec;
-    }
-
-//===ReCoding Scheduler===========================================================================//
-    void recoding_controller(unsigned long bank_busy_flags)
-    {
-        // Attempt one recode per bank
-        for(int bank = 0;
-                bank < channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
-                bank++) {
-
-            // If the bank is busy, abort attempt
-            // TODO: randomly select a bank?
-            if((bank_busy_flags & (0x1 << bank)) == 0 )
-                continue;
-
-            // TODO: Only recode the current encoded rows in the topology
-            for(auto recode_req = code_status->update_queues[bank].begin();
-                    recode_req != code_status->update_queues[bank].end();
-                    recode_req++) {
-                bool to_recode = false;
-                bool can_recode = true;
-
-                for(int parity_bank = 0; parity_bank < parity_banks.size(); parity_bank++) {
-                    if(active_topology->row_regions[bank].first < recode_req->first &&
-                            active_topology->row_regions[bank].first + active_topology->row_regions[bank].second > recode_req->first) {
-                        to_recode = true;
-                    }
-                }
-
-                if(to_recode && parity_banks[bank].busy()) {
-                    // Cannot schedule recode at this time
-                    can_recode = false;
-                    break;
-                }
-
-                if(can_recode) {
-                    main_memory_recode(recode_req->first);
-                    code_status->update_queues[bank].erase(recode_req);
-                    //TODO: Lock Bank? how long does the record take?
-                    // Is this basically a write request?
-                    break;
-                }
-            }
-        }
-    }
-
-    bool memory_bank_is_free(const unsigned long& row_index)
-    {
-        /* a memory bank is free if ramulator's decode returns the read
-         * command given a read command */
-        auto addr_vec {coding::row_index_to_addr_vec<T>(channel->spec,
-                       row_index,
-                       channel->id)};
-        return channel->decode(T::Command::RD, addr_vec.data()) ==
-               T::Command::RD;
-    }
-
-    inline void main_memory_recode(const unsigned long& row_index)
-    {
-        code_status->clear(row_index);
-
-    }
-
-//===Dynamic Coding Unit==========================================================================//
-    void coding_region_controller()
-    {
-        if (coding_region_counter >= coding_region_reschedule_ticks) {
-            /* find the coding topology with the most hits */
-            auto most_hits_index {std::max_element(topology_hits.begin(),
-                                                   topology_hits.end())
-                                  - topology_hits.begin()};
-            /* switch the parity banks to it */
-			if(active_topology != &topologies[most_hits_index])
-			{
-				active_topology = &topologies[most_hits_index];
-				switch_coding_regions(*active_topology);
-			}
-            /* reset tracking counters */
-            topology_hits.assign(topology_hits.size(), 0);
-			coding_region_counter = 0;
-        }
-    }
-	
-	void switch_coding_regions(coding::ParityBankTopology<T>& active_topology)
-	{
-        /* copy the parity bank config of the new topology into the
-         * active one */
-        size_t n_parity_banks {topologies[0].n_parity_banks};
-        for (int b {0}; b < n_parity_banks; b++) {
-            auto regions_list {active_topology.xor_regions_for_parity_bank[b]};
-            /* convoluted workaround since the copy-assignment
-             * operator is implicitly deleted for XorCodedRegions */
-            parity_banks[b].xor_regions.clear();
-            for (int xr {0}; xr < regions_list.size(); xr++) {
-                vector<coding::MemoryRegion<T>> regions
-                {regions_list[xr].regions};
-                parity_banks[b].xor_regions.push_back({regions});
-            }
-        }
-		code_status->topology_reset(active_topology, clk);
-	}
-
-    void coding_region_hit(const Request& req)
-    {
-        for (int i {0}; i < topologies.size(); i++) {
-            if (topologies[i].contains(req)) {
-                topology_hits[i]++;
-                return;
-            }
-        }
-        /* should theoretically never happen, but there are some
-         * nonsensical requests where addr_vec = {0, 0, -1, -1, -1} */
-        //assert(false);
-    }
-
 //===Controller==========================================================================//
+	//TODO Should the controller handle reads AND writes in a single memory tick?
     void tick()
     {
         clk++;
@@ -566,20 +374,15 @@ public:
         /*** 2. Refresh scheduler ***/
         refresh->tick_ref();
 
-        if(memory_coding) {
-            for (ParityBank& bank : parity_banks)
-                /* update internal state */
-                bank.tick();
-            access_scheduler->read_pattern_builder(parity_banks, clk);
-            access_scheduler->write_pattern_builder(parity_banks, clk);
-			coding_region_counter++;
-            coding_region_controller();
-        }
+		/*** 2.1 Tick AccessScheduler ***/ 
+        if(memory_coding) 
+			access_scheduler->tick(clk, &readq, &writeq, &pending);
 
+		/*** 2.2 Print Bank Queue Traces ***/
         if(print_queues)
             print_bank_queues();
 
-        /*** 3. Should we schedule writes? ***/
+        /*** 3. Should we schedule writes? TODO: Mix read and write mode? ***/
         if (!write_mode) {
             // yes -- write queue is almost full or read queue is empty
             if (writeq.size() >= int(0.8 * writeq.max) || readq.size() == 0 )
@@ -653,13 +456,12 @@ public:
 					write_transaction_bytes += tx;
 				}
 				if(memory_coding) {
-					recoding_controller(bank_busy_flags);
-					coding_region_hit(*req);
+					access_scheduler->coding_region_hit(*req);
 				}
 
 				// issue command on behalf of request
 				auto cmd = get_first_cmd(req);
-				issue_cmd(cmd, get_addr_vec(cmd, req)); //TODO: Understand implications of ignore this line
+				issue_cmd(cmd, get_addr_vec(cmd, req)); 
 
 				// check whether this is the last command (which finishes the request)
 				if (cmd != channel->spec->translate[int(req->type)]) {
@@ -681,6 +483,9 @@ public:
 				req = queue->queues[bank].erase(req);
 			}
 		}
+		/*** 5. Recode using idle banks ***/
+		if(memory_coding)
+			access_scheduler->recoding_controller(bank_busy_flags);
     }
 
     bool is_ready(list<Request>::iterator req)
@@ -692,7 +497,7 @@ public:
 
     bool is_ready(typename T::Command cmd, const vector<int>& addr_vec)
     {
-		return true; // FIXME: Workaround
+		return true; //FIXME: Workaround
         return channel->check(cmd, addr_vec.data(), clk);
     }
 

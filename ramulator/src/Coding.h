@@ -453,6 +453,7 @@ public:
     }
 };
 
+//TODO: Refactor into a new file
 template <typename T>
 class CodeStatusMap {
 public:
@@ -521,7 +522,7 @@ public:
 	void topology_reset(ParityBankTopology<T>& new_topology, long clk)
 	{
 		uint32_t n_rows = 0;
-		map.clear(); // FIXME: This causes memory leaks
+		map.clear(); // FIXME: This causes memory leaks(?)
 		for(int row_region_idx= 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
 		{
 			auto row_region = new_topology.row_regions[row_region_idx];
