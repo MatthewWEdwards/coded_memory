@@ -103,12 +103,11 @@ public:
 		this->topology_hits.resize(topologies.size(), 0);
 	
 		/* get init coding regions */
-		vector<int> active_topologies_idx;
 		for(unsigned int tops = 0; tops < alpha/coding_region_length; tops++)
-			active_topologies_idx.push_back(tops);
+			active_topologies.push_back(tops);
 
 		/* init active topology */
-		switch_coding_regions(active_topologies_idx, true);
+		switch_coding_regions(active_topologies, true);
 	
 		/* Set up stats */
 		topology_switches
@@ -280,6 +279,8 @@ private:
 
 //=========ReCoding Scheduler===============================================
 public:
+
+	// TODO: Rewrite
     void recoding_controller(unsigned long bank_busy_flags)
     {
         // Attempt one recode per bank
@@ -288,7 +289,6 @@ public:
                 bank++) {
 
             // If the bank is busy, abort attempt
-            // TODO: randomly select a bank?
             if((bank_busy_flags & (0x1 << bank)) == 0 )
                 continue;
 
@@ -296,7 +296,7 @@ public:
             for(auto recode_req = code_status->update_queues[bank].begin();
                     recode_req != code_status->update_queues[bank].end();
                     recode_req++) {
-                bool to_recode = false;
+                bool to_recode = true;
                 bool can_recode = true;
 
                 for(int parity_bank = 0; parity_bank < parity_banks.size(); parity_bank++) {
@@ -305,6 +305,7 @@ public:
                         to_recode = true;
                     }
                 }
+
 
                 if(to_recode && parity_banks[bank].busy()) {
                     // Cannot schedule recode at this time
@@ -315,8 +316,6 @@ public:
                 if(can_recode) {
                     main_memory_recode(recode_req->first);
                     code_status->update_queues[bank].erase(recode_req);
-                    //TODO: Lock Bank? how long does the recode take?
-                    // Is this basically a write request?
                     break;
                 }
             }
@@ -360,11 +359,15 @@ public:
 				topologies_selected.push_back(max_idx);
 				topology_hits[max_idx] = 0;
 			}
-            /* switch the parity banks to it */
-			if(topologies_selected != active_topologies)
+			for(int top_sel_idx : topologies_selected)
 			{
-				active_topologies = topologies_selected;
-				switch_coding_regions(active_topologies, false);
+				if(find(active_topologies.begin(), active_topologies.end(), top_sel_idx) == active_topologies.end())
+				{
+					/* switch the parity banks to it */
+					active_topologies = topologies_selected;
+					switch_coding_regions(active_topologies, false);
+					break;
+				}
 			}
             /* reset tracking counters */
             topology_hits.assign(topology_hits.size(), 0);
@@ -416,6 +419,49 @@ private:
         code_status->topology_reset(new_tops, clk, first_encoding);
 		topology_switches++;
     }
+
+	/* Returns true if topologies need to be switched
+	 * OUT:
+	 *   regions_to_encode: New regions that need to be encoded by the recoding unit
+	 *   regions_to_evict: regions which are replaced by regions to encode due to size limitations
+     */
+	bool get_new_regions(vector<int>& regions_to_encode, vector<int>& regions_to_evict)
+	{
+		unsigned int num_topologies_to_select = alpha/coding_region_length;
+		vector<int> topologies_selected;
+		for(unsigned int num_top = 0; num_top < num_topologies_to_select; num_top++)
+		{
+			int max_idx = distance(topology_hits.begin(), max_element(topology_hits.begin(), topology_hits.end()));
+			if(topology_hits[max_idx] == 0)
+				break;
+			topologies_selected.push_back(max_idx);
+			topology_hits[max_idx] = 0;
+		}
+		for(int top_sel_idx : topologies_selected)
+		{
+			if(find(active_topologies.begin(), active_topologies.end(), top_sel_idx) == active_topologies.end())
+			{
+				/* switch the parity banks to it */
+				active_topologies = topologies_selected;
+				switch_coding_regions(active_topologies, false);
+				break;
+			}
+		}
+
+		for(auto top_sel : topologies_selected)
+		{
+			if(find(active_topologies.begin(), active_topologies.end(), top_sel))
+				continue;
+			regions_to_encode.push_back(top_sel);
+		}
+		for(int evict_idx = active_topologies.size() - 1; 
+			evict_idx > active_topologies.size() - 1 - topologies_selected.size();
+			evict_idx--)
+		{
+
+		}
+
+	} 
 };
 
 }

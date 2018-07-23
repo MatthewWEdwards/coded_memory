@@ -33,13 +33,6 @@ public:
             deque<pair<unsigned long, unsigned long>> new_queue;
             update_queues.push_back(new_queue);
         }
-
-        for (int r {0}; r < n_rows; r++) {
-            auto addr = row_index_to_addr_vec(spec, r, 0);
-            update_queues[addr[static_cast<int>(T::Level::Bank)]].push_back(
-                pair<unsigned long, unsigned long>(r, 0));
-        }
-
     }
     ~CodeStatusMap() {}
 
@@ -75,50 +68,28 @@ public:
     }
 
 	//TODO: Store codes
-    void topology_reset(ParityBankTopology<T>& new_topology, long clk)
-    {
-        uint32_t n_rows = 0;
-        map.clear(); // FIXME: This causes memory leaks(?)
-        for(int row_region_idx= 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
-        {
-            auto row_region = new_topology.row_regions[row_region_idx];
-            n_rows += row_region.second;
-            update_queues[row_region_idx].clear(); // FIXME: This causes memory leaks(?)
-            for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
-            {
-                map.emplace(row_region.first + row_in_bank, Status::FreshData);
-                update_queues[row_region_idx].push_back(
-                    std::pair<unsigned long, unsigned long>(row_region.first + row_in_bank, clk));
-            }
-        }
-        return;
-    }
-
-	//TODO: Store codes
     void topology_reset(vector<ParityBankTopology<T>>& new_topologies, long clk, bool first_encoding)
     {
-		Status queue_status = Status::FreshData;
-		if(first_encoding)
-			queue_status = Status::Updated;
+		Status queue_status = Status::Updated;
+		if(!first_encoding)
+			queue_status = Status::FreshData;
 
-        uint32_t n_rows = 0;
         map.clear(); // FIXME: This causes memory leaks(?)
 		// Clear queues
-        for(int row_region_idx= 0; row_region_idx < new_topologies[0].row_regions.size(); row_region_idx++)
-            update_queues[row_region_idx].clear(); // FIXME: This causes memory leaks(?)
+        for(int bank_idx = 0; bank_idx < new_topologies[0].row_regions.size(); bank_idx++)
+            update_queues[bank_idx].clear(); // FIXME: This causes memory leaks(?)
 
 		// Update map with encoded rows, update queues.
 		for(auto new_topology : new_topologies)
 		{
-			for(int row_region_idx= 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
+			for(int row_region_idx = 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
 			{
 				auto row_region = new_topology.row_regions[row_region_idx];
-				n_rows += row_region.second;
 				for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
 				{
 					map.emplace(row_region.first + row_in_bank, queue_status);
-					//if(!first_encoding)
-					//	update_queues[row_region_idx].push_back(std::pair<unsigned long, unsigned long>(row_region.first + row_in_bank, clk));
+					if(!first_encoding)
+						update_queues[row_region_idx].push_back(std::pair<unsigned long, unsigned long>(row_region.first + row_in_bank, clk));
 				}
 			}
 		}
