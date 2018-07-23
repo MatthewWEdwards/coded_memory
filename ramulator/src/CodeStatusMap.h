@@ -93,6 +93,37 @@ public:
         }
         return;
     }
+
+	//TODO: Store codes
+    void topology_reset(vector<ParityBankTopology<T>>& new_topologies, long clk, bool first_encoding)
+    {
+		Status queue_status = Status::FreshData;
+		if(first_encoding)
+			queue_status = Status::Updated;
+
+        uint32_t n_rows = 0;
+        map.clear(); // FIXME: This causes memory leaks(?)
+		// Clear queues
+        for(int row_region_idx= 0; row_region_idx < new_topologies[0].row_regions.size(); row_region_idx++)
+            update_queues[row_region_idx].clear(); // FIXME: This causes memory leaks(?)
+
+		// Update map with encoded rows, update queues.
+		for(auto new_topology : new_topologies)
+		{
+			for(int row_region_idx= 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
+			{
+				auto row_region = new_topology.row_regions[row_region_idx];
+				n_rows += row_region.second;
+				for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
+				{
+					map.emplace(row_region.first + row_in_bank, queue_status);
+					//if(!first_encoding)
+					//	update_queues[row_region_idx].push_back(std::pair<unsigned long, unsigned long>(row_region.first + row_in_bank, clk));
+				}
+			}
+		}
+        return;
+    }
 };
 
 }

@@ -133,7 +133,7 @@ public:
 		memory_coding = configs.get_memory_coding();
         if(memory_coding) {
 			access_scheduler = new coding::AccessScheduler<T>(memory_coding, 
-				configs.get_alpha(), channel);
+				configs.get_alpha(), configs.get_region_fraction(), channel);
         }
 
 //===Statistics===================================================================================//

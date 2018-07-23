@@ -58,6 +58,8 @@ void Config::parse(const string& fname)
           memory_coding = atoi(tokens[1].c_str());
         } else if (tokens[0] == "alpha") {
           alpha = atof(tokens[1].c_str());
+        } else if (tokens[0] == "region_fraction") {
+          region_fraction = atof(tokens[1].c_str());
         } else if (tokens[0] == "expected_limit_insts") {
           expected_limit_insts = atoi(tokens[1].c_str());
         }

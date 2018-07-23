@@ -419,7 +419,7 @@ private:
     bool is_busy = false;
     unsigned long access_latency;
 public:
-    vector<XorCodedRegions<T>> xor_regions;
+    vector<vector<XorCodedRegions<T>>> xor_regions;
     const XorCodedRegions<T> NO_XOR_REGIONS {{}}; /* sentinel */
 
     ParityBank(const unsigned long& latency) :
@@ -452,16 +452,18 @@ public:
     }
     const bool contains(const Request& req) const
     {
-        for (const XorCodedRegions<T>& xor_region : xor_regions)
-            if (xor_region.contains(req))
-                return true;
+        for (const vector<XorCodedRegions<T>>& xor_region_partition : xor_regions)
+			for(const XorCodedRegions<T>& xor_region : xor_region_partition)
+				if (xor_region.contains(req))
+					return true;
         return false;
     }
     const XorCodedRegions<T>& request_xor_regions(const Request& req) const
     {
-        for (const XorCodedRegions<T>& xor_region : xor_regions)
-            if (xor_region.request_region(req) != xor_region.NO_REGION)
-                return xor_region;
+        for (const vector<XorCodedRegions<T>>& xor_region_partition : xor_regions)
+			for(const XorCodedRegions<T>& xor_region : xor_region_partition)
+				if (xor_region.request_region(req) != xor_region.NO_REGION)
+					return xor_region;
         return NO_XOR_REGIONS;
     }
 };
