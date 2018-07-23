@@ -9,7 +9,7 @@ namespace coding
 template <typename T>
 class CodeStatusMap {
 public:
-    enum Status { Updated, FreshData, FreshParity };
+    enum Status { Updated, FreshData, FreshParity, MAX};
     vector<deque<pair<unsigned long /* row index */, unsigned long/* min_cycle_to_update_on */>>> update_queues;
 
 private:
@@ -17,6 +17,9 @@ private:
     const int n_rows;
     const int update_interval = 1;
     std::map<int,  /* row index */ Status> map;
+    std::map<int, /* region_idx */ std::map<int, Status>> stored_code_maps;
+	int cur_topology_idx;
+	
 public:
     CodeStatusMap(const T *spec) :
         spec(spec),
@@ -71,6 +74,7 @@ public:
         return get(request_to_row_index(spec, req));
     }
 
+	//TODO: Store codes
     void topology_reset(ParityBankTopology<T>& new_topology, long clk)
     {
         uint32_t n_rows = 0;

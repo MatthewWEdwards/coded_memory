@@ -71,7 +71,7 @@ protected:
 public:
     /* Member Variables */
     long clk = 0;
-	unsigned long num_banks = 8;
+	unsigned int num_banks = 8; // Default is 8, altered in constructor 
     DRAM<T>* channel;
 
     Scheduler<T>* scheduler;  // determines the highest priority request whose commands will be issued
@@ -79,14 +79,16 @@ public:
     RowTable<T>* rowtable;  // tracks metadata about rows (e.g., which are open and for how long)
     Refresh<T>* refresh;
 	coding::AccessScheduler<T> * access_scheduler;
+	unsigned int memory_coding;
 
 //===Request Holders==============================================================================//
     coding::BankQueue readq; 
     coding::BankQueue writeq;
     coding::BankQueue otherq;
-
     list<Request> pending;  // read requests that are about to receive data from DRAM
     bool write_mode = false;  // whether write requests should be prioritized over reads
+
+	vector<coding::DataBank> data_banks;
 
 //===Debug Variables==============================================================================//
     /* Command trace for DRAMPower 3.1 */
@@ -96,15 +98,6 @@ public:
     /* Commands to stdout */
     bool print_cmd_trace = false;
     bool print_queues = false;
-
-//===Memory Coding Structures=====================================================================//
-    coding::CodeStatusMap<T> *code_status;
-    vector<coding::ParityBankTopology<T>> topologies;
-    vector<unsigned long> topology_hits;
-    coding::ParityBankTopology<T> *active_topology;
-    long parity_bank_latency;
-    int memory_coding; // Memory coding scheme. If 0, then vanilla ramulator is run.
-	double alpha;
 
 //===Constructor==================================================================================//
     Controller(const Config& configs, DRAM<T>* channel) :
@@ -117,6 +110,8 @@ public:
         cmd_trace_files(channel->children.size())
     {
 		num_banks = channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
+		for(unsigned int bank = 0; bank < num_banks; bank++)
+			data_banks.push_back(coding::DataBank(bank));
 		readq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);
 		writeq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);
         otherq = coding::BankQueue(1);
@@ -135,10 +130,10 @@ public:
         }
 
 		// Prepare access scheduler
-        memory_coding = configs.get_memory_coding();
-        alpha = configs.get_alpha();
+		memory_coding = configs.get_memory_coding();
         if(memory_coding) {
-			access_scheduler = new coding::AccessScheduler<T>(memory_coding, alpha, channel);
+			access_scheduler = new coding::AccessScheduler<T>(memory_coding, 
+				configs.get_alpha(), channel);
         }
 
 //===Statistics===================================================================================//
@@ -372,15 +367,15 @@ public:
         /*** 2. Refresh scheduler ***/
         refresh->tick_ref();
 
-		/*** 2.1 Tick AccessScheduler ***/ 
-        if(memory_coding) 
-			access_scheduler->tick(clk, &readq, &writeq, &pending);
+		/*** 2.1 Refresh banks ***/
+		for(auto bank = data_banks.begin(); bank != data_banks.end(); bank++)
+			bank->tick();
 
-		/*** 2.2 Print Bank Queue Traces ***/
+		/*** 2.3 Print Bank Queue Traces ***/
         if(print_queues)
             Debug::print_bank_queues(clk, num_banks, readq, writeq, pending);
 
-        /*** 3. Should we schedule writes? TODO: Mix read and write mode? ***/
+        /*** 3. Should we schedule writes? ***/
         if (!write_mode) {
             // yes -- write queue is almost full or read queue is empty
             if (writeq.size() >= int(0.8 * writeq.max) || readq.size() == 0 )
@@ -397,93 +392,129 @@ public:
         if (otherq.size())
             queue = &otherq;  // "other" requests are rare, so we give them precedence over reads/writes
 
-        uint32_t bank_busy_flags = 0x0;
-		for(unsigned int bank = 0; bank < queue->queues.size(); bank++)
+		/*** 5. Get requests***/ 
+		list<Request> reqs_scheduled;
+        if(memory_coding) 
 		{
-			auto req = queue->queues[bank].begin();
-			while(req != queue->queues[bank].end()) {
-				int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
-				uint32_t bank_flag = 0x1 << req_bank;
-				if((bank_flag & bank_busy_flags) != 0) {
-					++req;
-					continue;
-				}
-
-				if (!is_ready(req)) {
-					// we couldn't find a command to schedule -- let's try to be speculative
-					auto cmd = T::Command::PRE;
-					vector<int> victim = rowpolicy->get_victim(cmd);
-					if (!victim.empty()) {
-						issue_cmd(cmd, victim);
+			if(queue == &otherq){
+				reqs_scheduled.push_back(queue->queues[0].front());
+				queue->queues[0].pop_front();
+			}else{
+				access_scheduler->tick(clk, &readq, &writeq, &data_banks, reqs_scheduled, write_mode); // TODO: mode messy
+			}
+		}else{
+			// Grab requests from data banks
+			if(queue == &otherq){
+				reqs_scheduled.push_back(queue->queues[0].front());
+				queue->queues[0].pop_front();
+			}else{
+				for(unsigned int bank_queue_idx = 0; bank_queue_idx < num_banks; bank_queue_idx++)
+				{
+					if(queue->queues[bank_queue_idx].size() && data_banks[bank_queue_idx].is_free())
+					{
+						auto req = queue->queues[bank_queue_idx].begin();
+						if(req == queue->queues[bank_queue_idx].end())
+							continue;
+						data_banks[bank_queue_idx].read();
+						reqs_scheduled.push_back(*req);
 					}
-					++req;
-					continue;  // nothing more to be done this req
 				}
+			}
+        }
 
-				bank_busy_flags |= bank_flag;
+		/*** 6. Schedule Requests ***/
+        if (!reqs_scheduled.size())
+		{
+            // we couldn't find a command to schedule -- let's try to be speculative
+            auto cmd = T::Command::PRE;
+            vector<int> victim = rowpolicy->get_victim(cmd);
+            if (!victim.empty()){
+                issue_cmd(cmd, victim);
+            }
+            return;  // nothing more to be done this cycle
+        }
 
-				req->is_first_command = false;
-				int coreid = req->coreid;
-				if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
-					channel->update_serving_requests(req->addr_vec.data(), 1, clk);
+		for(auto req = reqs_scheduled.begin(); req != reqs_scheduled.end(); req++) {
+			req->is_first_command = false;
+			int coreid = req->coreid;
+			if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
+				channel->update_serving_requests(req->addr_vec.data(), 1, clk);
+			}
+			int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
+			if (req->type == Request::Type::READ) {
+				if (is_row_hit(req)) {
+					++read_row_hits[coreid];
+					++row_hits;
+				} else if (is_row_open(req)) {
+					++read_row_conflicts[coreid];
+					++row_conflicts;
+				} else {
+					++read_row_misses[coreid];
+					++row_misses;
 				}
-				int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
-				if (req->type == Request::Type::READ) {
-					if (is_row_hit(req)) {
-						++read_row_hits[coreid];
-						++row_hits;
-					} else if (is_row_open(req)) {
-						++read_row_conflicts[coreid];
-						++row_conflicts;
-					} else {
-						++read_row_misses[coreid];
-						++row_misses;
-					}
-					read_transaction_bytes += tx;
-				} else if (req->type == Request::Type::WRITE) {
-					if (is_row_hit(req)) {
-						++write_row_hits[coreid];
-						++row_hits;
-					} else if (is_row_open(req)) {
-						++write_row_conflicts[coreid];
-						++row_conflicts;
-					} else {
-						++write_row_misses[coreid];
-						++row_misses;
-					}
-					write_transaction_bytes += tx;
+				read_transaction_bytes += tx;
+			} else if (req->type == Request::Type::WRITE) {
+				if (is_row_hit(req)) {
+					++write_row_hits[coreid];
+					++row_hits;
+				} else if (is_row_open(req)) {
+					++write_row_conflicts[coreid];
+					++row_conflicts;
+				} else {
+					++write_row_misses[coreid];
+					++row_misses;
 				}
-				if(memory_coding) {
-					access_scheduler->coding_region_hit(*req);
+				write_transaction_bytes += tx;
+			}
+			if(memory_coding) 
+			{
+				access_scheduler->coding_region_hit(*req);
+			}
+
+			// issue command on behalf of request
+			auto cmd = get_first_cmd(req);
+			issue_cmd(cmd, get_addr_vec(cmd, req)); 
+
+			// check whether this is the last command (which finishes the request)
+			if (cmd != channel->spec->translate[int(req->type)]) {
+				continue;
+			}
+
+			// set a future completion time for read requests
+			if (req->type == Request::Type::READ) {
+				req->depart = clk + channel->spec->read_latency;
+				pending.push_back(*req);
+			}
+
+			if (req->type == Request::Type::WRITE) {
+				channel->update_serving_requests(req->addr_vec.data(), -1, clk);
+			}
+
+			// Find matching req, erase
+			int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
+			auto erase_req = queue->queues[req_bank].begin(); 
+			while(true)
+			{
+				if(erase_req == queue->queues[req_bank].end())
+					assert(false);
+				if(*req == *erase_req)
+				{
+					queue->queues[req_bank].erase(erase_req);
+					break;
 				}
-
-				// issue command on behalf of request
-				auto cmd = get_first_cmd(req);
-				issue_cmd(cmd, get_addr_vec(cmd, req)); 
-
-				// check whether this is the last command (which finishes the request)
-				if (cmd != channel->spec->translate[int(req->type)]) {
-					++req;
-					continue;
-				}
-
-				// set a future completion time for read requests
-				if (req->type == Request::Type::READ) {
-					req->depart = clk + channel->spec->read_latency;
-					pending.push_back(*req);
-				}
-
-				if (req->type == Request::Type::WRITE) {
-					channel->update_serving_requests(req->addr_vec.data(), -1, clk);
-				}
-
-				// remove request from queue
-				req = queue->queues[bank].erase(req);
+				erase_req++;
 			}
 		}
-		/*** 5. Recode using idle banks ***/
+
+		/*** 7. Recode using idle banks ***/
 		if(memory_coding)
+		{
+			//TODO Pass banks instead of bank busy flags
+			unsigned int bank_busy_flags = 0;
+			for(unsigned int data_bank_idx = 0; data_bank_idx < num_banks; data_bank_idx++)
+				bank_busy_flags |= (data_banks[data_bank_idx].is_free() << data_bank_idx);
 			access_scheduler->recoding_controller(bank_busy_flags);
+		}
     }
 
     bool is_ready(list<Request>::iterator req)

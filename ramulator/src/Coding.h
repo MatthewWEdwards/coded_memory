@@ -76,6 +76,14 @@ public:
 		{
 			queues.resize(num_banks);
 		}
+		
+		BankQueue(const BankQueue& q)
+		{
+			for(auto cpy_q : q.queues)
+			{
+				this->queues.push_back(cpy_q);
+			}
+		}
 
         unsigned int size() 
 		{
@@ -142,6 +150,11 @@ public:
         assert(row_number >= 0 && row_number < n_rows);
         return row_number;
     }
+
+	inline int get_bank() const
+	{
+		return row_index_to_addr_vec(spec, start_row_index, 0)[static_cast<int>(T::Level::Bank)];
+	}
 };
 
 template <typename T>
@@ -452,6 +465,31 @@ public:
         return NO_XOR_REGIONS;
     }
 };
+
+class DataBank {
+    public:
+        int index;
+
+    private:
+        bool busy;
+
+    public:
+
+        DataBank(int index)
+        {
+            this->index = index;
+            busy = true;
+        }
+
+		inline void tick() {this->free();}
+		
+        inline void free() {busy = false;}
+
+        inline bool is_free() {return !busy;}
+
+        inline void read() {busy = true;}
+};
+
 
 }
 #endif /*__CODING_H*/

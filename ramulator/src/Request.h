@@ -4,6 +4,7 @@
 #include <vector>
 #include <functional>
 
+//TODO: Parity banks use "lock()" to read, Data banks use "read()". Make this consistant.
 using namespace std;
 
 namespace ramulator
@@ -47,6 +48,14 @@ public:
 
     Request()
         : is_first_command(true), coreid(0) {}
+
+	bool operator==(const Request& req)
+	{
+		return req.addr == this->addr       
+			&& req.coreid == this->coreid
+			&& req.type == this->type
+			&& req.arrive == this->arrive;
+	}
 };
 
 } /*namespace ramulator*/
