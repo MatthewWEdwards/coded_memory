@@ -341,6 +341,7 @@ public:
 
 //===Controller==========================================================================//
 	//TODO Should the controller handle reads AND writes in a single memory tick?
+	// ---> Yes
     void tick()
     {
         clk++;
@@ -508,13 +509,7 @@ public:
 
 		/*** 7. Recode using idle banks ***/
 		if(memory_coding)
-		{
-			//TODO Pass banks instead of bank busy flags
-			unsigned int bank_busy_flags = 0;
-			for(unsigned int data_bank_idx = 0; data_bank_idx < num_banks; data_bank_idx++)
-				bank_busy_flags |= (data_banks[data_bank_idx].is_free() << data_bank_idx);
-			access_scheduler->recoding_controller(bank_busy_flags);
-		}
+			access_scheduler->recoding_controller(data_banks);
     }
 
     bool is_ready(list<Request>::iterator req)

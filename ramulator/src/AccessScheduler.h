@@ -5,7 +5,7 @@
 #include "Request.h"
 #include "Statistics.h"
 #include "CodeStatusMap.h"
-
+#include "DynamicEncoder.h"
 
 namespace coding
 {
@@ -35,14 +35,15 @@ private:
 	coding::CodeStatusMap<T> * code_status;
 	int coding_region_counter = 0; // Counts how many memory ticks since last recoding check
 	const int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
-	double coding_region_length = .001; //TODO Make this a config option
+	double coding_region_length = .001; 
 	double alpha = 1;
 
 	// Dynamic Coding Variables
-	vector<coding::ParityBankTopology<T>> topologies; 
+	DynamicEncoder<T> * dynamic_encoder;
 	vector<unsigned long> topology_hits;
 	unsigned int active_topology_idx = 0; 
 	vector<int> active_topologies;
+	vector<coding::ParityBankTopology<T>> topologies; 
 
 public:
 	AccessScheduler(int memory_coding, double alpha, double coding_region_length, DRAM<T>* channel)
@@ -101,6 +102,9 @@ public:
 
 		/* init coding region controller */
 		this->topology_hits.resize(topologies.size(), 0);
+
+		/* init Dynamic Encoder */
+		this->dynamic_encoder = new coding::DynamicEncoder<T>(topologies);
 	
 		/* get init coding regions */
 		for(unsigned int tops = 0; tops < alpha/coding_region_length; tops++)
@@ -120,6 +124,7 @@ public:
 	~AccessScheduler() 
 	{
 		delete code_status;
+		delete dynamic_encoder;
 	}
 
     void read_pattern_builder(long clk, coding::BankQueue* cur_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
@@ -246,7 +251,9 @@ public:
 			unsigned long serve_time = clk + channel->spec->read_latency;
 			const auto row_index {coding::request_to_row_index(channel->spec, *req)};
 			reqs_scheduled.push_back(*req);
-			code_status->set(row_index, CodeStatus::FreshData, serve_time);
+		
+			//TODO: Only set if the row is encoded
+			code_status->set(row_index, CodeStatus::FreshData, serve_time, topologies); 
 		}
     }
 
@@ -273,76 +280,31 @@ private:
         return addr_vec;
     }
 
-
-//=========Read and Write Pattern Builders Helper Functions==============================================
-
-
 //=========ReCoding Scheduler===============================================
 public:
-
-	// TODO: Rewrite
-    void recoding_controller(unsigned long bank_busy_flags)
+    void recoding_controller(vector<DataBank>& data_banks)
     {
-        // Attempt one recode per bank
-        for(int bank = 0;
-                bank < num_banks;
-                bank++) {
-
-            // If the bank is busy, abort attempt
-            if((bank_busy_flags & (0x1 << bank)) == 0 )
-                continue;
-
-            // TODO: Only recode the current encoded rows in the topology
-            for(auto recode_req = code_status->update_queues[bank].begin();
-                    recode_req != code_status->update_queues[bank].end();
-                    recode_req++) {
-                bool to_recode = true;
-                bool can_recode = true;
-
-                for(int parity_bank = 0; parity_bank < parity_banks.size(); parity_bank++) {
-                    if(topologies[active_topology_idx].row_regions[bank].first < recode_req->first &&
-                            topologies[active_topology_idx].row_regions[bank].first + topologies[active_topology_idx].row_regions[bank].second > recode_req->first) {
-                        to_recode = true;
-                    }
-                }
-
-
-                if(to_recode && parity_banks[bank].busy()) {
-                    // Cannot schedule recode at this time
-                    can_recode = false;
-                    break;
-                }
-
-                if(can_recode) {
-                    main_memory_recode(recode_req->first);
-                    code_status->update_queues[bank].erase(recode_req);
-                    break;
-                }
-            }
-        }
-    }
-
-	//FIXME: Unused, may be obsolete (I manually track data bank usage per tick via "bank_busy_flag" or some such variable)
-    bool memory_bank_is_free(const unsigned long& row_index)
-    {
-        /* a memory bank is free if ramulator's decode returns the read
-         * command given a read command */
-        auto addr_vec {coding::row_index_to_addr_vec<T>(channel->spec,
-                       row_index,
-                       channel->id)};
-        return channel->decode(T::Command::RD, addr_vec.data()) ==
-               T::Command::RD;
-    }
-
-private:
-	//TODO: Store codes on disk
-    inline void main_memory_recode(const unsigned long& row_index)
-    {
-        code_status->clear(row_index);
+		// Utilize idle data banks to reconstruct codes
+		for(auto bank = data_banks.begin(); bank != data_banks.end(); bank++)
+		{
+			if(!bank->is_free())
+				continue;
+			for(auto recode_req = code_status->update_queue.begin();
+				recode_req != code_status->update_queue.end();
+				recode_req++)
+			{
+				if(recode_req->receive_bank(bank->index))
+				{
+					bank->read();
+					break;
+				}
+			}
+		}
+		// Attempt rewrites
+		code_status->tick(data_banks, parity_banks);
     }
 
 //=========Dynamic Coding Controller===============================================
-//TODO: Allow unadjacent subregions to be coded.
 public:
     void coding_region_controller()
     {
@@ -420,48 +382,6 @@ private:
 		topology_switches++;
     }
 
-	/* Returns true if topologies need to be switched
-	 * OUT:
-	 *   regions_to_encode: New regions that need to be encoded by the recoding unit
-	 *   regions_to_evict: regions which are replaced by regions to encode due to size limitations
-     */
-	bool get_new_regions(vector<int>& regions_to_encode, vector<int>& regions_to_evict)
-	{
-		unsigned int num_topologies_to_select = alpha/coding_region_length;
-		vector<int> topologies_selected;
-		for(unsigned int num_top = 0; num_top < num_topologies_to_select; num_top++)
-		{
-			int max_idx = distance(topology_hits.begin(), max_element(topology_hits.begin(), topology_hits.end()));
-			if(topology_hits[max_idx] == 0)
-				break;
-			topologies_selected.push_back(max_idx);
-			topology_hits[max_idx] = 0;
-		}
-		for(int top_sel_idx : topologies_selected)
-		{
-			if(find(active_topologies.begin(), active_topologies.end(), top_sel_idx) == active_topologies.end())
-			{
-				/* switch the parity banks to it */
-				active_topologies = topologies_selected;
-				switch_coding_regions(active_topologies, false);
-				break;
-			}
-		}
-
-		for(auto top_sel : topologies_selected)
-		{
-			if(find(active_topologies.begin(), active_topologies.end(), top_sel))
-				continue;
-			regions_to_encode.push_back(top_sel);
-		}
-		for(int evict_idx = active_topologies.size() - 1; 
-			evict_idx > active_topologies.size() - 1 - topologies_selected.size();
-			evict_idx--)
-		{
-
-		}
-
-	} 
 };
 
 }

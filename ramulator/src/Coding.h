@@ -215,6 +215,17 @@ public:
         }
         return false;
     }
+
+    const bool contains(const unsigned long& row) const
+    {
+        for (int b {0}; b < n_parity_banks; b++) {
+            auto bank_regions {xor_regions_for_parity_bank[b]};
+            for (XorCodedRegions<T>& regions : bank_regions)
+                if (regions.contains(row))
+                    return true;
+        }
+        return false;
+    }
 };
 
 /* Macros refer to notation used in "Achieving Multi-Port Memory Performance on Single-Port
