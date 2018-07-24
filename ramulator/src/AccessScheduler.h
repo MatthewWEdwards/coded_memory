@@ -4,7 +4,7 @@
 #include "Coding.h"
 #include "Request.h"
 #include "Statistics.h"
-#include "CodeStatusMap.h"
+#include "RecodingUnit.h"
 #include "DynamicEncoder.h"
 
 namespace coding
@@ -19,7 +19,7 @@ using ParityBank = coding::ParityBank<T>;
 using ParityBankTopology = coding::ParityBankTopology<T>;
 using XorCodedRegions = coding::XorCodedRegions<T>;
 using MemoryRegion = coding::MemoryRegion<T>;
-using CodeStatus = typename coding::CodeStatusMap<T>::Status;
+using CodeStatus = typename coding::RecodingUnit<T>::Status;
 
 protected:
 	// Stats
@@ -32,7 +32,7 @@ private:
 	vector<coding::ParityBank<T>> parity_banks;
 
 	// ReCoding Controller Variables
-	coding::CodeStatusMap<T> * code_status;
+	coding::RecodingUnit<T> * recoder_unit;
 	int coding_region_counter = 0; // Counts how many memory ticks since last recoding check
 	const int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
 	double coding_region_length = .001; 
@@ -52,7 +52,7 @@ public:
 		this->alpha = alpha;
 		this->coding_region_length = coding_region_length;
 		this->num_banks = channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
-		this->code_status = new coding::CodeStatusMap<T>(channel->spec);
+		this->recoder_unit = new coding::RecodingUnit<T>(channel->spec);
 
 		/* build a list of possible memory topologies that can be selected for
 		 * coding based on the number of hits */
@@ -123,7 +123,7 @@ public:
 
 	~AccessScheduler() 
 	{
-		delete code_status;
+		delete recoder_unit;
 		delete dynamic_encoder;
 	}
 
@@ -139,7 +139,7 @@ public:
 			auto req = readq->queues[data_bank.index].begin();
 			while(req != readq->queues[data_bank.index].end())
 			{
-				auto coding_status = code_status->get(*req);
+				auto coding_status = recoder_unit->get(*req);
 				if(coding_status != CodeStatus::FreshData && coding_status != CodeStatus::Updated)
 				{
 					req++;
@@ -168,7 +168,7 @@ public:
 				{
 					if(parity_bank->busy() || !parity_bank->contains(*req))
 						continue;
-					auto coding_status = code_status->get(*req);
+					auto coding_status = recoder_unit->get(*req);
 					//if(coding_status == CodeStatus::FreshParity) 
 					//	// It may be possible to serve the request using fresh data in the parity. TODO
 					if(coding_status != CodeStatus::Updated) 
@@ -206,7 +206,7 @@ public:
 						region_addr_needed[static_cast<int>(T::Level::Bank)] = region_bank_num;
 						long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
 
-						auto coding_status = code_status->get(region_line_needed);
+						auto coding_status = recoder_unit->get(region_line_needed);
 						if(data_banks->at(region_bank_num).is_free() && 
 						   (coding_status == CodeStatus::FreshData || coding_status == CodeStatus::Updated))
 						{
@@ -253,7 +253,7 @@ public:
 			reqs_scheduled.push_back(*req);
 		
 			//TODO: Only set if the row is encoded
-			code_status->set(row_index, CodeStatus::FreshData, serve_time, topologies); 
+			recoder_unit->set(row_index, CodeStatus::FreshData, serve_time, topologies); 
 		}
     }
 
@@ -289,8 +289,8 @@ public:
 		{
 			if(!bank->is_free())
 				continue;
-			for(auto recode_req = code_status->update_queue.begin();
-				recode_req != code_status->update_queue.end();
+			for(auto recode_req = recoder_unit->update_queue.begin();
+				recode_req != recoder_unit->update_queue.end();
 				recode_req++)
 			{
 				if(recode_req->receive_bank(bank->index))
@@ -301,7 +301,7 @@ public:
 			}
 		}
 		// Attempt rewrites
-		code_status->tick(data_banks, parity_banks);
+		recoder_unit->tick(data_banks, parity_banks);
     }
 
 //=========Dynamic Coding Controller===============================================
@@ -378,7 +378,7 @@ private:
 				}
 			}
 		}
-        code_status->topology_reset(new_tops, clk, first_encoding);
+        recoder_unit->topology_reset(new_tops, clk, first_encoding);
 		topology_switches++;
     }
 

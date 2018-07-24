@@ -1,5 +1,5 @@
-#ifndef __CODESTATUSMAP_H
-#define __CODESTATUSMAP_H
+#ifndef __RECODINGUNIT_H
+#define __RECODINGUNIT_H
 
 #include "Coding.h"
 #include <set>
@@ -66,9 +66,9 @@ unsigned long row;
 };
 
 template <typename T>
-class CodeStatusMap {
+class RecodingUnit {
 public:
-    enum Status { Updated, FreshData, FreshParity, MAX};
+    enum Status {Updated, FreshData, FreshParity, MAX};
     deque<RecodeRequest<T>> update_queue;
 
 private:
@@ -79,14 +79,14 @@ private:
 	int cur_topology_idx;
 	
 public:
-    CodeStatusMap(const T *spec) :
+    RecodingUnit(const T *spec) :
         spec(spec),
         n_rows(spec->org_entry.count[static_cast<int>(T::Level::Rank)]*
                spec->org_entry.count[static_cast<int>(T::Level::Bank)]*
                spec->org_entry.count[static_cast<int>(T::Level::Row)])
     {}
 
-    ~CodeStatusMap() {}
+    ~RecodingUnit() {}
 
     void set(const unsigned long& row_index, const Status& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
     {

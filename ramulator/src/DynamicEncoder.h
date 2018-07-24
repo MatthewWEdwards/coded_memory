@@ -2,7 +2,7 @@
 #define __DYNAMICENCODER_H
 
 #include "Coding.h"
-#include "CodeStatusMap.h"
+#include "RecodingUnit.h"
 #include <queue>
 
 namespace coding
@@ -89,7 +89,7 @@ public:
 	{
 	}
 
-	void tick(const DataBank * data_banks, const ParityBank<T> * parity_banks, CodeStatusMap<T>& code_status)
+	void tick(const DataBank * data_banks, const ParityBank<T> * parity_banks, RecodingUnit<T>& recoder_unit)
 	{
 		// Prepare encoded regions switches
 	}
