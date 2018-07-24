@@ -17,10 +17,14 @@ public:
 
 set<unsigned int> banks_needed; // data banks accesses needed
 unsigned long row;
+unsigned int bank;
+Request req;
 
-	RecodeRequest(unsigned long row, ParityBankTopology<T>& topology, const T* spec) :
+	RecodeRequest(Request& req, ParityBankTopology<T>& topology, const T* spec) : 
 		spec(spec),
-		row(row)
+		row(req.addr_vec[static_cast<int>(T::Level::Row)]),
+		bank(req.addr_vec[static_cast<int>(T::Level::Bank)]),
+		req(req)
 	{
 		for(auto xor_regions : topology.xor_regions_for_parity_bank)
 		{
@@ -43,6 +47,9 @@ unsigned long row;
 	bool receive_row(unsigned long row)
 	{
 		unsigned int bank = row_index_to_addr_vec(spec, row, 0)[static_cast<int>(T::Level::Bank)];
+		unsigned int bank_row = row_index_to_addr_vec(spec, row, 0)[static_cast<int>(T::Level::Row)];
+		if(this->row != bank_row)
+			return false;
 		if(banks_needed.find(bank) != banks_needed.end())
 		{
 			banks_needed.erase(bank);
@@ -51,6 +58,7 @@ unsigned long row;
 		return false;
 	}
 
+	// Only call this when a full bank is reserved for recoding.
 	bool receive_bank(unsigned int bank)
 	{
 		if(banks_needed.find(bank) != banks_needed.end())
@@ -88,28 +96,28 @@ public:
 
     ~RecodingUnit() {}
 
-    void set(const unsigned long& row_index, const Status& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
+    void set(Request& req, const Status& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
     {
-        assert(row_index >= 0 && row_index < n_rows);
-        assert(status != Status::Updated);
-        map[row_index] = status;
+		unsigned int row = req.addr_vec[static_cast<int>(T::Level::Row)];
+		unsigned int absolute_row = request_to_row_index(spec, req);
+
+        map[row] = status;
 
 		// Construct recode request
 		for(auto topology : topologies)
 		{
-			if(topology.contains(row_index))
+			if(topology.contains(absolute_row))
 			{
-				auto addr = row_index_to_addr_vec(spec, row_index, 0);
-				RecodeRequest<T> req = RecodeRequest<T>(row_index, topology, spec);
+				RecodeRequest<T> recode_req = RecodeRequest<T>(req, topology, spec);
 				for(auto old_req = update_queue.begin();
 					old_req != update_queue.end();
 					old_req++)
-					if(req == *old_req)
+					if(recode_req == *old_req)
 					{
 						update_queue.erase(old_req);
 						break;
 					}
-				update_queue.push_back(req);
+				update_queue.push_back(recode_req);
 				return;
 			}
 		}
@@ -175,6 +183,14 @@ public:
 				req++;
 		}
 	}
+
+	void receive_row(unsigned long row)
+	{
+		for(auto req = update_queue.begin(); req != update_queue.end(); req++)
+			req->receive_row(row);
+	}
+		
+		
 };
 
 }

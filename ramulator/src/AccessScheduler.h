@@ -146,6 +146,7 @@ public:
 					continue;  // Data bank has stale data for the row requested
 				}
 				data_bank.read();
+				recoder_unit->receive_row(req->addr);
 				reqs_scheduled.push_back(*req);
 				req = readq->queues[data_bank.index].erase(req);
 				break;
@@ -161,75 +162,7 @@ public:
 			while(req != bank_queue->end())
 			{
 				// Attempt to use each parity
-				bool parity_success = false;
-				for(auto parity_bank = parity_banks.begin();
-					parity_bank != parity_banks.end() && !parity_success;
-					parity_bank++)
-				{
-					if(parity_bank->busy() || !parity_bank->contains(*req))
-						continue;
-					auto coding_status = recoder_unit->get(*req);
-					//if(coding_status == CodeStatus::FreshParity) 
-					//	// It may be possible to serve the request using fresh data in the parity. TODO
-					if(coding_status != CodeStatus::Updated) 
-						continue;  // Parity bank has stale data for the row requested
-					/* get a list of all the XOR regions needed to complete the parity */
-					const XorCodedRegions& xor_regions { parity_bank->request_xor_regions(*req) };
-					const MemoryRegion& read_region {xor_regions.request_region(*req)};
-					vector<reference_wrapper<const MemoryRegion>> other_regions;
-					vector<Request> requests_to_schedule;
-					for (const MemoryRegion& region : xor_regions.regions)
-						if (region != read_region)
-							other_regions.push_back(region);
-					/* find a read in the same row number or read from an idle data bank for every other XOR region */
-					bool read_flag = true;
-					vector<int> data_banks_to_read;
-					for(const MemoryRegion& other_region : other_regions) 
-					{
-						// Check if a scheduled read matches the xor region
-						bool matched_read = false;
-						for(auto read : reqs_scheduled)
-						{
-							if(xor_regions.request_region(*req) == other_region && 
-						       xor_regions.same_request_row_numbers(read, *req))
-							{
-								matched_read = true;
-								break;
-							}
-						}
-						if(matched_read)
-							continue;
-
-						// Check if an idle data bank can be used to satisfy and xor region
-						long region_bank_num = other_region.get_bank();
-						auto region_addr_needed = req->addr_vec;
-						region_addr_needed[static_cast<int>(T::Level::Bank)] = region_bank_num;
-						long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
-
-						auto coding_status = recoder_unit->get(region_line_needed);
-						if(data_banks->at(region_bank_num).is_free() && 
-						   (coding_status == CodeStatus::FreshData || coding_status == CodeStatus::Updated))
-						{
-							data_banks_to_read.push_back(region_bank_num);
-							continue;
-						}
-						read_flag = false;	// Memory region could not be decoded
-						data_banks_to_read.clear();
-						break;
-					}
-
-					if(read_flag)
-					{
-						/* we were able to complete the parity, return
-						 * max(pending request(s) time(s), parity bank read latency) */
-						parity_bank->lock();
-						for(auto read_bank_idx : data_banks_to_read)
-							data_banks->at(read_bank_idx).read();
-						reqs_scheduled.push_back(*req);
-					    parity_success = true;
-						break;
-					}
-				}
+				bool parity_success = attempt_parity_read(*req, data_banks, reqs_scheduled);
 				if(parity_success)	
 					req = bank_queue->erase(req);
 				else
@@ -238,6 +171,79 @@ public:
 		}
 		delete readq;
     }
+
+	bool attempt_parity_read(const Request& req, vector<DataBank>* data_banks, list<Request>& reqs_scheduled)
+	{
+		for(auto parity_bank = parity_banks.begin();
+		parity_bank != parity_banks.end();
+		parity_bank++)
+		{
+			if(parity_bank->busy() || !parity_bank->contains(req))
+				continue;
+			auto coding_status = recoder_unit->get(req);
+			if(coding_status == CodeStatus::FreshParity)
+				{}// TODO:It may be possible to serve the request using fresh data in the parity.
+			if(coding_status != CodeStatus::Updated)
+				continue;  // Parity bank has stale data for the row requested
+			/* get a list of all the XOR regions needed to complete the parity */
+			const XorCodedRegions& xor_regions { parity_bank->request_xor_regions(req) };
+			const MemoryRegion& read_region {xor_regions.request_region(req)};
+			vector<reference_wrapper<const MemoryRegion>> other_regions;
+			vector<Request> requests_to_schedule;
+			for (const MemoryRegion& region : xor_regions.regions)
+				if (region != read_region)
+					other_regions.push_back(region);
+			/* find a read in the same row number or read from an idle data bank for every other XOR region */
+			bool read_flag = true;
+			vector<int> data_banks_to_read;
+			for(const MemoryRegion& other_region : other_regions)
+			{
+				// Check if a scheduled read matches the xor region
+				bool matched_read = false;
+				for(auto read : reqs_scheduled)
+				{
+					if(xor_regions.request_region(req) == other_region &&
+					   xor_regions.same_request_row_numbers(read, req))
+					{
+						matched_read = true;
+						break;
+					}
+				}
+				if(matched_read)
+					continue;
+
+				// Check if an idle data bank can be used to satisfy an xor region
+				long region_bank_num = other_region.get_bank();
+				auto region_addr_needed = req.addr_vec;
+				region_addr_needed[static_cast<int>(T::Level::Bank)] = region_bank_num;
+				long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
+
+				auto coding_status = recoder_unit->get(region_line_needed);
+				if(data_banks->at(region_bank_num).is_free() &&
+				   (coding_status == CodeStatus::FreshData || coding_status == CodeStatus::Updated))
+				{
+					data_banks_to_read.push_back(region_bank_num);
+					continue;
+				}
+				read_flag = false;  // Memory region could not be decoded
+				data_banks_to_read.clear();
+				break;
+			}
+
+			if(read_flag)
+			{
+				/* we were able to complete the parity, return
+				 * max(pending request(s) time(s), parity bank read latency) */
+				parity_bank->lock();
+				recoder_unit->receive_row(req.addr);
+				for(auto read_bank_idx : data_banks_to_read)
+					data_banks->at(read_bank_idx).read();
+				reqs_scheduled.push_back(req);
+				return true;
+			}
+		}
+		return false;
+	}
 
     void write_pattern_builder(long clk, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
     {
@@ -253,8 +259,12 @@ public:
 			reqs_scheduled.push_back(*req);
 		
 			//TODO: Only set if the row is encoded
-			recoder_unit->set(row_index, CodeStatus::FreshData, serve_time, topologies); 
+			recoder_unit->set(*req, CodeStatus::FreshData, serve_time, topologies); 
 		}
+	
+		//TODO Write to parity banks
+
+		
     }
 
 	void tick(long clk, coding::BankQueue* readq, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled, bool write_mode)
@@ -282,7 +292,7 @@ private:
 
 //=========ReCoding Scheduler===============================================
 public:
-    void recoding_controller(vector<DataBank>& data_banks)
+    void recoding_controller(vector<DataBank>& data_banks, list<Request>& reqs_scheduled)
     {
 		// Utilize idle data banks to reconstruct codes
 		for(auto bank = data_banks.begin(); bank != data_banks.end(); bank++)
@@ -295,11 +305,36 @@ public:
 			{
 				if(recode_req->receive_bank(bank->index))
 				{
+					// XXX
 					bank->read();
+					Request dummy_req = recode_req->req;
+					dummy_req.addr_vec[static_cast<int>(T::Level::Bank)] = bank->index;
+					reqs_scheduled.push_back(dummy_req);
 					break;
 				}
 			}
 		}
+
+		// Utilize parity banks to reconstruct codes
+		for(auto recode_req = recoder_unit->update_queue.begin();
+			recode_req != recoder_unit->update_queue.end();
+			recode_req++)
+		{
+			vector<int> banks_satisfied;
+			for(auto bank_needed : recode_req->banks_needed)
+			{
+				// XXX
+				Request dummy_req = recode_req->req;
+				dummy_req.addr_vec[static_cast<int>(T::Level::Bank)] = bank_needed;
+				bool parity_read = attempt_parity_read(dummy_req, &data_banks, reqs_scheduled);
+				if(parity_read)
+					banks_satisfied.push_back(bank_needed);
+			}
+			for(auto bank_satisfied : banks_satisfied)
+				recode_req->receive_bank(bank_satisfied);
+		}
+
+
 		// Attempt rewrites
 		recoder_unit->tick(data_banks, parity_banks);
     }

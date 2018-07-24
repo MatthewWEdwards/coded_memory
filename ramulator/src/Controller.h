@@ -509,7 +509,7 @@ public:
 
 		/*** 7. Recode using idle banks ***/
 		if(memory_coding)
-			access_scheduler->recoding_controller(data_banks);
+			access_scheduler->recoding_controller(data_banks, reqs_scheduled);
     }
 
     bool is_ready(list<Request>::iterator req)
