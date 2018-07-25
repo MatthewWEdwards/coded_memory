@@ -80,12 +80,12 @@ class DynamicEncoder{
 public:
 
 	vector<EncodedRegion<T>> regions_to_encode;
-	vector<EncodedRegion<T>> encoded_regions;
-	vector<unsigned int> 	 regions_to_evict;
-	const vector<coding::ParityBankTopology<T>> topologies;
+	vector<unsigned int>     encoded_regions;  // Indicies of encoded regions
+	vector<unsigned int> 	 regions_to_evict; // Indicies of encoded regions to evict once a new region is fully encoded
+	const vector<coding::ParityBankTopology<T>> region_list; 
 
-	DynamicEncoder(vector<coding::ParityBankTopology<T>> topologies):
-		topologies(topologies)
+	DynamicEncoder(vector<coding::ParityBankTopology<T>> region_list):
+		region_list(region_list)
 	{
 	}
 

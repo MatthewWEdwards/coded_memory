@@ -42,7 +42,8 @@ private:
 	DynamicEncoder<T> * dynamic_encoder;
 	vector<unsigned long> topology_hits;
 	unsigned int active_topology_idx = 0; 
-	vector<int> active_topologies;
+	vector<unsigned int> selected_regions;
+	vector<unsigned int> active_regions;
 	vector<coding::ParityBankTopology<T>> topologies; 
 
 public:
@@ -108,10 +109,13 @@ public:
 	
 		/* get init coding regions */
 		for(unsigned int tops = 0; tops < alpha/coding_region_length; tops++)
-			active_topologies.push_back(tops);
+			selected_regions.push_back(tops);
 
 		/* init active topology */
-		switch_coding_regions(active_topologies, true);
+		switch_coding_regions(selected_regions, true);
+		
+		/* assume the default coded regions are encoded before execution */
+		active_regions = selected_regions;
 	
 		/* Set up stats */
 		topology_switches
@@ -127,6 +131,32 @@ public:
 		delete dynamic_encoder;
 	}
 
+	void tick(long clk, coding::BankQueue* readq, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled, bool write_mode)
+	{
+		/* refresh banks */
+		for (ParityBank& bank : parity_banks)
+			bank.tick();
+		if(!write_mode)
+			read_pattern_builder(clk, readq, data_banks, reqs_scheduled);
+		else
+			write_pattern_builder(clk, writeq, data_banks, reqs_scheduled);
+		coding_region_controller();
+	}
+
+private:
+    vector<int> location_addr_vec(const int& rank, const int& bank, const int& row)
+    {
+        vector<int> addr_vec(static_cast<int>(T::Level::MAX));
+        addr_vec[static_cast<int>(T::Level::Channel)] = channel->id;
+        addr_vec[static_cast<int>(T::Level::Rank)] = rank;
+        addr_vec[static_cast<int>(T::Level::Bank)] = bank;
+        addr_vec[static_cast<int>(T::Level::Row)] = row;
+        return addr_vec;
+    }
+
+public:
+
+//=========Read Build Pattern===============================================
     void read_pattern_builder(long clk, coding::BankQueue* cur_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
     {
 		this->clk = clk;
@@ -161,7 +191,6 @@ public:
 			auto req = bank_queue->begin();
 			while(req != bank_queue->end())
 			{
-				// Attempt to use each parity
 				bool parity_success = attempt_parity_read(*req, data_banks, reqs_scheduled);
 				if(parity_success)	
 					req = bank_queue->erase(req);
@@ -174,6 +203,7 @@ public:
 
 	bool attempt_parity_read(const Request& req, vector<DataBank>* data_banks, list<Request>& reqs_scheduled)
 	{
+		// This function attempts to used each parity banks as the "base" decoding bank
 		for(auto parity_bank = parity_banks.begin();
 		parity_bank != parity_banks.end();
 		parity_bank++)
@@ -245,6 +275,7 @@ public:
 		return false;
 	}
 
+//=========Write Build Pattern==============================================
     void write_pattern_builder(long clk, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
     {
 		// Grab requests from queues
@@ -255,7 +286,6 @@ public:
 				continue;
 			data_banks->at(bank_idx).read();
 			unsigned long serve_time = clk + channel->spec->read_latency;
-			const auto row_index {coding::request_to_row_index(channel->spec, *req)};
 			reqs_scheduled.push_back(*req);
 		
 			//TODO: Only set if the row is encoded
@@ -267,28 +297,6 @@ public:
 		
     }
 
-	void tick(long clk, coding::BankQueue* readq, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled, bool write_mode)
-	{
-		/* refresh banks */
-		for (ParityBank& bank : parity_banks)
-			bank.tick();
-		if(!write_mode)
-			read_pattern_builder(clk, readq, data_banks, reqs_scheduled);
-		else
-			write_pattern_builder(clk, writeq, data_banks, reqs_scheduled);
-		coding_region_controller();
-	}
-
-private:
-    vector<int> location_addr_vec(const int& rank, const int& bank, const int& row)
-    {
-        vector<int> addr_vec(static_cast<int>(T::Level::MAX));
-        addr_vec[static_cast<int>(T::Level::Channel)] = channel->id;
-        addr_vec[static_cast<int>(T::Level::Rank)] = rank;
-        addr_vec[static_cast<int>(T::Level::Bank)] = bank;
-        addr_vec[static_cast<int>(T::Level::Row)] = row;
-        return addr_vec;
-    }
 
 //=========ReCoding Scheduler===============================================
 public:
@@ -334,12 +342,11 @@ public:
 				recode_req->receive_bank(bank_satisfied);
 		}
 
-
 		// Attempt rewrites
 		recoder_unit->tick(data_banks, parity_banks);
     }
 
-//=========Dynamic Coding Controller===============================================
+//=========Dynamic Encoding Unit============================================
 public:
     void coding_region_controller()
     {
@@ -347,22 +354,21 @@ public:
         if (coding_region_counter >= coding_region_reschedule_ticks) {
             /* find the coding topologies with the most hits */
 			unsigned int num_topologies_to_select = alpha/coding_region_length;
-			vector<int> topologies_selected;
+			vector<unsigned int> regions_selected;
 			for(unsigned int num_top = 0; num_top < num_topologies_to_select; num_top++)
 			{
-				int max_idx = distance(topology_hits.begin(), max_element(topology_hits.begin(), topology_hits.end()));
+				unsigned int max_idx = distance(topology_hits.begin(), max_element(topology_hits.begin(), topology_hits.end()));
 				if(topology_hits[max_idx] == 0)
 					break;
-				topologies_selected.push_back(max_idx);
+				regions_selected.push_back(max_idx);
 				topology_hits[max_idx] = 0;
 			}
-			for(int top_sel_idx : topologies_selected)
+			for(int top_sel_idx : regions_selected)
 			{
-				if(find(active_topologies.begin(), active_topologies.end(), top_sel_idx) == active_topologies.end())
+				if(find(selected_regions.begin(), selected_regions.end(), top_sel_idx) == selected_regions.end())
 				{
-					/* switch the parity banks to it */
-					active_topologies = topologies_selected;
-					switch_coding_regions(active_topologies, false);
+					selected_regions = regions_selected;
+					switch_coding_regions(regions_selected, false);
 					break;
 				}
 			}
@@ -386,11 +392,11 @@ public:
     }
 
 private:
-    void switch_coding_regions(const vector<int>& active_topologies, bool first_encoding)
-    {
+    void switch_coding_regions(const vector<unsigned int>& regions_selected, bool first_encoding) 
+	{
 		// Grab active topologies
 		vector<ParityBankTopology> new_tops;
-		for(unsigned long top_idx = 0; top_idx < active_topologies.size(); top_idx++)
+		for(unsigned long top_idx = 0; top_idx < regions_selected.size(); top_idx++)
 			new_tops.push_back(topologies[top_idx]);
 		
 		// Prepare parity bank structure
@@ -400,7 +406,7 @@ private:
 			parity_banks[b].xor_regions.clear();
 			parity_banks[b].xor_regions.resize(new_tops.size());
 		}
-		for(unsigned long top_idx = 0; top_idx < active_topologies.size(); top_idx++)
+		for(unsigned long top_idx = 0; top_idx < regions_selected.size(); top_idx++)
 		{
 			for (int b {0}; b < n_parity_banks; b++) 
 			{

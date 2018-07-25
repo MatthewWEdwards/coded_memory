@@ -15,33 +15,31 @@ protected:
 const T* spec;
 public:
 
-set<unsigned int> banks_needed; // data banks accesses needed
-unsigned long row;
-unsigned int bank;
-Request req;
+set<unsigned int> banks_needed; // data banks accesses needed to complete the recode
+unsigned long row;              // The row of the request which triggered the recode
+unsigned int bank;              // The bank of the request which triggered the recode
+Request req;                    // The request which triggered the recode
+unsigned int ticks_till_clear;  // Starts decreasing once all data for recoding has been downloaded. 
 
 	RecodeRequest(Request& req, ParityBankTopology<T>& topology, const T* spec) : 
 		spec(spec),
 		row(req.addr_vec[static_cast<int>(T::Level::Row)]),
 		bank(req.addr_vec[static_cast<int>(T::Level::Bank)]),
-		req(req)
+		req(req),
+		ticks_till_clear(spec->read_latency)
 	{
+		// Find all banks which have been xor'd with the bank receiving new data. Data from these matching banks must
+		// Be downloaded before the recoder unit can rebuild the codes
 		for(auto xor_regions : topology.xor_regions_for_parity_bank)
-		{
 			for(auto xor_region : xor_regions)
-			{
 				if(xor_region.contains(row))
-				{
 					for(auto memory_region : xor_region.regions)
 					{
 						if(memory_region.contains(row))
 							continue;
-						unsigned int bank = row_index_to_addr_vec(spec, row, 0)[static_cast<int>(T::Level::Bank)];
+						unsigned int bank = row_index_to_addr_vec(spec, memory_region.start_row_index, 0)[static_cast<int>(T::Level::Bank)];
 						banks_needed.insert(bank);
 					}
-				}
-			}
-		}
 	}
 
 	bool receive_row(unsigned long row)
@@ -69,10 +67,19 @@ Request req;
 		return false;
 	}
 
-	bool operator ==(const RecodeRequest& req) { return this->row == req.row; }
+	bool dec_tick() 
+	{
+		if(banks_needed.size() > 0)
+			return false;
+		ticks_till_clear--;
+		return ticks_till_clear == 0;
+	}
+
+	bool operator ==(const RecodeRequest& req) { return this->row == req.row && this->bank == req.bank;}
 
 };
 
+//TODO: Code status map should only record encoded regions
 template <typename T>
 class RecodingUnit {
 public:
@@ -81,10 +88,10 @@ public:
 
 private:
     const T *spec;
-    const int n_rows;
-    const int update_interval = 1;
-    std::map<int,  /* row index */ Status> map;
-	int cur_topology_idx;
+    const int n_rows; // FIXME: Is the necessary? only used for assertations
+    const int update_interval = 1; // FIXME Depricated
+    std::map<int,  /* row index */ Status> map; // Code status map
+	int cur_topology_idx; // FIXME Depricated
 	
 public:
     RecodingUnit(const T *spec) :
@@ -134,7 +141,7 @@ public:
         assert(row_index >= 0 && row_index < n_rows);
         if(map.find(row_index) != map.end())
             return map.at(row_index);
-        // FIXME: This should never happen but it does
+        // FIXME: This should never happen but it does(?)
         else
             return Status::FreshData;
     }
@@ -143,7 +150,6 @@ public:
     {
         return get(request_to_row_index(spec, req));
     }
-
 
     void topology_reset(vector<ParityBankTopology<T>>& new_topologies, long clk, bool first_encoding)
     {
@@ -176,11 +182,15 @@ public:
 		{
 			if(req->banks_needed.size() == 0)
 			{
-				clear(req->row);
-				req = update_queue.erase(req);
-			}
-			else
+				if(req->dec_tick())
+				{
+					clear(req->row);
+					req = update_queue.erase(req);
+				}
+			}else
+			{
 				req++;
+			}
 		}
 	}
 
