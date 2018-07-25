@@ -226,7 +226,26 @@ public:
         }
         return false;
     }
+	
 };
+
+template <typename T>
+bool operator<(const ParityBankTopology<T>& lhs, const ParityBankTopology<T>& rhs)
+{
+	return lhs.row_regions[0].first < rhs.row_regions[0].first;
+}
+
+template <typename T>
+bool operator>(const ParityBankTopology<T>& lhs, const ParityBankTopology<T>& rhs)
+{
+	return lhs.row_regions[0].first > rhs.row_regions[0].first;
+}
+
+template <typename T>
+bool operator==(const ParityBankTopology<T>& lhs, const ParityBankTopology<T>& rhs)
+{
+	return lhs.row_regions[0].first == rhs.row_regions[0].first;
+}
 
 /* Macros refer to notation used in "Achieving Multi-Port Memory Performance on Single-Port
  * Memory with Coding Techniques."

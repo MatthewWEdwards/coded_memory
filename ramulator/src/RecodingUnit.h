@@ -15,7 +15,7 @@ protected:
 const T* spec;
 public:
 
-set<unsigned int> banks_needed; // data banks accesses needed to complete the recode
+std::set<unsigned int> banks_needed; // data banks accesses needed to complete the recode
 unsigned long row;              // The row of the request which triggered the recode
 unsigned int bank;              // The bank of the request which triggered the recode
 Request req;                    // The request which triggered the recode
@@ -83,13 +83,15 @@ unsigned int ticks_till_clear;  // Starts decreasing once all data for recoding 
 template <typename T>
 class RecodingUnit {
 public:
-    enum Status {Updated, FreshData, FreshParity, MAX};
+	// Note that "Uncoded" isn't a value stored in the map, it merely indicates that a row isn't present in the bank.
+    enum Status {Updated, FreshData, FreshParity, Uncoded, MAX}; 
     deque<RecodeRequest<T>> update_queue;
 
 private:
     const T *spec;
     const int n_rows; // FIXME: Is the necessary? only used for assertations
     const int update_interval = 1; // FIXME Depricated
+	// TODO add bank dimension to the code status map
     std::map<int,  /* row index */ Status> map; // Code status map
 	int cur_topology_idx; // FIXME Depricated
 	
@@ -103,12 +105,16 @@ public:
 
     ~RecodingUnit() {}
 
+	// TODO shouldn't need to pass all topologies, really all the information that is needed is the structure of the 
+	// parity banks.
     void set(Request& req, const Status& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
     {
 		unsigned int row = req.addr_vec[static_cast<int>(T::Level::Row)];
 		unsigned int absolute_row = request_to_row_index(spec, req);
 
-        map[row] = status;
+		// Row unencoded, nothing to do
+        if(map.find(row) == map.end())
+			return;
 
 		// Construct recode request
 		for(auto topology : topologies)
@@ -141,9 +147,8 @@ public:
         assert(row_index >= 0 && row_index < n_rows);
         if(map.find(row_index) != map.end())
             return map.at(row_index);
-        // FIXME: This should never happen but it does(?)
         else
-            return Status::FreshData;
+            return Status::Uncoded;
     }
 
     inline Status get(const Request& req) const
@@ -151,28 +156,32 @@ public:
         return get(request_to_row_index(spec, req));
     }
 
-    void topology_reset(vector<ParityBankTopology<T>>& new_topologies, long clk, bool first_encoding)
+    void topology_init(std::set<ParityBankTopology<T>>& new_regions, long clk, bool first_encoding)
     {
-		Status queue_status = Status::Updated;
 		if(!first_encoding)
-			queue_status = Status::FreshData;
+			return; // FIXME remove references to "first_encoding"
 
-        map.clear(); // FIXME: This causes memory leaks(?)
+        map.clear();  // FIXME Necessary?
 
 		// Update map with encoded rows, update queues.
-		for(auto new_topology : new_topologies)
-		{
-			for(int row_region_idx = 0; row_region_idx < new_topology.row_regions.size(); row_region_idx++)
-			{
-				auto row_region = new_topology.row_regions[row_region_idx];
-				for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
-				{
-					map.emplace(row_region.first + row_in_bank, queue_status);
-				}
-			}
-		}
+		for(auto new_region : new_regions)
+			emplace_region(new_region);
         return;
     }
+
+	void evict_region(ParityBankTopology<T>& evict_region)
+	{
+		for(auto row_region : evict_region.row_regions)
+			for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
+				map.erase(row_region.first + row_in_bank);
+	}
+
+	void emplace_region(ParityBankTopology<T>& emplace_region)
+	{
+		for(auto row_region : emplace_region.row_regions)
+			for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
+				map.emplace(row_region.first + row_in_bank, Status::Updated);
+	}
 
 	// ASSUMPTION: the recoder stores the data for the parity bank until the parity bank is free to store it. 
 	//			   This functionality is not present in the ramulator

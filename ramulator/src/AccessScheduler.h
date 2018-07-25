@@ -34,7 +34,7 @@ private:
 	// ReCoding Controller Variables
 	coding::RecodingUnit<T> * recoder_unit;
 	int coding_region_counter = 0; // Counts how many memory ticks since last recoding check
-	const int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
+	const int coding_region_reschedule_ticks = 1e2; // TODO: Discuss how to choose this value
 	double coding_region_length = .001; 
 	double alpha = 1;
 
@@ -42,8 +42,8 @@ private:
 	DynamicEncoder<T> * dynamic_encoder;
 	vector<unsigned long> topology_hits;
 	unsigned int active_topology_idx = 0; 
-	vector<unsigned int> selected_regions;
-	vector<unsigned int> active_regions;
+	set<unsigned int> selected_regions;
+	set<unsigned int> active_regions;
 	vector<coding::ParityBankTopology<T>> topologies; 
 
 public:
@@ -104,12 +104,9 @@ public:
 		/* init coding region controller */
 		this->topology_hits.resize(topologies.size(), 0);
 
-		/* init Dynamic Encoder */
-		this->dynamic_encoder = new coding::DynamicEncoder<T>(topologies);
-	
 		/* get init coding regions */
 		for(unsigned int tops = 0; tops < alpha/coding_region_length; tops++)
-			selected_regions.push_back(tops);
+			selected_regions.insert(tops);
 
 		/* init active topology */
 		switch_coding_regions(selected_regions, true);
@@ -117,6 +114,9 @@ public:
 		/* assume the default coded regions are encoded before execution */
 		active_regions = selected_regions;
 	
+		/* init Dynamic Encoder */
+		this->dynamic_encoder = new coding::DynamicEncoder<T>(topologies, active_regions);
+
 		/* Set up stats */
 		topology_switches
 		.name("topology_switches_"+to_string(channel->id))
@@ -140,7 +140,13 @@ public:
 			read_pattern_builder(clk, readq, data_banks, reqs_scheduled);
 		else
 			write_pattern_builder(clk, writeq, data_banks, reqs_scheduled);
-		coding_region_controller();
+	}
+
+	void rewrites(vector<coding::DataBank>& data_banks, list<Request>& reqs_scheduled)
+	{
+		recoding_controller(data_banks, reqs_scheduled);      // ReCoding Unit
+		coding_region_controller(data_banks, reqs_scheduled); // Dynmaic Recoder
+		//TODO: Add code prefetcher
 	}
 
 private:
@@ -170,10 +176,11 @@ public:
 			while(req != readq->queues[data_bank.index].end())
 			{
 				auto coding_status = recoder_unit->get(*req);
-				if(coding_status != CodeStatus::FreshData && coding_status != CodeStatus::Updated)
+				if(coding_status == CodeStatus::FreshParity)
 				{
 					req++;
 					continue;  // Data bank has stale data for the row requested
+					//TODO It may be possible to use a parity bank to recover the data
 				}
 				data_bank.read();
 				recoder_unit->receive_row(req->addr);
@@ -214,7 +221,7 @@ public:
 			if(coding_status == CodeStatus::FreshParity)
 				{}// TODO:It may be possible to serve the request using fresh data in the parity.
 			if(coding_status != CodeStatus::Updated)
-				continue;  // Parity bank has stale data for the row requested
+				continue;  // Parity bank has stale data (or no data) for the row requested
 			/* get a list of all the XOR regions needed to complete the parity */
 			const XorCodedRegions& xor_regions { parity_bank->request_xor_regions(req) };
 			const MemoryRegion& read_region {xor_regions.request_region(req)};
@@ -249,8 +256,7 @@ public:
 				long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
 
 				auto coding_status = recoder_unit->get(region_line_needed);
-				if(data_banks->at(region_bank_num).is_free() &&
-				   (coding_status == CodeStatus::FreshData || coding_status == CodeStatus::Updated))
+				if(data_banks->at(region_bank_num).is_free() && coding_status != CodeStatus::FreshParity)
 				{
 					data_banks_to_read.push_back(region_bank_num);
 					continue;
@@ -339,31 +345,32 @@ public:
 					banks_satisfied.push_back(bank_needed);
 			}
 			for(auto bank_satisfied : banks_satisfied)
-				recode_req->receive_bank(bank_satisfied);
+					recode_req->receive_bank(bank_satisfied);
+			}
+
+			// Attempt rewrites
+			recoder_unit->tick(data_banks, parity_banks);
 		}
 
-		// Attempt rewrites
-		recoder_unit->tick(data_banks, parity_banks);
-    }
-
 //=========Dynamic Encoding Unit============================================
+//TODO Init recoder unit properly, for some reason right now it's in the switch_region func
 public:
-    void coding_region_controller()
-    {
+	void coding_region_controller(vector<coding::DataBank>& data_banks, list<Request>& reqs_scheduled)
+	{
 		coding_region_counter++;
-        if (coding_region_counter >= coding_region_reschedule_ticks) {
-            /* find the coding topologies with the most hits */
+		if (coding_region_counter >= coding_region_reschedule_ticks) {
+			/* find the coding topologies with the most hits */
 			unsigned int num_topologies_to_select = alpha/coding_region_length;
-			vector<unsigned int> regions_selected;
+			set<unsigned int> regions_selected;
 			for(unsigned int num_top = 0; num_top < num_topologies_to_select; num_top++)
 			{
 				unsigned int max_idx = distance(topology_hits.begin(), max_element(topology_hits.begin(), topology_hits.end()));
 				if(topology_hits[max_idx] == 0)
 					break;
-				regions_selected.push_back(max_idx);
+				regions_selected.insert(max_idx);
 				topology_hits[max_idx] = 0;
 			}
-			for(int top_sel_idx : regions_selected)
+			for(auto top_sel_idx : regions_selected)
 			{
 				if(find(selected_regions.begin(), selected_regions.end(), top_sel_idx) == selected_regions.end())
 				{
@@ -372,10 +379,15 @@ public:
 					break;
 				}
 			}
-            /* reset tracking counters */
-            topology_hits.assign(topology_hits.size(), 0);
-            coding_region_counter = 0;
-        }
+			/* reset tracking counters */
+			topology_hits.assign(topology_hits.size(), 0);
+			coding_region_counter = 0;
+		}
+		// Use idle banks and current reads to prepare region switches
+		dynamic_encoder->fill_data(data_banks, parity_banks, reqs_scheduled);
+		
+		// Check we can swap an encoded regions
+		dynamic_encoder->replace_regions(*recoder_unit);
     }
 
     void coding_region_hit(const Request& req)
@@ -392,35 +404,43 @@ public:
     }
 
 private:
-    void switch_coding_regions(const vector<unsigned int>& regions_selected, bool first_encoding) 
+	//TODO Refactor out "first_encoding", as that functionality should appear in an initialization function
+    void switch_coding_regions(set<unsigned int>& regions_selected, bool first_encoding) 
 	{
 		// Grab active topologies
-		vector<ParityBankTopology> new_tops;
-		for(unsigned long top_idx = 0; top_idx < regions_selected.size(); top_idx++)
-			new_tops.push_back(topologies[top_idx]);
+		set<ParityBankTopology> new_tops;
+		for(auto top_idx : regions_selected)
+			new_tops.insert(topologies[top_idx]);
 		
 		// Prepare parity bank structure
-        size_t n_parity_banks {topologies[0].n_parity_banks};
-		for (int b {0}; b < n_parity_banks; b++) 
+		if(first_encoding)
 		{
-			parity_banks[b].xor_regions.clear();
-			parity_banks[b].xor_regions.resize(new_tops.size());
-		}
-		for(unsigned long top_idx = 0; top_idx < regions_selected.size(); top_idx++)
-		{
+			size_t n_parity_banks {topologies[0].n_parity_banks};
 			for (int b {0}; b < n_parity_banks; b++) 
 			{
-				auto regions_list {topologies[top_idx].xor_regions_for_parity_bank[b]};
-				for (int xr {0}; xr < regions_list.size(); xr++) 
-				{
-					vector<coding::MemoryRegion<T>> regions
-					{regions_list[xr].regions};
-					parity_banks[b].xor_regions[top_idx].push_back({regions});
-				}
+				parity_banks[b].xor_regions.clear();
+				parity_banks[b].xor_regions.resize(new_tops.size());
 			}
+			for(auto top_idx : regions_selected)
+				for (int b {0}; b < n_parity_banks; b++) 
+				{
+					auto regions_list {topologies[top_idx].xor_regions_for_parity_bank[b]};
+					for (int xr {0}; xr < regions_list.size(); xr++) 
+					{
+						vector<coding::MemoryRegion<T>> regions
+						{regions_list[xr].regions};
+						parity_banks[b].xor_regions[top_idx].push_back({regions});
+					}
+				}
+		}else
+		{
+			topology_switches++;
 		}
-        recoder_unit->topology_reset(new_tops, clk, first_encoding);
-		topology_switches++;
+
+		if(first_encoding)
+			recoder_unit->topology_init(new_tops, clk, first_encoding);
+		else
+			dynamic_encoder->switch_regions(channel->spec, regions_selected);
     }
 
 };
@@ -428,3 +448,5 @@ private:
 }
 
 #endif /* AccessScheduler.h */
+
+

@@ -393,7 +393,7 @@ public:
         if (otherq.size())
             queue = &otherq;  // "other" requests are rare, so we give them precedence over reads/writes
 
-		/*** 5. Get requests***/ 
+		/*** 5. Get requests ***/ 
 		list<Request> reqs_scheduled;
         if(memory_coding) 
 		{
@@ -432,7 +432,12 @@ public:
             if (!victim.empty()){
                 issue_cmd(cmd, victim);
             }
-            return;  // nothing more to be done this cycle
+			/*** 7. Recode using idle banks ***/
+			if(memory_coding)
+			{			
+				access_scheduler->rewrites(data_banks, reqs_scheduled);
+				return;
+			}
         }
 
 		for(auto req = reqs_scheduled.begin(); req != reqs_scheduled.end(); req++) {
@@ -509,7 +514,7 @@ public:
 
 		/*** 7. Recode using idle banks ***/
 		if(memory_coding)
-			access_scheduler->recoding_controller(data_banks, reqs_scheduled);
+			access_scheduler->rewrites(data_banks, reqs_scheduled);
     }
 
     bool is_ready(list<Request>::iterator req)
