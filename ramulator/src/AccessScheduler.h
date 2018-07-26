@@ -108,7 +108,7 @@ public:
 			selected_regions.insert(tops);
 
 		/* init active topology */
-		switch_coding_regions(selected_regions, true);
+		init_coding_regions(selected_regions);
 		
 		/* assume the default coded regions are encoded before execution */
 		active_regions = selected_regions;
@@ -181,7 +181,7 @@ public:
 					continue;  // Data bank has stale data for the row requested
 					//TODO It may be possible to use a parity bank to recover the data
 				}
-				data_bank.read();
+				data_bank.lock();
 				recoder_unit->receive_row(req->addr);
 				reqs_scheduled.push_back(*req);
 				req = readq->queues[data_bank.index].erase(req);
@@ -255,7 +255,7 @@ public:
 				long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
 
 				auto coding_status = recoder_unit->get(region_line_needed);
-				if(data_banks->at(region_bank_num).is_free() && coding_status != CodeStatus::FreshParity)
+				if(!data_banks->at(region_bank_num).busy() && coding_status != CodeStatus::FreshParity)
 				{
 					data_banks_to_read.push_back(region_bank_num);
 					continue;
@@ -272,7 +272,7 @@ public:
 				parity_bank->lock();
 				recoder_unit->receive_row(req.addr);
 				for(auto read_bank_idx : data_banks_to_read)
-					data_banks->at(read_bank_idx).read();
+					data_banks->at(read_bank_idx).lock();
 				reqs_scheduled.push_back(req);
 				return true;
 			}
@@ -293,7 +293,7 @@ public:
 			auto req = writeq->queues[bank_idx].begin();
 			if(req == writeq->queues[bank_idx].end())	
 				continue;
-			data_banks->at(bank_idx).read();
+			data_banks->at(bank_idx).lock();
 			unsigned long serve_time = clk + channel->spec->read_latency;
 			reqs_scheduled.push_back(*req);
 		
@@ -303,7 +303,6 @@ public:
 			writeq->queues[bank_idx].erase(req);
 		}
 	
-		//TODO Write to parity banks
 		for(auto write_queue = writeq->queues.begin(); write_queue != writeq->queues.end(); write_queue++)
 			for(auto req = write_queue->begin(); req != write_queue->end(); req++)
 			{
@@ -334,7 +333,7 @@ public:
 		// Utilize idle data banks to reconstruct codes
 		for(auto bank = data_banks.begin(); bank != data_banks.end(); bank++)
 		{
-			if(!bank->is_free())
+			if(bank->busy())
 				continue;
 			for(auto recode_req = recoder_unit->update_queue.begin();
 				recode_req != recoder_unit->update_queue.end();
@@ -343,7 +342,7 @@ public:
 				if(recode_req->receive_bank(bank->index))
 				{
 					// XXX
-					bank->read();
+					bank->lock();
 					Request dummy_req = recode_req->req;
 					dummy_req.addr_vec[static_cast<int>(T::Level::Bank)] = bank->index;
 					reqs_scheduled.push_back(dummy_req);
@@ -376,7 +375,6 @@ public:
 		}
 
 //=========Dynamic Encoding Unit============================================
-//TODO Init recoder unit properly, for some reason right now it's in the switch_region func
 public:
 	void coding_region_controller(vector<coding::DataBank>& data_banks, list<Request>& reqs_scheduled)
 	{
@@ -398,7 +396,7 @@ public:
 				if(find(selected_regions.begin(), selected_regions.end(), top_sel_idx) == selected_regions.end())
 				{
 					selected_regions = regions_selected;
-					switch_coding_regions(regions_selected, false);
+					switch_coding_regions(regions_selected);
 					break;
 				}
 			}
@@ -427,43 +425,40 @@ public:
     }
 
 private:
-	//TODO Refactor out "first_encoding", as that functionality should appear in an initialization function
-    void switch_coding_regions(set<unsigned int>& regions_selected, bool first_encoding) 
+    void init_coding_regions(set<unsigned int>& regions_selected)
 	{
 		// Grab active topologies
 		set<ParityBankTopology> new_tops;
 		for(auto top_idx : regions_selected)
 			new_tops.insert(topologies[top_idx]);
-		
-		// Prepare parity bank structure
-		if(first_encoding)
+		size_t n_parity_banks {topologies[0].n_parity_banks};
+		for (int b {0}; b < n_parity_banks; b++) 
 		{
-			size_t n_parity_banks {topologies[0].n_parity_banks};
+			parity_banks[b].xor_regions.clear();
+			parity_banks[b].xor_regions.resize(new_tops.size());
+		}
+		for(auto top_idx : regions_selected)
 			for (int b {0}; b < n_parity_banks; b++) 
 			{
-				parity_banks[b].xor_regions.clear();
-				parity_banks[b].xor_regions.resize(new_tops.size());
-			}
-			for(auto top_idx : regions_selected)
-				for (int b {0}; b < n_parity_banks; b++) 
+				auto regions_list {topologies[top_idx].xor_regions_for_parity_bank[b]};
+				for (int xr {0}; xr < regions_list.size(); xr++) 
 				{
-					auto regions_list {topologies[top_idx].xor_regions_for_parity_bank[b]};
-					for (int xr {0}; xr < regions_list.size(); xr++) 
-					{
-						vector<coding::MemoryRegion<T>> regions
-						{regions_list[xr].regions};
-						parity_banks[b].xor_regions[top_idx].push_back({regions});
-					}
+					vector<coding::MemoryRegion<T>> regions
+					{regions_list[xr].regions};
+					parity_banks[b].xor_regions[top_idx].push_back({regions});
 				}
-		}else
-		{
-			topology_switches++;
-		}
+			}
+		recoder_unit->init(new_tops); 
+	}
 
-		if(first_encoding)
-			recoder_unit->topology_init(new_tops, clk, first_encoding);
-		else
-			dynamic_encoder->switch_regions(channel->spec, regions_selected);
+    void switch_coding_regions(set<unsigned int>& regions_selected)
+	{
+		// Grab active topologies
+		set<ParityBankTopology> new_tops;
+		for(auto top_idx : regions_selected)
+			new_tops.insert(topologies[top_idx]);
+		topology_switches++;
+		dynamic_encoder->switch_regions(channel->spec, regions_selected);
     }
 
 };

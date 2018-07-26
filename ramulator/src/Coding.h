@@ -503,23 +503,23 @@ class DataBank {
         int index;
 
     private:
-        bool busy;
+        bool is_busy;
 
     public:
 
         DataBank(int index)
         {
             this->index = index;
-            busy = true;
+            is_busy = true;
         }
 
 		inline void tick() {this->free();}
 		
-        inline void free() {busy = false;}
+        inline void free() {is_busy = false;}
 
-        inline bool is_free() {return !busy;}
+		inline bool busy() {return is_busy;}
 
-        inline void read() {busy = true;}
+		inline void lock() {is_busy = true;}
 };
 
 

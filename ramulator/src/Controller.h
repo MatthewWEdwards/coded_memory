@@ -341,7 +341,7 @@ public:
 
 //===Controller==========================================================================//
 	//TODO Should the controller handle reads AND writes in a single memory tick?
-	// ---> Yes
+	// |--> Yes
     void tick()
     {
         clk++;
@@ -365,14 +365,12 @@ public:
             }
         }
 
-        /*** 2. Refresh scheduler ***/
+        /*** 2. Refresh scheduler and banks ***/
         refresh->tick_ref();
-
-		/*** 2.1 Refresh banks ***/
 		for(auto bank = data_banks.begin(); bank != data_banks.end(); bank++)
 			bank->tick();
 
-		/*** 2.3 Print Bank Queue Traces ***/
+		/*** 2.1 Print Bank Queue Traces ***/
         if(print_queues)
             Debug::print_bank_queues(clk, num_banks, readq, writeq, pending);
 
@@ -401,22 +399,22 @@ public:
 				reqs_scheduled.push_back(queue->queues[0].front());
 				queue->queues[0].pop_front();
 			}else{
-				access_scheduler->tick(clk, &readq, &writeq, &data_banks, reqs_scheduled, write_mode); // TODO: mode messy
+				access_scheduler->tick(clk, &readq, &writeq, &data_banks, reqs_scheduled, write_mode); 
 			}
 		}else{
-			// Grab requests from data banks
+			// Uncoded behavior
 			if(queue == &otherq){
 				reqs_scheduled.push_back(queue->queues[0].front());
 				queue->queues[0].pop_front();
 			}else{
 				for(unsigned int bank_queue_idx = 0; bank_queue_idx < num_banks; bank_queue_idx++)
 				{
-					if(queue->queues[bank_queue_idx].size() && data_banks[bank_queue_idx].is_free())
+					if(queue->queues[bank_queue_idx].size() && !data_banks[bank_queue_idx].busy())
 					{
 						auto req = queue->queues[bank_queue_idx].begin();
 						if(req == queue->queues[bank_queue_idx].end())
 							continue;
-						data_banks[bank_queue_idx].read();
+						data_banks[bank_queue_idx].lock();
 						reqs_scheduled.push_back(*req);
 					}
 				}
@@ -432,83 +430,77 @@ public:
             if (!victim.empty()){
                 issue_cmd(cmd, victim);
             }
-			/*** 7. Recode using idle banks ***/
-			if(memory_coding)
-			{			
-				access_scheduler->rewrites(data_banks, reqs_scheduled);
-				return;
-			}
-        }
-
-		for(auto req = reqs_scheduled.begin(); req != reqs_scheduled.end(); req++) {
-			req->is_first_command = false;
-			int coreid = req->coreid;
-			if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
-				channel->update_serving_requests(req->addr_vec.data(), 1, clk);
-			}
-			int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
-			if (req->type == Request::Type::READ) {
-				if (is_row_hit(req)) {
-					++read_row_hits[coreid];
-					++row_hits;
-				} else if (is_row_open(req)) {
-					++read_row_conflicts[coreid];
-					++row_conflicts;
-				} else {
-					++read_row_misses[coreid];
-					++row_misses;
+        }else
+		{
+			for(auto req = reqs_scheduled.begin(); req != reqs_scheduled.end(); req++) {
+				req->is_first_command = false;
+				int coreid = req->coreid;
+				if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
+					channel->update_serving_requests(req->addr_vec.data(), 1, clk);
 				}
-				read_transaction_bytes += tx;
-			} else if (req->type == Request::Type::WRITE) {
-				if (is_row_hit(req)) {
-					++write_row_hits[coreid];
-					++row_hits;
-				} else if (is_row_open(req)) {
-					++write_row_conflicts[coreid];
-					++row_conflicts;
-				} else {
-					++write_row_misses[coreid];
-					++row_misses;
+				int tx = (channel->spec->prefetch_size * channel->spec->channel_width / 8);
+				if (req->type == Request::Type::READ) {
+					if (is_row_hit(req)) {
+						++read_row_hits[coreid];
+						++row_hits;
+					} else if (is_row_open(req)) {
+						++read_row_conflicts[coreid];
+						++row_conflicts;
+					} else {
+						++read_row_misses[coreid];
+						++row_misses;
+					}
+					read_transaction_bytes += tx;
+				} else if (req->type == Request::Type::WRITE) {
+					if (is_row_hit(req)) {
+						++write_row_hits[coreid];
+						++row_hits;
+					} else if (is_row_open(req)) {
+						++write_row_conflicts[coreid];
+						++row_conflicts;
+					} else {
+						++write_row_misses[coreid];
+						++row_misses;
+					}
+					write_transaction_bytes += tx;
 				}
-				write_transaction_bytes += tx;
-			}
-			if(memory_coding) 
-			{
-				access_scheduler->coding_region_hit(*req);
-			}
+				if(memory_coding) 
+					access_scheduler->coding_region_hit(*req);
 
-			// issue command on behalf of request
-			auto cmd = get_first_cmd(req);
-			issue_cmd(cmd, get_addr_vec(cmd, req)); 
+				// issue command on behalf of request
+				auto cmd = get_first_cmd(req);
+				issue_cmd(cmd, get_addr_vec(cmd, req)); 
 
-			// check whether this is the last command (which finishes the request)
-			if (cmd != channel->spec->translate[int(req->type)]) {
-				continue;
-			}
+				// check whether this is the last command (which finishes the request)
+				if (cmd != channel->spec->translate[int(req->type)]) {
+					continue;
+				}
 
-			// set a future completion time for read requests
-			if (req->type == Request::Type::READ) {
-				req->depart = clk + channel->spec->read_latency;
-				pending.push_back(*req);
-			}
+				// set a future completion time for read requests
+				if (req->type == Request::Type::READ) {
+					req->depart = clk + channel->spec->read_latency;
+					pending.push_back(*req);
+				}
 
-			if (req->type == Request::Type::WRITE) {
-				channel->update_serving_requests(req->addr_vec.data(), -1, clk);
-			}
+				if (req->type == Request::Type::WRITE) {
+					channel->update_serving_requests(req->addr_vec.data(), -1, clk);
+				}
 
-			// Find matching req, erase
-			int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
-			auto erase_req = queue->queues[req_bank].begin(); 
-			while(true)
-			{
-				if(erase_req == queue->queues[req_bank].end())
-					assert(false);
-				if(*req == *erase_req)
+				// Find matching req, erase
+				// XXX Messy
+				int req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
+				auto erase_req = queue->queues[req_bank].begin(); 
+				while(true)
 				{
-					queue->queues[req_bank].erase(erase_req);
-					break;
+					if(erase_req == queue->queues[req_bank].end())
+						assert(false);
+					if(*req == *erase_req)
+					{
+						queue->queues[req_bank].erase(erase_req);
+						break;
+					}
+					erase_req++;
 				}
-				erase_req++;
 			}
 		}
 
@@ -519,14 +511,14 @@ public:
 
     bool is_ready(list<Request>::iterator req)
     {
-		return true; //FIXME: Workaround
+		return true; //FIXME: Workaround, without this the simulator will not fully utilize banks
         typename T::Command cmd = get_first_cmd(req);
         return channel->check(cmd, req->addr_vec.data(), clk);
     }
 
     bool is_ready(typename T::Command cmd, const vector<int>& addr_vec)
     {
-		return true; //FIXME: Workaround
+		return true; //FIXME: Workaround, without this the simulator will not fully utilize banks
         return channel->check(cmd, addr_vec.data(), clk);
     }
 

@@ -4,7 +4,6 @@
 #include <vector>
 #include <functional>
 
-//TODO: Parity banks use "lock()" to read, Data banks use "read()". Make this consistant.
 using namespace std;
 
 namespace ramulator

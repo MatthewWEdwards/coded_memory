@@ -55,10 +55,9 @@ public:
 	bool receive_bank(unsigned int bank)
 	{
 		for(unsigned int row = 0; row < num_rows; row++)
-			for(unsigned int bank = 0; bank < num_banks; bank++)
-			if(((downloaded_codes[row] >> bank )& 0x1) == 0x0)
+			if(((downloaded_codes[row] >> bank ) & 0x1) == 0x0)
 			{
-				downloaded_codes[row] &= (0x1 << bank);
+				downloaded_codes[row] |= (0x1 << bank);
 				return true;
 			}
 		return false;
@@ -161,10 +160,10 @@ public:
 
 		// Fill out region switches using idle data banks
 		for(auto bank = data_banks.begin(); bank != data_banks.end(); bank++)
-			if(bank->is_free())
+			if(!bank->busy())
 				for(auto to_encode = regions_to_encode.begin(); to_encode != regions_to_encode.end(); to_encode++)
 					if(to_encode->receive_bank(bank->index))
-						bank->read();
+						bank->lock();
 
 	}
 

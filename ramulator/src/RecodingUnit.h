@@ -94,7 +94,6 @@ CodeStatus req_type;
 
 };
 
-//TODO: Code status map should only record encoded regions
 template <typename T>
 class RecodingUnit {
 public:
@@ -102,25 +101,19 @@ public:
 
 private:
     const T *spec;
-    const int n_rows; // FIXME: Is the necessary? only used for assertations
-    const int update_interval = 1; // FIXME Depricated
 	// TODO add bank dimension to the code status map
     std::map<int,  /* row index */ CodeStatus> map; // Code status map
-	int cur_topology_idx; // FIXME Depricated
 	
 public:
     RecodingUnit(const T *spec) :
-        spec(spec),
-        n_rows(spec->org_entry.count[static_cast<int>(T::Level::Rank)]*
-               spec->org_entry.count[static_cast<int>(T::Level::Bank)]*
-               spec->org_entry.count[static_cast<int>(T::Level::Row)])
+        spec(spec)
     {}
 
     ~RecodingUnit() {}
 
 	// TODO shouldn't need to pass all topologies, really all the information that is needed is the structure of the 
 	// parity banks.
-    void set(Request& req, const CodeStatus& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
+    void set(Request& req, const CodeStatus& status, unsigned long serve_time, const vector<ParityBankTopology<T>>& topologies )
     {
 		unsigned int row = req.addr_vec[static_cast<int>(T::Level::Row)];
 		unsigned int absolute_row = request_to_row_index(spec, req);
@@ -151,13 +144,11 @@ public:
 
     void clear(const unsigned long& row_index)
     {
-        assert(row_index >= 0 && row_index < n_rows);
         map[row_index] = CodeStatus::Updated;
     }
 
     CodeStatus get(const unsigned long& row_index) const
     {
-        assert(row_index >= 0 && row_index < n_rows);
         if(map.find(row_index) != map.end())
             return map.at(row_index);
         else
@@ -169,13 +160,8 @@ public:
         return get(request_to_row_index(spec, req));
     }
 
-    void topology_init(std::set<ParityBankTopology<T>>& new_regions, long clk, bool first_encoding)
+    void init(std::set<ParityBankTopology<T>>& new_regions)
     {
-		if(!first_encoding)
-			return; // FIXME remove references to "first_encoding"
-
-        map.clear();  // FIXME Necessary?
-
 		// Update map with encoded rows, update queues.
 		for(auto new_region : new_regions)
 			emplace_region(new_region);
