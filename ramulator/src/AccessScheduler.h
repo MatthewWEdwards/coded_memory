@@ -19,7 +19,6 @@ using ParityBank = coding::ParityBank<T>;
 using ParityBankTopology = coding::ParityBankTopology<T>;
 using XorCodedRegions = coding::XorCodedRegions<T>;
 using MemoryRegion = coding::MemoryRegion<T>;
-using CodeStatus = typename coding::RecodingUnit<T>::Status;
 
 protected:
 	// Stats
@@ -34,8 +33,8 @@ private:
 	// ReCoding Controller Variables
 	coding::RecodingUnit<T> * recoder_unit;
 	int coding_region_counter = 0; // Counts how many memory ticks since last recoding check
-	const int coding_region_reschedule_ticks = 1e2; // TODO: Discuss how to choose this value
-	double coding_region_length = .001; 
+	const int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
+	double coding_region_length = .01; 
 	double alpha = 1;
 
 	// Dynamic Coding Variables
@@ -282,8 +281,12 @@ public:
 	}
 
 //=========Write Build Pattern==============================================
-    void write_pattern_builder(long clk, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
+    void write_pattern_builder(long clk, coding::BankQueue* cur_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
     {
+		this->clk = clk;
+		
+		BankQueue * writeq = new BankQueue(*cur_queue);
+
 		// Grab requests from queues
 		for(unsigned int bank_idx = 0; bank_idx < num_banks; bank_idx++)
 		{
@@ -294,13 +297,33 @@ public:
 			unsigned long serve_time = clk + channel->spec->read_latency;
 			reqs_scheduled.push_back(*req);
 		
-			//TODO: Only set if the row is encoded
-			recoder_unit->set(*req, CodeStatus::FreshData, serve_time, topologies); 
+			for(auto active_region_index : active_regions)
+				if(topologies[active_region_index].contains(*req))
+					recoder_unit->set(*req, CodeStatus::FreshData, serve_time, topologies); 
+			writeq->queues[bank_idx].erase(req);
 		}
 	
 		//TODO Write to parity banks
-
+		for(auto write_queue = writeq->queues.begin(); write_queue != writeq->queues.end(); write_queue++)
+			for(auto req = write_queue->begin(); req != write_queue->end(); req++)
+			{
+				bool successful_write = false;
+				for(auto parity_bank = parity_banks.begin(); parity_bank != parity_banks.end(); parity_bank++)
+					if(parity_bank->contains(*req) && !parity_bank->busy())
+					{
+						recoder_unit->receive_row(req->addr);
+						recoder_unit->set(*req, CodeStatus::FreshParity, clk, topologies);
+						parity_bank->lock();
+						reqs_scheduled.push_back(*req);
+						req = write_queue->erase(req);
+						successful_write = true;
+						break;
+					}
+				if(successful_write)
+					break;
+			}
 		
+		delete writeq;
     }
 
 

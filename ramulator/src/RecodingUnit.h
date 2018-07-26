@@ -8,6 +8,10 @@
 namespace coding
 {
 
+// Note that "Uncoded" isn't a value stored in the map, it merely indicates that a row isn't present in the bank.
+enum CodeStatus {Updated, FreshData, FreshParity, Uncoded, MAX}; 
+
+
 template <typename T>
 class RecodeRequest
 {
@@ -20,30 +24,41 @@ unsigned long row;              // The row of the request which triggered the re
 unsigned int bank;              // The bank of the request which triggered the recode
 Request req;                    // The request which triggered the recode
 unsigned int ticks_till_clear;  // Starts decreasing once all data for recoding has been downloaded. 
+CodeStatus req_type;
 
-	RecodeRequest(Request& req, ParityBankTopology<T>& topology, const T* spec) : 
+	RecodeRequest(Request& req, ParityBankTopology<T>& topology, const T* spec, CodeStatus recode_type) : 
 		spec(spec),
 		row(req.addr_vec[static_cast<int>(T::Level::Row)]),
 		bank(req.addr_vec[static_cast<int>(T::Level::Bank)]),
 		req(req),
-		ticks_till_clear(spec->read_latency)
+		ticks_till_clear(spec->read_latency),
+		req_type(recode_type)
 	{
-		// Find all banks which have been xor'd with the bank receiving new data. Data from these matching banks must
-		// Be downloaded before the recoder unit can rebuild the codes
-		for(auto xor_regions : topology.xor_regions_for_parity_bank)
-			for(auto xor_region : xor_regions)
-				if(xor_region.contains(row))
-					for(auto memory_region : xor_region.regions)
-					{
-						if(memory_region.contains(row))
-							continue;
-						unsigned int bank = row_index_to_addr_vec(spec, memory_region.start_row_index, 0)[static_cast<int>(T::Level::Bank)];
-						banks_needed.insert(bank);
-					}
+		if(recode_type == CodeStatus::FreshData)
+		{
+			// Find all banks which have been xor'd with the bank receiving new data. Data from these matching banks must
+			// Be downloaded before the recoder unit can rebuild the codes
+			for(auto xor_regions : topology.xor_regions_for_parity_bank)
+				for(auto xor_region : xor_regions)
+					if(xor_region.contains(row))
+						for(auto memory_region : xor_region.regions)
+						{
+							if(memory_region.contains(row))
+								continue;
+							unsigned int bank = row_index_to_addr_vec(spec, memory_region.start_row_index, 0)[static_cast<int>(T::Level::Bank)];
+							banks_needed.insert(bank);
+						}
+		}else
+		{
+			banks_needed.insert(bank); // FreshPartiy, only needs the data bank to complete.
+			ticks_till_clear = 1;      // No write latency
+		}
 	}
 
 	bool receive_row(unsigned long row)
 	{
+		if(this->req_type == CodeStatus::FreshParity)
+			return false;
 		unsigned int bank = row_index_to_addr_vec(spec, row, 0)[static_cast<int>(T::Level::Bank)];
 		unsigned int bank_row = row_index_to_addr_vec(spec, row, 0)[static_cast<int>(T::Level::Row)];
 		if(this->row != bank_row)
@@ -83,8 +98,6 @@ unsigned int ticks_till_clear;  // Starts decreasing once all data for recoding 
 template <typename T>
 class RecodingUnit {
 public:
-	// Note that "Uncoded" isn't a value stored in the map, it merely indicates that a row isn't present in the bank.
-    enum Status {Updated, FreshData, FreshParity, Uncoded, MAX}; 
     deque<RecodeRequest<T>> update_queue;
 
 private:
@@ -92,7 +105,7 @@ private:
     const int n_rows; // FIXME: Is the necessary? only used for assertations
     const int update_interval = 1; // FIXME Depricated
 	// TODO add bank dimension to the code status map
-    std::map<int,  /* row index */ Status> map; // Code status map
+    std::map<int,  /* row index */ CodeStatus> map; // Code status map
 	int cur_topology_idx; // FIXME Depricated
 	
 public:
@@ -107,7 +120,7 @@ public:
 
 	// TODO shouldn't need to pass all topologies, really all the information that is needed is the structure of the 
 	// parity banks.
-    void set(Request& req, const Status& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
+    void set(Request& req, const CodeStatus& status, unsigned long serve_time, const vector<ParityBankTopology<T>> topologies )
     {
 		unsigned int row = req.addr_vec[static_cast<int>(T::Level::Row)];
 		unsigned int absolute_row = request_to_row_index(spec, req);
@@ -121,7 +134,7 @@ public:
 		{
 			if(topology.contains(absolute_row))
 			{
-				RecodeRequest<T> recode_req = RecodeRequest<T>(req, topology, spec);
+				RecodeRequest<T> recode_req = RecodeRequest<T>(req, topology, spec, status);
 				for(auto old_req = update_queue.begin();
 					old_req != update_queue.end();
 					old_req++)
@@ -139,19 +152,19 @@ public:
     void clear(const unsigned long& row_index)
     {
         assert(row_index >= 0 && row_index < n_rows);
-        map[row_index] = Status::Updated;
+        map[row_index] = CodeStatus::Updated;
     }
 
-    Status get(const unsigned long& row_index) const
+    CodeStatus get(const unsigned long& row_index) const
     {
         assert(row_index >= 0 && row_index < n_rows);
         if(map.find(row_index) != map.end())
             return map.at(row_index);
         else
-            return Status::Uncoded;
+            return CodeStatus::Uncoded;
     }
 
-    inline Status get(const Request& req) const
+    inline CodeStatus get(const Request& req) const
     {
         return get(request_to_row_index(spec, req));
     }
@@ -180,7 +193,7 @@ public:
 	{
 		for(auto row_region : emplace_region.row_regions)
 			for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
-				map.emplace(row_region.first + row_in_bank, Status::Updated);
+				map.emplace(row_region.first + row_in_bank, CodeStatus::Updated);
 	}
 
 	// ASSUMPTION: the recoder stores the data for the parity bank until the parity bank is free to store it. 
