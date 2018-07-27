@@ -208,7 +208,7 @@ void Core::tick()
 
     if (req_type == Request::Type::READ) {
         // read request
-        if (inserted == window.ipc) return;
+        if (inserted == window.ipc) return; 
         if (window.is_full()) return;
 
         Request req(req_addr, req_type, callback, id);

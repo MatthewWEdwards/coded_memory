@@ -473,6 +473,8 @@ public:
 
 				// check whether this is the last command (which finishes the request)
 				if (cmd != channel->spec->translate[int(req->type)]) {
+					if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) 
+						channel->update_serving_requests(req->addr_vec.data(), -1, clk);
 					continue;
 				}
 

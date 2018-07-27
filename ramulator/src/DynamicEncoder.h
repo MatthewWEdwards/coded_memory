@@ -48,7 +48,7 @@ public:
 	void receive_data(unsigned int row, unsigned int bank)
 	{
 		if(this->contains(row))
-			downloaded_codes[row - start_row] &= (0x1 << bank);
+			downloaded_codes[row - start_row] |= (0x1 << bank);
 	}
 	
 	// Use an idle data bank to fill out encoding
@@ -163,7 +163,10 @@ public:
 			if(!bank->busy())
 				for(auto to_encode = regions_to_encode.begin(); to_encode != regions_to_encode.end(); to_encode++)
 					if(to_encode->receive_bank(bank->index))
+					{
 						bank->lock();
+						break;
+					}
 
 	}
 

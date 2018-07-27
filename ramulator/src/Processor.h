@@ -36,7 +36,7 @@ private:
 class Window {
 public:
     int ipc = 4;
-    int depth = 128;
+    int depth = 128; // FIXME
 
     Window() : ready_list(depth), addr_list(depth, -1) {}
     bool is_full();
