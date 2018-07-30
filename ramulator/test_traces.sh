@@ -90,7 +90,7 @@ then
         fi
     done
 
-	stats_name="HBM_${arch}_${alpha}.stats"
+	stats_name="results/HBM_${arch}_${alpha}.stats"
     ./ramulator configs/HBM-config.cfg --mode=cpu --stats $stats_name $trace_list
 fi
 
@@ -110,7 +110,7 @@ then
 		switches=$((switches + new_switches))
 		let channo=channo+1
 	done
-	switches=$(bc -l <<< 'scale=3'; ${switches}'/8')
+	switches=$(bc -l <<< "scale=3; ${switches}/8")
 
 	## Echo results, append to output file
 	echo cpu cycles: $cycles

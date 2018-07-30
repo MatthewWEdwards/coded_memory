@@ -105,7 +105,6 @@ public:
         scheduler(new Scheduler<T>(this)),
         rowpolicy(new RowPolicy<T>(this)),
         rowtable(new RowTable<T>(this)),
-        //TODO: Create a seperate rowtable for parity banks? Remove RowTable altogether?
         refresh(new Refresh<T>(this)),
         cmd_trace_files(channel->children.size())
     {

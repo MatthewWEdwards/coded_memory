@@ -179,7 +179,7 @@ public:
 				{
 					req++;
 					continue;  // Data bank has stale data for the row requested
-					//TODO It may be possible to use a parity bank to recover the data
+					//TODO It may be possible to use a parity bank to recover the data, hardware complexity problems?
 				}
 				data_bank.lock();
 				recoder_unit->receive_row(req->addr);
@@ -254,7 +254,7 @@ public:
 				region_addr_needed[static_cast<int>(T::Level::Bank)] = region_bank_num;
 				long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
 
-				auto coding_status = recoder_unit->get(region_line_needed);
+				auto coding_status = recoder_unit->get(region_line_needed, region_bank_num);
 				if(!data_banks->at(region_bank_num).busy() && coding_status != CodeStatus::FreshParity)
 				{
 					data_banks_to_read.push_back(region_bank_num);

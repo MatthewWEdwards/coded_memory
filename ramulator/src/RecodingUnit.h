@@ -101,13 +101,19 @@ public:
 
 private:
     const T *spec;
+	unsigned int num_banks;
+	vector<CodeStatus> new_entry;
 	// TODO add bank dimension to the code status map
-    std::map<int,  /* row index */ CodeStatus> map; // Code status map
+    std::map<int,  /* row index */ vector<CodeStatus>> map; // Code status map
 	
 public:
     RecodingUnit(const T *spec) :
-        spec(spec)
-    {}
+        spec(spec),
+		num_banks(spec->org_entry.count[static_cast<int>(T::Level::Bank)])
+    {
+		for(unsigned int bank = 0; bank < num_banks; bank++)
+			new_entry.push_back(CodeStatus::Updated);
+	}
 
     ~RecodingUnit() {}
 
@@ -117,10 +123,12 @@ public:
     {
 		unsigned int row = req.addr_vec[static_cast<int>(T::Level::Row)];
 		unsigned int absolute_row = request_to_row_index(spec, req);
+		unsigned int bank = req.addr_vec[static_cast<int>(T::Level::Bank)];
 
 		// Row unencoded, nothing to do
         if(map.find(row) == map.end())
 			return;
+		map.at(row)[bank] = status;
 
 		// Construct recode request
 		for(auto topology : topologies)
@@ -142,22 +150,22 @@ public:
 		}
     }
 
-    void clear(const unsigned long& row_index)
+    void clear(const unsigned long& row_index, unsigned int bank)
     {
-        map[row_index] = CodeStatus::Updated;
+        map[row_index][bank] = CodeStatus::Updated;
     }
 
-    CodeStatus get(const unsigned long& row_index) const
+    CodeStatus get(const unsigned long& row_index, const unsigned int bank) const
     {
         if(map.find(row_index) != map.end())
-            return map.at(row_index);
+            return map.at(row_index)[bank];
         else
             return CodeStatus::Uncoded;
     }
 
     inline CodeStatus get(const Request& req) const
     {
-        return get(request_to_row_index(spec, req));
+        return get(request_to_row_index(spec, req), req.addr_vec[static_cast<int>(T::Level::Bank)]);
     }
 
     void init(std::set<ParityBankTopology<T>>& new_regions)
@@ -179,7 +187,7 @@ public:
 	{
 		for(auto row_region : emplace_region.row_regions)
 			for(int row_in_bank = 0; row_in_bank < row_region.second; row_in_bank++)
-				map.emplace(row_region.first + row_in_bank, CodeStatus::Updated);
+					map.emplace(row_region.first + row_in_bank, new_entry);
 	}
 
 	// ASSUMPTION: the recoder stores the data for the parity bank until the parity bank is free to store it. 
@@ -192,7 +200,7 @@ public:
 			{
 				if(req->dec_tick())
 				{
-					clear(req->row);
+					clear(req->row, req->bank);
 					req = update_queue.erase(req);
 				}
 			}else
@@ -207,10 +215,7 @@ public:
 		for(auto req = update_queue.begin(); req != update_queue.end(); req++)
 			req->receive_row(row);
 	}
-		
-		
 };
-
 }
 
 #endif
