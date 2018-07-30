@@ -162,6 +162,7 @@ private:
 public:
 
 //=========Read Build Pattern===============================================
+	//TODO Prioritize data bank queues which are longer
     void read_pattern_builder(long clk, coding::BankQueue* cur_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
     {
 		this->clk = clk;

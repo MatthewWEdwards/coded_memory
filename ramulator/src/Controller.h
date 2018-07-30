@@ -1,5 +1,5 @@
-#ifndef __CONTROLLER_H
-#define __CONTROLLER_H
+	#ifndef __CONTROLLER_H
+	#define __CONTROLLER_H
 
 #include <cassert>
 #include <cstdio>
@@ -130,10 +130,8 @@ public:
 
 		// Prepare access scheduler
 		memory_coding = configs.get_memory_coding();
-        if(memory_coding) {
-			access_scheduler = new coding::AccessScheduler<T>(memory_coding, 
-				configs.get_alpha(), configs.get_region_fraction(), channel);
-        }
+		access_scheduler = new coding::AccessScheduler<T>(memory_coding, 
+			configs.get_alpha(), configs.get_region_fraction(), channel);
 
 //===Statistics===================================================================================//
         row_hits
@@ -351,8 +349,7 @@ public:
         /*** 1. Serve completed reads ***/
         if (pending.size()) {
             for(auto req = pending.begin(); req->depart <= clk; req = pending.begin()){
-                if (!req->bypass_dram &&
-                        req->depart - req->arrive > 1) { // this request really accessed a row
+                if (req->depart - req->arrive > 1) { // this request really accessed a row
                     read_latency_sum += req->depart - req->arrive;
                     channel->update_serving_requests(
                         req->addr_vec.data(), -1, clk);
@@ -392,33 +389,12 @@ public:
 
 		/*** 5. Get requests ***/ 
 		list<Request> reqs_scheduled;
-        if(memory_coding) 
-		{
-			if(queue == &otherq){
-				reqs_scheduled.push_back(queue->queues[0].front());
-				queue->queues[0].pop_front();
-			}else{
-				access_scheduler->tick(clk, &readq, &writeq, &data_banks, reqs_scheduled, write_mode); 
-			}
+		if(queue == &otherq){
+			reqs_scheduled.push_back(queue->queues[0].front());
+			queue->queues[0].pop_front();
 		}else{
-			// Uncoded behavior
-			if(queue == &otherq){
-				reqs_scheduled.push_back(queue->queues[0].front());
-				queue->queues[0].pop_front();
-			}else{
-				for(unsigned int bank_queue_idx = 0; bank_queue_idx < num_banks; bank_queue_idx++)
-				{
-					if(queue->queues[bank_queue_idx].size() && !data_banks[bank_queue_idx].busy())
-					{
-						auto req = queue->queues[bank_queue_idx].begin();
-						if(req == queue->queues[bank_queue_idx].end())
-							continue;
-						data_banks[bank_queue_idx].lock();
-						reqs_scheduled.push_back(*req);
-					}
-				}
-			}
-        }
+			access_scheduler->tick(clk, &readq, &writeq, &data_banks, reqs_scheduled, write_mode); 
+		}
 
 		/*** 6. Schedule Requests ***/
         if (!reqs_scheduled.size())
@@ -463,8 +439,7 @@ public:
 					}
 					write_transaction_bytes += tx;
 				}
-				if(memory_coding) 
-					access_scheduler->coding_region_hit(*req);
+				access_scheduler->coding_region_hit(*req);
 
 				// issue command on behalf of request
 				auto cmd = get_first_cmd(req);
@@ -506,8 +481,7 @@ public:
 		}
 
 		/*** 7. Recode using idle banks ***/
-		if(memory_coding)
-			access_scheduler->rewrites(data_banks, reqs_scheduled);
+		access_scheduler->rewrites(data_banks, reqs_scheduled);
     }
 
     bool is_ready(list<Request>::iterator req)

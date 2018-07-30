@@ -50,6 +50,7 @@ CodeStatus req_type;
 						}
 		}else
 		{
+			//TODO After a FreshParity Recode is completed, A FreshData recode must be enacted to restore the parity.
 			banks_needed.insert(bank); // FreshPartiy, only needs the data bank to complete.
 			ticks_till_clear = 1;      // No write latency
 		}

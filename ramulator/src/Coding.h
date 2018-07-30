@@ -232,18 +232,24 @@ public:
 template <typename T>
 bool operator<(const ParityBankTopology<T>& lhs, const ParityBankTopology<T>& rhs)
 {
+	if(lhs.row_regions.size() == 0 || rhs.row_regions.size() == 0)
+		return lhs.row_regions.size() == rhs.row_regions.size(); // Empty case
 	return lhs.row_regions[0].first < rhs.row_regions[0].first;
 }
 
 template <typename T>
 bool operator>(const ParityBankTopology<T>& lhs, const ParityBankTopology<T>& rhs)
 {
+	if(lhs.row_regions.size() == 0 || rhs.row_regions.size() == 0)
+		return lhs.row_regions.size() == rhs.row_regions.size(); // Empty case
 	return lhs.row_regions[0].first > rhs.row_regions[0].first;
 }
 
 template <typename T>
 bool operator==(const ParityBankTopology<T>& lhs, const ParityBankTopology<T>& rhs)
 {
+	if(lhs.row_regions.size() == 0 || rhs.row_regions.size() == 0)
+		return lhs.row_regions.size() == rhs.row_regions.size(); // Empty case
 	return lhs.row_regions[0].first == rhs.row_regions[0].first;
 }
 
@@ -438,7 +444,7 @@ ParityBankTopology<T> ParityBankTopologyConstructor(const vector<MemoryRegion<T>
     case 3:
         return ParityBankTopology_Scheme3<T>(regions);
     }
-    return ParityBankTopology_Scheme1<T>(regions); // Default
+    return ParityBankTopology<T>(); // Default, empty
 }
 
 template <typename T>
