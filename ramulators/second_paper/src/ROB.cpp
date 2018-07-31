@@ -80,9 +80,8 @@ public:
 			vector<int> temp(int(Entry::MAX), 0);
 			temp[int(Entry::ReadWrite)] = int(RW::Read);
 			robMap[row] = temp;
-			read_from_memory(req);
 			req->isRobValid = false;
-			return true; 
+			return read_from_memory(req);
 		}else
 		{
 			robMap[row][int(Entry::ReadWrite)] = int(RW::Read);
@@ -110,14 +109,13 @@ public:
 				{
 					if(robMap[row][int(Entry::Done)] == 0)
 					{
-						read_from_memory(req);
 						int hamming_weight = hammingWeight(robMap[row][int(Entry::DB)]);
 						if(hamming_weight == bank_arch.size())
 						{
 							robMap[row][int(Entry::DValid)] = 1;
 						}
 						req->isRobValid = false;
-						return true;
+						return read_from_memory(req);
 					}
 				}	
 			}

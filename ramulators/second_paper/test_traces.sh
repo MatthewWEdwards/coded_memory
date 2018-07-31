@@ -71,7 +71,7 @@ then
 fi
 
 # Set rob_length and arch
-sed -i "18s/.*/ memory_coding = $arch/" configs/HBM-config.cfg
+sed -i "18s/.*/ parity_architecture = $arch/" configs/HBM-config.cfg
 sed -i "19s/.*/ rob_length = $rob_length/" configs/HBM-config.cfg
 
 # Run simulation

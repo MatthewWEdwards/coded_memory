@@ -31,7 +31,7 @@ def main():
 	sleep(0.5) # give ramulator a moment to read the config
 
 	rob_lengths =  map(str, [8, 16, 32, 128, 1024])
-	archs = map(str, [1, 2, 3])
+	archs = map(str, [1, 2, 3, 4])
 
 	for arch in archs:
 		for rob_length in rob_lengths:
