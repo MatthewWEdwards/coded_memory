@@ -1,0 +1,6 @@
+obj/
+ramulator
+*.o
+parsec/
+parsec_traces/
+

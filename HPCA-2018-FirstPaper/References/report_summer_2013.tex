@@ -1,0 +1,514 @@
+\documentclass[11pt,letter]{article}
+
+\special{papersize=8.5in,11in}
+\usepackage{geometry,color}
+\geometry{top=1in, bottom=1in, left=1in, right=1in}
+\usepackage{epsfig}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{url,hyperref}
+%\usepackage{bbm}
+\usepackage{verbatim}
+\usepackage{floatflt}
+\usepackage{enumerate}
+\usepackage{cite}
+\usepackage{subfigure,array}
+\usepackage{multicol,afterpage,wrapfig} 
+\allowdisplaybreaks
+\usepackage{epsfig}
+\newcommand{\n}{\nonumber}
+
+\setlength{\parindent}{0em}
+\def\ci{\perp\!\!\!\perp}
+\def\bb{\boldsymbol}
+\def\b{\mathbb}
+\def\c{\mathcal}
+\def\d{{\rm d}}
+\def\p{{\rm P}}
+\def\cov{{\rm Cov}}
+\def\var{{\rm Var}}
+
+\def\eps{\epsilon}
+\def\lam{\lambda}
+\def\w{\omega}
+
+\usepackage{extarrows}
+\def\as{\xrightarrow{a.s.}} % almost surely convergence
+\def\ms{\xrightarrow{m.s.}} % mean square convergence
+\def\cp{\xrightarrow{p.}} % converge in probabilty
+\def\cd{\xrightarrow{d.}} % converge in cdf
+
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}%[section]
+\newtheorem{corollary}[theorem]{Corollary}%[section]
+\newtheorem{construction}[theorem]{Construction}%[section]
+\newtheorem{example}[theorem]{Example}%[section]
+\newtheorem{conjecture}[theorem]{Conjecture}%[section]
+\newtheorem{lemma}[theorem]{Lemma}%[section]
+\newtheorem{definition}[theorem]{Definition}%[section]
+\newtheorem{remark}[theorem]{Remark}%[section]
+
+\newenvironment{proof}[1][Proof]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+\newcommand{\qed}{\hfill \blacksquare}
+
+% New Commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\newfont{\bbb}{msbm10 scaled 500}
+%\newcommand{\CCC}{\mbox{\bbb C}}
+%\newfont{\bb}{msbm10 scaled 1100}
+\newcommand{\CC}{\mbox{\bb C}}
+\newcommand{\RR}{\mbox{\bb R}}
+\newcommand{\ZZ}{\mbox{\bb Z}}
+\newcommand{\FF}{\mbox{\bb F}}
+\newcommand{\GG}{\mbox{\bb G}}
+\newcommand{\EE}{\mbox{\bb E}}
+\newcommand{\NN}{\mbox{\bb N}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Prob}{\textrm{Pr}}
+
+% Vectors
+
+\newcommand{\av}{{\bf a}}
+\newcommand{\bv}{{\bf b}}
+\newcommand{\cv}{{\bf c}}
+\newcommand{\dv}{{\bf d}}
+\newcommand{\ev}{{\bf e}}
+\newcommand{\fv}{{\bf f}}
+\newcommand{\gv}{{\bf g}}
+\newcommand{\hv}{{\bf h}}
+\newcommand{\iv}{{\bf i}}
+\newcommand{\jv}{{\bf j}}
+\newcommand{\kv}{{\bf k}}
+\newcommand{\lv}{{\bf l}}
+\newcommand{\mv}{{\bf m}}
+\newcommand{\nv}{{\bf n}}
+\newcommand{\ov}{{\bf o}}
+\newcommand{\pv}{{\bf p}}
+\newcommand{\qv}{{\bf q}}
+\newcommand{\rv}{{\bf r}}
+\newcommand{\sv}{{\bf s}}
+\newcommand{\tv}{{\bf t}}
+\newcommand{\uv}{{\bf u}}
+\newcommand{\wv}{{\bf w}}
+\newcommand{\vv}{{\bf v}}
+\newcommand{\xv}{{\bf x}}
+\newcommand{\yv}{{\bf y}}
+\newcommand{\zv}{{\bf z}}
+\newcommand{\zerov}{{\bf 0}}
+\newcommand{\onev}{{\bf 1}}
+
+% Matrices
+
+\newcommand{\Am}{{\bf A}}
+\newcommand{\Bm}{{\bf B}}
+\newcommand{\Cm}{{\bf C}}
+\newcommand{\Dm}{{\bf D}}
+\newcommand{\Em}{{\bf E}}
+\newcommand{\Fm}{{\bf F}}
+\newcommand{\Gm}{{\bf G}}
+\newcommand{\Hm}{{\bf H}}
+\newcommand{\Id}{{\bf I}}
+\newcommand{\Jm}{{\bf J}}
+\newcommand{\Km}{{\bf K}}
+\newcommand{\Lm}{{\bf L}}
+\newcommand{\Mm}{{\bf M}}
+\newcommand{\Nm}{{\bf N}}
+\newcommand{\Om}{{\bf O}}
+\newcommand{\Pm}{{\bf P}}
+\newcommand{\Qm}{{\bf Q}}
+\newcommand{\Rm}{{\bf R}}
+\newcommand{\Sm}{{\bf S}}
+\newcommand{\Tm}{{\bf T}}
+\newcommand{\Um}{{\bf U}}
+\newcommand{\Wm}{{\bf W}}
+\newcommand{\Vm}{{\bf V}}
+\newcommand{\Xm}{{\bf X}}
+\newcommand{\Ym}{{\bf Y}}
+\newcommand{\Zm}{{\bf Z}}
+
+% Calligraphic
+
+\newcommand{\Ac}{{\cal A}}
+\newcommand{\Bc}{{\cal B}}
+\newcommand{\Cc}{{\cal C}}
+\newcommand{\Dc}{{\cal D}}
+\newcommand{\Ec}{{\cal E}}
+\newcommand{\Fc}{{\cal F}}
+\newcommand{\Gc}{{\cal G}}
+\newcommand{\Hc}{{\cal H}}
+\newcommand{\Ic}{{\cal I}}
+\newcommand{\Jc}{{\cal J}}
+\newcommand{\Kc}{{\cal K}}
+\newcommand{\Lc}{{\cal L}}
+\newcommand{\Mc}{{\cal M}}
+\newcommand{\Nc}{{\cal N}}
+\newcommand{\Oc}{{\cal O}}
+\newcommand{\Pc}{{\cal P}}
+\newcommand{\Qc}{{\cal Q}}
+\newcommand{\Rc}{{\cal R}}
+\newcommand{\Sc}{{\cal S}}
+\newcommand{\Tc}{{\cal T}}
+\newcommand{\Uc}{{\cal U}}
+\newcommand{\Wc}{{\cal W}}
+\newcommand{\Vc}{{\cal V}}
+\newcommand{\Xc}{{\cal X}}
+\newcommand{\Yc}{{\cal Y}}
+\newcommand{\Zc}{{\cal Z}}
+
+% Bold greek letters
+
+\newcommand{\alphav}{\hbox{\boldmath$\alpha$}}
+\newcommand{\betav}{\hbox{\boldmath$\beta$}}
+\newcommand{\gammav}{\hbox{\boldmath$\gamma$}}
+\newcommand{\deltav}{\hbox{\boldmath$\delta$}}
+\newcommand{\etav}{\hbox{\boldmath$\eta$}}
+\newcommand{\lambdav}{\hbox{\boldmath$\lambda$}}
+\newcommand{\epsilonv}{\hbox{\boldmath$\epsilon$}}
+\newcommand{\nuv}{\hbox{\boldmath$\nu$}}
+\newcommand{\muv}{\hbox{\boldmath$\mu$}}
+\newcommand{\zetav}{\hbox{\boldmath$\zeta$}}
+\newcommand{\phiv}{\hbox{\boldmath$\phi$}}
+\newcommand{\psiv}{\hbox{\boldmath$\psi$}}
+\newcommand{\thetav}{\hbox{\boldmath$\theta$}}
+\newcommand{\tauv}{\hbox{\boldmath$\tau$}}
+\newcommand{\omegav}{\hbox{\boldmath$\omega$}}
+\newcommand{\xiv}{\hbox{\boldmath$\xi$}}
+\newcommand{\sigmav}{\hbox{\boldmath$\sigma$}}
+\newcommand{\piv}{\hbox{\boldmath$\pi$}}
+\newcommand{\rhov}{\hbox{\boldmath$\rho$}}
+
+\newcommand{\Gammam}{\hbox{\boldmath$\Gamma$}}
+\newcommand{\Lambdam}{\hbox{\boldmath$\Lambda$}}
+\newcommand{\Deltam}{\hbox{\boldmath$\Delta$}}
+\newcommand{\Sigmam}{\hbox{\boldmath$\Sigma$}}
+\newcommand{\Phim}{\hbox{\boldmath$\Phi$}}
+\newcommand{\Pim}{\hbox{\boldmath$\Pi$}}
+\newcommand{\Psim}{\hbox{\boldmath$\Psi$}}
+\newcommand{\Thetam}{\hbox{\boldmath$\Theta$}}
+\newcommand{\Omegam}{\hbox{\boldmath$\Omega$}}
+\newcommand{\Xim}{\hbox{\boldmath$\Xi$}}
+
+
+\newcommand\ceilb[1]{\left\lceil #1 \right\rceil}
+% Flooring
+\newcommand\floorb[1]{\left\lfloor #1 \right\rfloor}
+% Use Chancery Font
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+
+% New Colors
+\definecolor{OXO-red}{RGB}{153,0,0}
+\definecolor{OXO-green}{RGB}{0,153,0}
+\definecolor{OXO-blue}{RGB}{0,0,153}
+\definecolor{OXO-olive}{RGB}{153,153,0}
+\definecolor{OXO-magenta}{RGB}{153,0,153}
+\definecolor{OXO-cyan}{RGB}{0,153,153}
+\definecolor{OXO-emph}{RGB}{153,153,0}
+
+% Highlight
+
+\newcommand\htext[1]{\textcolor{OXO-emph}{#1}}
+
+% Small sized equations or text
+
+\newcommand\stext[1]{\footnotesize{#1}\normalsize}
+
+% Graphics Folder
+\graphicspath{{./images/}}
+
+\title{Coding for memory systems}
+
+%\author{Ankit S. Rawat, O. Ozan Koyluoglu, and Sriram Vishwanath}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Statement}
+
+ The objective of this project is to come up with coding theoretic solutions to avoid bank conflicts in a multi-port memory. In a multi-port memory data is stored on memory banks which is access by multiple ports.  Simultaneous data access by two or more ports to the same bank results in a bank conflict as only one I/O request to a bank can be served at a time. Presently bank conflict problem is avoided by performing repetition where multiple copies of the data is stored in different banks. For example, Fig~\ref{fig:repetition1} shows a repetition solution for storing $\mathbf{a}$ on a $2$-read and $1$-write memory~\cite{huawei}. However, the repetition solution entails large storage requirement. In the example shown in Fig.~\ref{fig:repetition1}, data $\av = (a_1,\ldots, a_{M})$ is stored on $4$ memory banks of size $M$ each. This scheme has rate $\frac{1}{4}$.
+
+\begin{figure}[htbp]
+\centering
+    \includegraphics [scale=0.65]{2R1W_1.pdf}
+    \caption{Repetition based solution for a $2$-read and $1$-write memory.}
+    \label{fig:repetition1}
+\end{figure}
+
+In a coding theoretic solution to bank conflict problem, an erasure code is used as opposed to simple repetition. An erasure code introduces redundancy in the memory systems so that when a memory bank is serving to a processor, another read request for the data stored in this memory bank (by another processor) can be served by treating the busy bank in erasure. In this situation the second request is served by reconstructing the requested data from the codeword symbols available from free banks. 
+
+Recently, the erasure coding based solutions for multi-port memories have been proposed by Memoir Systems. Algorithmic Memory (by Memoir Systems) is using erasure codes (like Reed-Solomon codes). However, different codes exist allowing efficiency for different trade-offs. For example, regenerating codes~\cite{dimakis} from distributed storage systems (DSS) literature allow for trading-off: 1) the complexity of the circuitry (or bandwidth) used for the recovery of busy bank (when a bank conflict occurs) and 2) amount of storage space in each memory bank.
+
+There is another class of codes in DSS literature, namely locally repairable codes~\cite{RKSV12}, which allow bank recovery (in the event of bank conflicts) by contacting a small number of other banks. In particular, let multi-port memory implement an $r$-locally repairable code and assume that there are $2$ simultaneous access to the same memory bank. One of these $2$ simultaneous requests can be served from the bank itself. Now, we can treat this bank in erasure and contact a set of $r$ other banks to serve the second request.
+
+Noting the possibility of using various classes of codes for better read access in multi-port memories, we explain the advantage of coding theoretic solutions with the help of an example. We consider a scenario with the following set of parameters:
+\begin{itemize}
+\item Let the size of each memory bank be $M$ symbols.
+\item We have to store $2$-block long data ($2M$ symbols) on the memory system. 
+\item Let $(\mathbf{a},\mathbf{b})$ denote the data to be stored with $\mathbf{a} = (a(1),\ldots, a(M))$ and $\mathbf{b} = (b(1),\ldots, b(M))$.
+\item We want to design a multi-port memory that supports any $2$ reads $(a(i), a(j)), (b(i), b(j)),$ or $(a(i), b(j))$; and $1$ write $a(k)$ or $b(k)$.
+\end{itemize}
+
+Now, using a $4$-repetition based scheme\cite{huawei}, we obtain the memory design described in Fig.~\ref{fig:example1}. As mentioned before, this scheme has rate $\frac{1}{4}$. (Here, we use $8$ memory banks to store $2$ data blocks.) This scheme consumes takes $8$ area unit for $8$ memory banks  (one area unit for one memory bank) and additional space for controller circuitry.
+
+\begin{figure}[htbp]
+\centering
+    \includegraphics [scale=0.65]{2R1W_2.pdf}
+    \caption{Storing $(\av, \bv)$ using a $4$-repetition based solution.}
+    \label{fig:XOR1}
+\end{figure}
+
+Now, instead of performing a $4$- repetition, we use a XOR code to facilitate $2$ simultaneous reads as described in Fig.~\ref{fig:XOR1}. Note that we also have to satisfy $1$ write with $2$ simultaneous reads. For this, we simply perform $2$-repetition of XOR based scheme as shown in Fig.~\ref{fig:XOR2}. 
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.55]{xor.pdf}
+    \caption{A XOR based solution for $2$ simultaneous reads.}
+    \label{fig:XOR1}
+\end{figure}
+
+
+For the memory designed in Fig.~\ref{fig:XOR2}, $2$ simultaneous data read requests are forwarded to one group and $1$ write request is forwarded to another group. The selection of a group for read requests is performed by the controller based on the status of memory banks. (Since write requests goes to only $1$ group, the controller sends read requests to that group which contains the most updated version of requested data.)
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.55]{2R1W_xor.pdf}
+    \caption{A XOR based design for $2$-read and $1$-write memory.}
+    \label{fig:XOR2}
+\end{figure}
+
+This scheme uses $6$ memory banks to store data worth of $2$ memory banks. This corresponds to rate $\frac{1}{3}$. The area required by this design is $6$ area units for $6$ memory banks and additional space of controller circuitry. Therefore, this simple XOR based scheme saves space of $2$ memory banks as compared to $4$-repetition scheme. 
+
+As described above, using special classes of codes, e.g., locally repairable codes, regenerating codes may give more attractive solutions when we are coding across multiple data blocks (not just $2$ as assumed in the schemes described above).  
+
+Moreover, in the XOR based design in Fig.~\ref{fig:XOR2}, we have used $2$-repetition to accommodate additional write request. This is done keeping the worst case I/O request pattern in mind. We can consider the models, where we allow for a small delay during reads in some cases. After a write requests, the processors do not always request the data updated in the previous cycle. In this case, we can buffer some write requests and clear them when the opportunity arise, i.e., when the memory banks corresponding to a write request are not being accessed for reads, we can perform this write on memory banks. Moreover, a read request can potentially be served from the buffer itself when a write request for the data to be read from previous cycles is present in the write buffer. In this model, a read delay may occur only when the write buffer gets full and incoming read requests can not be served directly from the buffer. In this case, the write buffer needs to be emptied to accommodate an incoming write request and the current read requests may have to wait if they cause bank conflict the ongoing writing process. Similar ideas in RAID (with non-volatile cache) literature \cite{wow2005, ThomLiu2005}. 
+
+In addition, designing reading friendly codes that also have small writing overhead (or update efficiency) is an interesting problem in the context of multi-port memories.
+
+%%%%\begin{itemize}
+%%%%\item \stext{Encoding $k$ memory banks, $d_1$ to $d_k$, into $n$ banks by
+%%%%adding $n-k$ parity banks $p_1$ to $p_{n-k}$}
+%%%%\end{itemize}
+%%%%
+%%%%\begin{itemize}
+%%%%\item \stext{$\alpha$: Data bus bandwidth connecting banks to each processor}
+%%%%\item \stext{$d$: Number of banks connected by recovery circuitry in the
+%%%%event that a busy memory bank needs to be connected to a processor}
+%%%%\item \stext{$\beta$: Amount of data downloaded to the recovery circuitry}
+%%%%\end{itemize}
+%%%%
+%%%%\begin{itemize}
+%%%%\item Consider all the processors are interested in the first memory bank, 
+%%%%$d_1$.
+%%%%\item Serve $\Pc_1$ from bank storing $d_1$. Use recovery circuitry for the
+%%%%rest of the processors. Total nodes need to satisfy $n\geq 1+(p-1)d$.
+%%%%As we seek to maximize \emph{processors served per memory bank} $p/n$, 
+%%%%we set $n=1+(p-1)d$ for this analysis.
+%%%%\item Given $n=1+(p-1)d$, the code trades-off the followings
+%%%%\begin{itemize}
+%%%%\item Maximize \emph{capacity of the system} $k/n$.
+%%%%\item \emph{Total recovery bandwidth per processor:} $\max\{\alpha,d\beta\}$.
+%%%%\item \emph{Data bus bandwidth from recovery unit to each processor:} $\alpha$.
+%%%%\end{itemize}
+%%%%\end{itemize}
+%%%
+%%%\begin{itemize}
+%%%\item Allow for delay instead of worst case code design. 
+%%%\item Memory write operations, and update efficiency.
+%%%\end{itemize}
+%%%
+%%%\begin{itemize}
+%%%\item We consider the following scenario:
+%%%\begin{itemize}
+%%%\item We have to store two blocks of data $(\mathbf{a},\mathbf{b})$.
+%%%\item ${\rm size}(\mathbf{a})$ = ${\rm size}(\mathbf{b})$ = size of one memory bank = $M$.
+%%%\item Let $(a(1),\ldots, a(M))$ denote $M$ elements of block $\mathbf(a)$.
+%%%\item Similarly, $\mathbf{b} = (b(1),\ldots, b(M))$.
+%%%\item Need to support  any $2$ reads: $(a(i), a(j)), (b(i), b(j)),$ or $(a(i), b(j))$.
+%%%\end{itemize}
+%%%%\item Two solutions
+%%%%\begin{enumerate}
+%%%%\item 2-Repetition.: Rate $1/2$, total area $2$, avg. bits read per bank (ABR) $1$.
+%%%%\item XOR code.: ($(a_1,a_2,a_1+a_2)$): Rate $2/3$, total area $1.5$, ABR $5/6$ (4 read request cases: $(a_1,a_1)$, $(a_2,a_2)$, $(a_1,a_2)$, $(a_2,a_1)$).
+%%%%\end{enumerate}
+%%%\end{itemize}
+%%%
+%%%\begin{itemize}
+%%%\item Solution 1: 2-Repetition
+%%%\end{itemize}
+%%%\begin{center}
+%%%    \includegraphics[scale=0.55]{2repetition.pdf}
+%%%\end{center}
+%%%
+%%%\begin{itemize}
+%%%\item  $4$ memory banks to store $2$ data blocks $\Rightarrow$ Rate $1/2$.%, total area $2$, avg. bits read per bank (ABR) $1$.
+%%%\item  Total area $4$ unit. %XOR code: ($(a_1,a_2,a_1+a_2)$): Rate $2/3$, total area $1.5$, ABR $5/6$ (4 read request cases: $(a_1,a_1)$, $(a_2,a_2)$, $(a_1,a_2)$, $(a_2,a_1)$).
+%%%\end{itemize}
+%%%
+%%%
+%%%\begin{itemize}
+%%%\item Solution 1: 4-Repetition
+%%%\end{itemize}
+%%%\begin{figure}
+%%%    \includegraphics [scale=0.55]{2R1W_1.pdf}
+%%%    \includegraphics [scale=0.55]{2R1W_2.pdf}
+%%%\end{figure}
+%%%
+%%%
+%%%\begin{itemize}
+%%%\item$8$ memory banks to store $2$ data blocks $\Rightarrow$ Rate $1/4$.
+%%%\item  Total area $8$ unit + controller circuitry.
+%%%\end{itemize}
+%%%
+%%%
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%\begin{itemize}
+%%%\item Solution 2: 2-Repetition of XOR code
+%%%\end{itemize}
+%%%\begin{figure}
+%%%    \includegraphics[scale=0.55]{xor.pdf}
+%%%    \includegraphics[scale=0.55]{2R1W_xor.pdf}
+%%%    %\caption{\only<1>{Hallo}\only<2->{Welt}}
+%%%\end{figure}
+%%%
+%%%
+%%%\begin{itemize}
+%%%\item  $6$ memory banks to store $2$ data blocks $\Rightarrow$ Rate $1/3$.
+%%%\item  Total area $6$ unit + controller circuitry (includes decoder).
+%%%\end{itemize}
+%%%
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%
+%%%\begin{itemize}
+%%%\item Total length: \textbf{999471} cycles (processor clock).
+%%%\item Fraction of time memory is accessed (read/write): \textbf{0.3045}.
+%%%\item Fraction of memory access for read: \textbf{0.3874}.
+%%%\item Fraction of memory access for write: \textbf{0.6932}.
+%%%\item At most \textbf{two} fetch instructions in one clock cycles $\Rightarrow$ At most \textbf{two} memory access in one clock cycle.
+%%%\item Fraction of cycles when memory is accessed and two memory operations are performed: \textbf{0.0746}.
+%%%\end{itemize}
+%%%
+%%%
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%\begin{center}
+%%%\framebox{\textbf{At most \underline{2} memory access in one clock cycle.}}
+%%%\end{center}
+%%%
+%%%\begin{itemize}
+%%%\item Possible memory operations in one clock cycle:
+%%%\begin{enumerate}
+%%%\item 1 read.
+%%%\item 1 write.
+%%%\item 1 read 1 write.
+%%%\item 2 reads.
+%%%\item 2 writes.
+%%%\end{enumerate}
+%%%\end{itemize}
+%%%
+%%%\begin{center}
+%%%Both solutions for \textbf{2 reads and 1 write} work.\\ ('$4$-repetition' and '$2$-repetition of XOR code'.)
+%%%\end{center}
+%%%
+%%%
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%\begin{center}
+%%%\framebox{
+%%%\textbf{Fraction of time memory is accessed (read/write): 0.3045}
+%%%}
+%%%\end{center}
+%%%
+%%%\begin{center}
+%%%{\bf Fraction of cycles when memory is accessed and \\  \bf 
+%%%two memory operations are performed: 0.0746.}
+%%%\end{center}
+%%%
+%%%\vspace{-1em}
+%%%\begin{itemize}
+%%%\item Most of the instructions do not access memory.
+%%%\item  Bursty  access pattern though.
+%%%\item Very few clock cycles have two simultaneous access to memory.
+%%%\end{itemize}
+%%% 
+%%%\vspace{1em}
+%%%{ \bf - Should we design for worst case 'read/write' access pattern? \\
+%%%\bf  - Backlogged write requests can be cleared when \\
+%%%\bf (i) no memory access \\
+%%%\bf (ii) single memory operation.}
+%%%
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%\begin{center}
+%%%\textbf{Potential Solution: XOR code with Write Buffer}
+%%%\end{center}
+%%%
+%%%\begin{figure}
+%%%    \includegraphics[scale=0.70]{xor_buffer.pdf}
+%%%    \includegraphics[scale=0.4]{xor_buffer.pdf}
+%%%    %\caption{\only<1>{Hallo}\only<2->{Welt}}
+%%%\end{figure}
+%%%
+%%%\begin{itemize}
+%%%\item  This scheme can server $2$ simultaneous read or $1$ write.
+%%%\item  Buffer some write requests and clear them when opportunity arise.
+%%%\item  Can a read request for data in write buffer be directly served from write buffer?
+%%%\item  Similar ideas in RAID (with non-volatile cache) literature \cite{wow2005, ThomLiu2005}.
+%%%\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{thebibliography}{1}
+
+\bibitem{huawei}
+] Jonathan Y. Zhang,  ``SRAM Operation and Multi-Port SRAM Realization," {\it Wireless Baseband, Futurewei U.S. R\&D.}
+
+\bibitem{dimakis}
+A. G. Dimakis, P. Godfrey, M. Wainwright, and K. Ramchandran, ``Network coding for distributed storage system", in {\it Proc. of IEEE INFOCOM},  May 2007.
+
+\bibitem{RKSV12}
+A. S. Rawat, O. O. Koyluoglu, N. Silberstein, and S. Vishwanath, ``Optimal locally repairable and secure codes for distributed storage systems," {\it CoRR, abs/1210.6954}, 2012.
+
+\bibitem{ThomLiu2005}
+A. Thomasian and C. Liu, ``Performance comparison of mirrored disk scheduling methods with a shared non-volatile cache," {\it Distributed and Parallel Databases}, vol. 18, pp. 253 – 281, 2005.
+
+\bibitem{wow2005}
+B. S. Gill and D. S. Modha, ``WOW: wise ordering for writes-combining spatial and temporal locality in non-volatile caches,"  in {\it Proceedings of the 4th conference on USENIX Conference on File and Storage Technologies (FAST'05)}, pp. 129 – 142, 2005.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,201 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{Wulf1995}
+\citation{waldrop2016}
+\citation{MooreMITR}
+\citation{Geer}
+\citation{Burger}
+\citation{comparchbook}
+\citation{comparchbook}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}}
+\newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The gap in performance, measured as the difference in the time between processor memory requests (for a single processor or core) and the latency of a DRAM access, is plotted over a $30$ year span\nobreakspace  {}\cite  {comparchbook}.\relax }}{1}{figure.caption.2}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:cpuvsmemory}{{1}{1}{The gap in performance, measured as the difference in the time between processor memory requests (for a single processor or core) and the latency of a DRAM access, is plotted over a $30$ year span~\cite {comparchbook}.\relax }{figure.caption.2}{}}
+\citation{dimakis}
+\citation{Gopalan12}
+\citation{batchcodes}
+\citation{RPDV16}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces General multi-core architecture with a shared memory.\relax }}{2}{figure.caption.3}}
+\newlabel{fig:multicore_arch}{{2}{2}{General multi-core architecture with a shared memory.\relax }{figure.caption.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Enabling multiple read accesses to a bank by coding. Given two read requests $\{a(i), a(j)\}$ directed to Bank $1$, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank $1$ itself, and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively. Another case where two read request corresponding to two different banks, e.g., $\{a(i), b(j)\}$, can be simultaneously served from their respective banks without utilizing Bank $3$.\relax }}{2}{figure.caption.4}}
+\newlabel{fig:example_xor}{{3}{2}{Enabling multiple read accesses to a bank by coding. Given two read requests $\{a(i), a(j)\}$ directed to Bank $1$, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank $1$ itself, and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively. Another case where two read request corresponding to two different banks, e.g., $\{a(i), b(j)\}$, can be simultaneously served from their respective banks without utilizing Bank $3$.\relax }{figure.caption.4}{}}
+\citation{Ramulator}
+\citation{Suzuki}
+\citation{WLCH14}
+\citation{ACP88}
+\citation{EMY91}
+\citation{RG91}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{CCES93}
+\citation{MacSlo}
+\citation{ACP88}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background and Related Work}{3}{section.2}}
+\newlabel{sec:bg}{{2}{3}{Background and Related Work}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Emulating multi-port memories}{3}{subsection.2.1}}
+\newlabel{sec:emulation}{{2.1}{3}{Emulating multi-port memories}{subsection.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Supporting only read requests}{3}{subsubsection.2.1.1}}
+\newlabel{sec:read_only}{{2.1.1}{3}{Supporting only read requests}{subsubsection.2.1.1}{}}
+\newlabel{rem:read_only}{{1}{3}{Supporting only read requests}{remark.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Supporting both read and write requests}{3}{subsubsection.2.1.2}}
+\newlabel{sec:rw}{{2.1.2}{3}{Supporting both read and write requests}{subsubsection.2.1.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces $2$-replication based design to support multiple $2$ read requests in the same memory clock cycle. The two banks' worth of data $\mathbf  {a} = [a(1),\ldots  , a(L)]$ and $\mathbf  {b} = [b(1),\ldots  , b(L)]$, all the data elements are stored on two distinct memory banks. Note that any $2$ read requests to distinct memory banks. For example, the figure considers the scenario with $2$ read requests for elements $\{a(i), a(j)\}$. Since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. It's straightforward to verify that this memory design avoids bank conflicts for any other set of $2$ read requests.\relax }}{4}{figure.caption.5}}
+\newlabel{fig:read_replication}{{4}{4}{$2$-replication based design to support multiple $2$ read requests in the same memory clock cycle. The two banks' worth of data $\mathbf {a} = [a(1),\ldots , a(L)]$ and $\mathbf {b} = [b(1),\ldots , b(L)]$, all the data elements are stored on two distinct memory banks. Note that any $2$ read requests to distinct memory banks. For example, the figure considers the scenario with $2$ read requests for elements $\{a(i), a(j)\}$. Since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. It's straightforward to verify that this memory design avoids bank conflicts for any other set of $2$ read requests.\relax }{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces $4$-replication based design to support $r = 2$ read requests and $w = 1$ write request in one memory clock cycle. Both collections of information elements $\mathbf  {a} = [a(1),\ldots  , a(L)]$ and $\mathbf  {b} = [b(1),\ldots  , b(L)]$ are replicated on $r\cdot (w + 1) = 4$ different single-port memory banks. These banks are then partitioned into $r = 2$ disjoint groups. We utilize each group to serve one read request. In a given memory clock cycle, we focus on the specific access pattern with the read requests for $\{a(i), a(j)\}$ and the write request for $\{a(k)\}$. Assuming that Bank $1$ (from Group $1$) and Bank $5$ (from Group $2$) have the updated versions of the data elements $a(i)$ and $a(j)$, respectively, we serve the read requests for $a(i)$ and $a(j)$ from Bank $1$ and Bank $5$, respectively. As for the write request for the data element $a(k)$, we need to perform this write request in at least one memory bank in each of the two groups. This will enable both groups to continue serving any possible set of $r = 2$ read requests during future accesses. Since we have one memory bank storing $a(k)$ in each of the groups that is not busy serving write request, we write the updated $a(k)$ in these non-busy banks (Bank $2$ and Bank $3$ in this case). During the writing process, we also need to modify the pointer storage accordingly to keep track of the banks in each group that are storing the most updated values of different data elements.\relax }}{4}{figure.caption.6}}
+\newlabel{fig:rw_replication}{{5}{4}{$4$-replication based design to support $r = 2$ read requests and $w = 1$ write request in one memory clock cycle. Both collections of information elements $\mathbf {a} = [a(1),\ldots , a(L)]$ and $\mathbf {b} = [b(1),\ldots , b(L)]$ are replicated on $r\cdot (w + 1) = 4$ different single-port memory banks. These banks are then partitioned into $r = 2$ disjoint groups. We utilize each group to serve one read request. In a given memory clock cycle, we focus on the specific access pattern with the read requests for $\{a(i), a(j)\}$ and the write request for $\{a(k)\}$. Assuming that Bank $1$ (from Group $1$) and Bank $5$ (from Group $2$) have the updated versions of the data elements $a(i)$ and $a(j)$, respectively, we serve the read requests for $a(i)$ and $a(j)$ from Bank $1$ and Bank $5$, respectively. As for the write request for the data element $a(k)$, we need to perform this write request in at least one memory bank in each of the two groups. This will enable both groups to continue serving any possible set of $r = 2$ read requests during future accesses. Since we have one memory bank storing $a(k)$ in each of the groups that is not busy serving write request, we write the updated $a(k)$ in these non-busy banks (Bank $2$ and Bank $3$ in this case). During the writing process, we also need to modify the pointer storage accordingly to keep track of the banks in each group that are storing the most updated values of different data elements.\relax }{figure.caption.6}{}}
+\newlabel{rem:rw}{{2}{5}{Supporting both read and write requests}{remark.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Storage-efficient emulation of multi-port memories}{5}{subsection.2.2}}
+\newlabel{sec:efficient_emulation}{{2.2}{5}{Storage-efficient emulation of multi-port memories}{subsection.2.2}{}}
+\citation{MacSlo}
+\citation{Cover}
+\citation{Azure}
+\citation{SAPDVCB13}
+\citation{Rashmi14}
+\citation{batchcodes}
+\citation{RPDV16}
+\citation{RSDG16}
+\citation{Wang2017}
+\citation{batchcodes}
+\citation{ASV10}
+\citation{MCW14}
+\citation{Kim2016}
+\citation{Kadjo2014}
+\citation{Shevgoor2015}
+\citation{JL2013}
+\citation{MN16a}
+\citation{MN16a}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{batchcodes}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{RG91}
+\citation{EMY91}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Related work}{6}{subsection.2.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Codes to Improve Accesses}{6}{section.3}}
+\newlabel{sec:code_design}{{3}{6}{Codes to Improve Accesses}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Coding for memory banks}{6}{subsection.3.1}}
+\newlabel{sec:coding_mb}{{3.1}{6}{Coding for memory banks}{subsection.3.1}{}}
+\newlabel{fig:example1_case1}{{6a}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
+\newlabel{sub@fig:example1_case1}{{a}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
+\newlabel{fig:example1_case2}{{6b}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
+\newlabel{sub@fig:example1_case2}{{b}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Design.\relax }}{7}{figure.caption.7}}
+\newlabel{fig:example1}{{6}{7}{Design.\relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Degraded reads and their locality}{7}{subsubsection.3.1.1}}
+\newlabel{sec:degraded}{{3.1.1}{7}{Degraded reads and their locality}{subsubsection.3.1.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Codes to emulate multi-port memory}{7}{subsection.3.2}}
+\newlabel{sec:designs}{{3.2}{7}{Codes to emulate multi-port memory}{subsection.3.2}{}}
+\citation{batchcodes}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comparison of the code designs with respect to the performance parameters and associated cost\relax }}{8}{table.caption.8}}
+\newlabel{table:codedesigncomparison}{{1}{8}{Comparison of the code designs with respect to the performance parameters and associated cost\relax }{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Code design I}{8}{subsubsection.3.2.1}}
+\newlabel{sec:design1}{{3.2.1}{8}{Code design I}{subsubsection.3.2.1}{}}
+\newlabel{rem:design1}{{4}{8}{Code design I}{remark.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Code Design I\relax }}{8}{figure.caption.9}}
+\newlabel{fig:design1}{{7}{8}{Code Design I\relax }{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Code Design II}{8}{subsubsection.3.2.2}}
+\newlabel{sec:design2}{{3.2.2}{8}{Code Design II}{subsubsection.3.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Code Design II\relax }}{9}{figure.caption.10}}
+\newlabel{fig:design2}{{8}{9}{Code Design II\relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Code Design III}{9}{subsubsection.3.2.3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Code Design III\relax }}{9}{figure.caption.11}}
+\newlabel{fig:design3}{{9}{9}{Code Design III\relax }{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Code Design III with 8 data banks\relax }}{10}{figure.caption.12}}
+\newlabel{fig:design3_8}{{10}{10}{Code Design III with 8 data banks\relax }{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Memory Controller Design}{10}{section.4}}
+\newlabel{sec:memcontrol}{{4}{10}{Memory Controller Design}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Main units at memory controller}{10}{subsection.4.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces  {Architecture of Memory Controller} \relax }}{10}{figure.caption.13}}
+\newlabel{fig:pseudo-code}{{11}{10}{{Architecture of Memory Controller} \relax }{figure.caption.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces  {Access scheduler for coded memory} \relax }}{11}{figure.caption.14}}
+\newlabel{fig:coded_access_scheduler}{{12}{11}{{Access scheduler for coded memory} \relax }{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Code Status Table}{11}{subsection.4.2}}
+\newlabel{sec:codeStatusTable}{{4.2}{11}{Code Status Table}{subsection.4.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Code Status Map\relax }}{11}{table.caption.15}}
+\newlabel{table:codestatusmap}{{2}{11}{Code Status Map\relax }{table.caption.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Read pattern builder}{11}{subsection.4.3}}
+\newlabel{sec:readCodingAlgo}{{4.3}{11}{Read pattern builder}{subsection.4.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces {Description of the algorithm to build a read request pattern to be served in a given memory cycle.}\relax }}{11}{figure.caption.16}}
+\newlabel{fig:readAlgo}{{13}{11}{{Description of the algorithm to build a read request pattern to be served in a given memory cycle.}\relax }{figure.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces {Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strikethrough elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}\relax }}{12}{figure.caption.17}}
+\newlabel{fig:readAlgoAccessPattern}{{14}{12}{{Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strikethrough elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}\relax }{figure.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Write pattern builder}{12}{subsection.4.4}}
+\newlabel{sec:writeCodingAlgo}{{4.4}{12}{Write pattern builder}{subsection.4.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}ReCoding unit}{13}{subsection.4.5}}
+\newlabel{sec:recoding}{{4.5}{13}{ReCoding unit}{subsection.4.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Figure describing write algorithm access pattern\relax }}{13}{figure.caption.18}}
+\newlabel{fig:writeAlgoAccessPattern}{{15}{13}{Figure describing write algorithm access pattern\relax }{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Dynamic Coding}{13}{subsection.4.6}}
+\newlabel{sec:dynamicCoding}{{4.6}{13}{Dynamic Coding}{subsection.4.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Memory Access by LTE Cores\relax }}{14}{figure.caption.19}}
+\newlabel{fig:dsp_access1}{{16}{14}{Memory Access by LTE Cores\relax }{figure.caption.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Memory Access by UMTS Cores\relax }}{14}{figure.caption.19}}
+\newlabel{fig:dsp_access2}{{17}{14}{Memory Access by UMTS Cores\relax }{figure.caption.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces  Memory Access per bank for LTE \relax }}{14}{figure.caption.20}}
+\newlabel{fig:bank_access}{{18}{14}{Memory Access per bank for LTE \relax }{figure.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Prefetching Codes}{14}{subsection.4.7}}
+\newlabel{sec:prefetching}{{4.7}{14}{Prefetching Codes}{subsection.4.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces  \relax }}{15}{figure.caption.21}}
+\newlabel{fig:bank_access1}{{19}{15}{\relax }{figure.caption.21}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces  \relax }}{15}{figure.caption.22}}
+\newlabel{fig:queue_lookahead}{{20}{15}{\relax }{figure.caption.22}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Simulation Results}{15}{section.5}}
+\newlabel{sec:simulation}{{5}{15}{Simulation Results}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Design Parameters}{15}{subsection.5.1}}
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{Wulf1995}{1}
+\bibcite{waldrop2016}{2}
+\bibcite{MooreMITR}{3}
+\bibcite{Geer}{4}
+\bibcite{Burger}{5}
+\bibcite{comparchbook}{6}
+\bibcite{dimakis}{7}
+\bibcite{Gopalan12}{8}
+\bibcite{batchcodes}{9}
+\bibcite{RPDV16}{10}
+\bibcite{Ramulator}{11}
+\bibcite{Suzuki}{12}
+\bibcite{WLCH14}{13}
+\bibcite{ACP88}{14}
+\bibcite{EMY91}{15}
+\bibcite{RG91}{16}
+\bibcite{Memoir_xor}{17}
+\bibcite{Memoir_xor_virtual}{18}
+\bibcite{CCES93}{19}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Acknowledgements}{16}{section.6}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}References}{16}{section.7}}
+\bibcite{MacSlo}{20}
+\bibcite{Cover}{21}
+\bibcite{Azure}{22}
+\bibcite{SAPDVCB13}{23}
+\bibcite{Rashmi14}{24}
+\bibcite{RSDG16}{25}
+\bibcite{Wang2017}{26}
+\bibcite{ASV10}{27}
+\bibcite{MCW14}{28}
+\bibcite{Kim2016}{29}
+\bibcite{Kadjo2014}{30}
+\bibcite{Shevgoor2015}{31}
+\bibcite{JL2013}{32}
+\bibcite{MN16a}{33}
