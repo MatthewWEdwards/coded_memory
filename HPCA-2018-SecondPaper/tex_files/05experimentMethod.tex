@@ -1,0 +1,185 @@
+  \section{Experiments}
+\label{sec:experiments}
+
+In this section, we describe our HBM implementation and Ramulator simulations on several SPEC2006 benchmarks.
+
+\subsection{HBM Implementation}
+%\Ethan{Move all implementation details here, is sub-channel the same as pseudo channel? OK or still repetitive?}
+%\Ankit{Suddenly, there is too much jargon about HBM...Have we defined all these things in the background section?}
+Our coding scheme is based on a single $16$-bank channel of HBM DRAM operating in Pseudo Channel Mode ($8$ banks per pseudo channel). To fit the layout of Figure~\ref{fig:memsys} and Section~\ref{sec:codingArchitecture}, Pseudo Channel 0 is used for data banks and Pseudo Channel 1 is used for parity banks. 
+%
+%The pseudo channel conceptually divides the memory of a single channel in half. 
+%Since this mode divides a channel into two individual $8$ bank sub-channels, we assign one sub-channel for data banks and the other sub-channel for parity banks. 
+%
+Wherever possible, we try to interleave the banks. This ensures that most large, linear accesses will be spread across multiple banks with reduced contention.
+
+In this mode, the 128-bit data bus is split into 2 individual 64-bit segments. 
+However, the pseudo channels share the same address and command bus: commands and addresses may be sent to one pseudo channel or the other, but not to both. They also decode and execute commands individually. For commands that are common to both pseudo channels, strict timing conditions must be met to avoid conflicts.
+%The burst length is set to $4$. This means that on each segment, a read or write transaction transfers $256$ bits in a burst of four $64$-bit cycles. 
+Table~\ref{tab:design_params} describes additional design details.
+%
+\begin{table}[h!]
+ \small
+  \centering
+  \begin{tabular}{|c|p{5cm}|}
+    \hline
+    Memory overhead & Storage of parity is limited to 50\% of the overall memory. \\
+    \hline
+    Memory Banks & 8 Data banks, 8 parity banks \\
+    \hline           
+    Cache Line Size & 128/256 bytes size \\ \hline  
+    Element Size & Each element is 256 bytes \\ \hline  
+    Number of Cores & 6-8 cores for Wireless SoC platform \\ \hline  
+    Access Rate & 1GHz memory speed \\ \hline  
+    Burst Length & 4 (256-bit transfer in four 64-bit bursts)\\ \hline
+  \end{tabular}
+  \caption{Summary table of design parameters.}
+  \label{tab:design_params}
+\end{table}
+
+
+\begin{remark} %[{\bf Address mapping}]
+\label{rem:address}
+%\Ankit{I don't see any reason to present address mapping here...or probably this needs to presented in a better manner to create coherent story.} 
+Figure~\ref{fig:mapping} describes the address mapping for each channel. The least significant ``OFFSET'' bits of the address signify the byte level addressing of the data. The $6$ most significant ``CA'' bits indicate column address, the next $14$ ``RA'' bits indicate row address, the $3$ ``BA'' bits decide the bank, and the remaining $3$ ``CH'' bits specify the channel. 
+\end{remark}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[h!] \centering
+%\includegraphics[width=0.95\linewidth]{figures/mapping.png} 
+\includegraphics[width=0.98\linewidth]{figures/ChAddressing.pdf} 
+\caption{Address mapping for channels.}
+\label{fig:mapping}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{figure}[h!] \centering
+\includegraphics[width=0.9\linewidth]{figures/single-core-cpu.png} 
+\caption{Single-core CPU Simulation.}
+\label{fig:single-core-cpu}
+\end{figure}
+
+\begin{figure}[h!] \centering
+\includegraphics[width=0.9\linewidth]{figures/multi-core-cpu.png} 
+\caption{Multi-core CPU Simulation.}
+\label{fig:multi-core-cpu}
+\end{figure}
+
+
+%------------------------------------------------------------------------------------
+\begin{figure*}[t!] \centering
+\includegraphics[width=1\linewidth]{figures/spec-cycles-all.pdf} 
+\caption{Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $\{8,16,32,64,128,\infty\}$). }
+\label{fig:spec-cycles}
+\end{figure*}
+%-----------------------------------------------------------------------------------
+
+
+\subsection{Methodology}
+Our code design was implemented on the Ramulator platform \cite{Ramulator} to evaluate memory access improvements compared to a baseline, uncoded memory layout. This platform allows for excitation of the memory scheduler module with standard benchmarks that represent differentiated and distributed computational and memory access patterns. Experiments were conducted on a single-processor system using the SPEC2006 benchmark \cite{SPEC2006}, and on a $6$-core and $8$-core systems using application traces from an off-the-shelf wireless SoC. 
+
+The single-core architecture for the SPEC2006 benchmark is shown in Figure~\ref{fig:single-core-cpu}, and Figure~\ref{fig:multi-core-cpu} shows the architecture for the $6$-core processor simulation. The instruction traces are mapped to memory requests, which are pushed to a request queue and sent to the memory system's reorder buffer. For each request, the corresponding cycle number, read or write access, and address is stored. After the steps outlined in Section~\ref{sec:reorder}, the bank requests are generated and sent to the HBM memory controller. The corresponding data is sent back to the reorder buffer or to the CPU via the data bus. Since the simulator is cycle accurate, the $6$-core processor simulation may pop multiple requests from the reset queue at the beginning of each cycle.
+
+
+
+\subsection{Cycle Simulation Results}
+\label{sec:results}
+
+
+%\subsubsection{Simulation Cycles}
+Next, we present the results of SPEC2006 simulation cycles on the proposed coded model and a baseline model. The goal is to simulate the benefits of improved read accesses, which bounds the amount of improvement we can expect in a full hardware implementation. Encoding and decoding can be done offline in parallel and is therefore ignored. We also consider the delays of parity bank writebacks to be negligible. The coded model was evaluated with the following reorder buffer sizes: $\{8,16,32,64,128,\infty\}$.  
+%\Ethan{Why are size and depth used interchangeably?}
+%The modified model is running multiple times with different reorder buffer size, specifically, the size varies between infinite, 128, 64, 32, 16,8. 
+For larger reorder buffer size, the increased memory overhead leads faster accesses.
+Thus, the infinite reorder buffer simulation further bounds the performance improvements we expect in practice because no rows are evicted. 
+%We can see that the performance improvement is higher when the reorder buffer size is larger. This is the design trade-off between the memory overhead and the performance.
+
+Figure \ref{fig:spec-cycles} compares our memory scheme's performance improvements across different benchmarks. 
+For cases such as \texttt{omnetpp} and \texttt{sjeng}, our scheme improves over the uncoded baseline and continues to improve as the buffer size increases.
+We also see that for the \texttt{mcf} benchmark, our scheme reduces the read request latency and also reduces the number of CPU cycles to approximately $30\%$ of the uncoded case. This benchmark has the most significant improvements because most of its instructions are memory read requests. 
+%Since we don't include the delays of the write back of parity banks and the encoding and the decoding steps, the improvements for each benchmark is the result of the reducing the latency of the read requests with the coded data from parity banks. 
+However, \texttt{mcf} hits a performance bottleneck and does not continue improving when the reorder buffer size exceeds 64. This suggests that the \texttt{mcf} memory pattern is clustered such that all the memory requests can be stored in a reorder buffer of this size. The \texttt{mcf} benchmark is made up of a program that implements network simplex code that often works on large chunk of data intermittently~\cite{mcf}. The speed of access (subsequently the speed of the program) in this case improves significantly with the coded memory access.
+
+The \texttt{mlic} benchmark shows reduction to about $40\%$ of the uncoded case for any buffer size. This variety of results suggests that additional improvements can be achieved by combining our scheme with other approaches.
+
+
+
+%\Ethan{change to relative improvement like the others?} The number of cycles used for read and write accesses is shown in Figure \ref{fig:spec-cycles1} for the baseline and our coded HBM scheme assuming a reorder buffer of infinite size. This simulation further bounds the performance improvements we expect in practice because no rows are evicted from reorder buffer. For heavy access implementations like MCF, a large improvement can be seen in the reduction of cycles used to serve the requests. \Ethan{add soemthing about omnetpp, soplex, and/or sjeng}
+% The subsequent Figures show the performance levels with various reorder buffer size. \par
+
+%
+%\begin{figure}[htb] \centering
+%\includegraphics[width=\linewidth]{figures/spec-cycles2.pdf} 
+%\caption{Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $8, 10, 16$). \Ethan{10 bits or 16 bits? label axes}}
+%\label{fig:spec-cycles2}
+%\end{figure}
+%
+%\begin{figure}[htb] \centering
+%\includegraphics[width=1\linewidth]{figures/spec-cycles3.pdf} 
+%\caption{Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $32, 64, 128$). \Ethan{label axes}}
+%\label{fig:spec-cycles3}
+%\end{figure}
+%
+%\begin{figure}[htb] \centering
+%\includegraphics[width=1\linewidth]{figures/spec-cycles1.pdf} 
+%\caption{Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with infinite reorder buffer size). \Ethan{label axes}}
+%\label{fig:spec-cycles1}
+%\end{figure}
+
+For the application traces in Figure \ref{fig:lte_umts}, the performance improvements are modest compared to those of the SPEC2006 benchmark. Our scheme hits a performance bottleneck with a reorder buffer size of only $16$ bits. We attribute this to the fact that memory patterns for the application traces are clustered more closely. Again, additional techniques must be used to exceed this observed performance barrier. \\
+
+\begin{figure*}[htb] \centering
+\includegraphics[width=0.75\linewidth]{figures/soc.pdf} 
+\caption{Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven wireless SoC traces (reorder buffer size $16$) }
+\label{fig:lte_umts}
+\end{figure*}
+
+%
+%\begin{figure}[htb] \centering
+%\includegraphics[width=1\linewidth]{figures/lte.pdf} 
+%\caption{Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven LTE traces (with reorder buffer size of $16$) }
+%\label{fig:lte}
+%\end{figure}
+%
+%\begin{figure}[htb] \centering
+%\includegraphics[width=1\linewidth]{figures/umts.pdf} 
+%\caption{Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven UTMS traces (with reorder buffer size of $16$) \Ethan{10 bits or 16 bits?}}
+%\label{fig:umts}
+%\end{figure}
+
+
+%\subsection{Cost Analysis} 
+% Table \ref{tab:size} shows the reorder buffer size as a function of depth. 
+% \Ankit{This subsection is just $1$ line?!}\Ethan{Yes, explain figures more}
+
+%\begin{table}
+%\begin{tabular}{|l|l|l|l|l|l|}
+%\hline \bf Depth & 8 & 16 & 32 & 64 & 128 \\ \hline
+%\bf Size & 8KB & 16KB & 32.2KB & 64.5KB & 129KB \\ 
+%\hline
+%\end{tabular}
+%\caption{Reorder Buffer Size under Different Depth}\label{tab:size}
+%\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htb] \centering
+%\includegraphics[width=0.50\linewidth]{figures/prefetch1.eps} 
+%\includegraphics[width=0.46\linewidth]{figures/prefetch2.eps} 
+\includegraphics[width=3in,height=0.2\textheight]{figures/prefetch1.pdf}
+\includegraphics[width=2.6in,height=0.2\textheight]{figures/prefetch2.pdf}
+\caption{Memory bank accesses across a 3 $\mu$s trace, which suggest linear access patterns. The right figure is an enlarged version of the top half of the left figure. }
+\label{fig:prefetch1}
+\end{figure*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%{\color{blue} \noindent \textbf{Potential improvement using prefetching:}~
+%\Ethan{Remove entire subsection?}
+%We explore the implementation of a memory prefetching unit, similar to an instruction or cache prefetching unit. This unit can detect linear access patterns to regions in memory.  For example, if a string of memory accesses are issued in sequential byte sized order, then the prefetching unit will predict the next access to be in byte increments. The memory prefetching works by fetching a predicted address from the parity bank during accesses that the parity bank is idle. When future memory accesses are issued, they are first checked with the prefetched data to see if they can be used to decode any subsequent accesses memory accesses. If so, the memory access is obtained from the current accesses and prefetched data. 
+%
+%For example, say the prefetcher sees 2 consecutive memory requests in a row. It then predicts that the next two accesses, locations $a_0$ and $b_0$, are likely to be accessed in the near future. It reads $a_0 + b_0$ from the parity bank for future use. Next, access to location $a_0$ and $b_0$ are issued to the memory. Now, instead of reading both $a_0$ and $b_0$, only a single location has to be read from in memory, while the other location can be obtained from the prefetched data. This allows for an additional access to be issued from the now free memory bank.  In these cases, it is possible to obtain up to two additional memory accesses in a given cycle, one from the prefetched data and one from the parity bank.
+%
+%%Implementation of a memory prefetch should only require overhead for space and the associated logic to implement it. Since memory accesses are often stalled due to bank conflicts, checking pending accesses to the prefetched data should require no additional time overhead. As memory accesses wait to be issued in the bank queues, they can simultaneously be checked with the prefetched data. Thus, no extra latency is anticipated by the addition of a memory prefetching unit.
+%
+%Figure~\ref{fig:prefetch1} shows two plots of memory accesses to a bank with respect to time. The left figure shows the accesses to the memory bank by various cores. The right side figure shows a zoomed view of the accesses in the dense access region. This figure suggests the linearity of accesses. The system can look ahead in the queue to detect the consecutive address request for a memory bank and schedule a prefetch of the associated code.
+%
+%\noindent {\bf Coding and prefetching:~}One of the ideas explored in this paper is that of proactive prefetching of data from (unused) memory banks to buffers based on the pattern of pending access requests at the memory controller. This creates the opportunities to serve multiple access requests in a given memory cycles and also tries to utilize all the available memory banks throughout the operation of the memory system. Such prefetching based memory designs in the context of {\em uncoded} memory systems has been previously studied in the literature (see e.g.,~\cite{Kim2016, Kadjo2014, Shevgoor2015, JL2013}). To the best of our knowledge, the application of prefetching schemes with coded memory systems has not been explored before.}

@@ -1,0 +1,223 @@
+\begin{thebibliography}{10}
+
+\bibitem{Moore}
+G.~E. Moore, ``No exponential is forever: but "forever" can be delayed!
+  [semiconductor industry],'' in {\em Proceedings of IEEE International
+  Solid-State Circuits Conference (ISSCC)}, pp.~20--23, Feb 2003.
+
+\bibitem{hennesey}
+J.~L. Hennessy and D.~A. Patterson, {\em Computer Architecture, Fourth Edition:
+  A Quantitative Approach}.
+\newblock San Francisco, CA, USA: Morgan Kaufmann Publishers Inc., 2006.
+
+\bibitem{Wulf1995}
+W.~A. Wulf and S.~A. McKee, ``Hitting the memory wall: Implications of the
+  obvious,'' {\em SIGARCH Comput. Archit. News}, vol.~23, pp.~20--24, Mar.
+  1995.
+
+\bibitem{zhao2006new}
+W.~Zhao and Y.~Cao, ``New generation of predictive technology model for sub-45
+  nm early design exploration,'' {\em IEEE Transactions on Electron Devices},
+  vol.~53, no.~11, pp.~2816--2823, 2006.
+
+\bibitem{kapasi2003programmable}
+U.~J. Kapasi, S.~Rixner, W.~J. Dally, B.~Khailany, J.~H. Ahn, P.~Mattson, and
+  J.~D. Owens, ``Programmable stream processors,'' {\em Computer}, vol.~36,
+  no.~8, pp.~54--62, 2003.
+
+\bibitem{patterson1997case}
+D.~Patterson, T.~Anderson, N.~Cardwell, R.~Fromm, K.~Keeton, C.~Kozyrakis,
+  R.~Thomas, and K.~Yelick, ``A case for intelligent ram,'' {\em IEEE micro},
+  vol.~17, no.~2, pp.~34--44, 1997.
+
+\bibitem{Ramulator}
+Y.~Kim, W.~Yang, and O.~Mutlu, ``Ramulator: A fast and extensible {DRAM}
+  simulator,'' {\em IEEE Computer Architecture Letters}, vol.~15, pp.~45--49,
+  Jan 2016.
+
+\bibitem{MacSlo}
+F.~J. MacWilliams and N.~J.~A. Sloane, {\em {T}he Theory of Error-Correcting
+  Codes}.
+\newblock Amsterdam: North-Holland, 1983.
+
+\bibitem{RS1960}
+I.~S. Reed and G.~Solomon, ``Polynomial codes over certain finite fields,''
+  {\em Journal of the society for industrial and applied mathematics}, vol.~8,
+  no.~2, pp.~300--304, 1960.
+
+\bibitem{shanmugam}
+K.~Shanmugam, D.~S. Papailiopoulos, A.~G. Dimakis, and G.~Caire, ``A repair
+  framework for scalar mds codes,'' {\em IEEE Journal on Selected Areas in
+  Communications}, vol.~32, pp.~998--1007, May 2014.
+
+\bibitem{GW16}
+V.~Guruswami and M.~Wootters, ``Repairing reed-solomon codes,'' in {\em Proc.
+  of 48th Annual ACM Symposium on Theory of Computing (STOC)}, (New York, NY,
+  USA), pp.~216--226, ACM, 2016.
+
+\bibitem{intel}
+I.~Corp., ``Intel xeon processor e7 family: Reliability, availability, and
+  serviceability,'' 2011.
+
+\bibitem{kim}
+J.~Kim, M.~Sullivan, and M.~Erez, ``Bamboo {ECC}: {S}trong, safe, and flexible
+  codes for reliable computer memory,'' in {\em Proc. of 21st IEEE
+  International Symposium on High Performance Computer Architecture (HPCA)},
+  pp.~101--112, Feb 2015.
+
+\bibitem{ibm}
+I.~B. M.~C. (IBM), ``Chipkill memory,'' in {\em
+  http://www-05.ibm.com/hu/termekismertetok/xseries/dn/chipkill.pdf, Tech.
+  Rep.}, 2012.
+
+\bibitem{Suzuki}
+T.~Suzuki, H.~Yamauchi, Y.~Yamagami, K.~Satomi, and H.~Akamatsu, ``A stable
+  2-port sram cell design against simultaneously read/write-disturbed
+  accesses,'' {\em IEEE Journal of Solid-State Circuits}, vol.~43,
+  pp.~2109--2119, Sept 2008.
+
+\bibitem{WLCH14}
+D.~P. Wang, H.~J. Lin, C.~T. Chuang, and W.~Hwang, ``Low-power multiport sram
+  with cross-point write word-lines, shared write bit-lines, and shared write
+  row-access transistors,'' {\em IEEE Transactions on Circuits and Systems II:
+  Express Briefs}, vol.~61, pp.~188--192, March 2014.
+
+\bibitem{ACP88}
+D.~J. Auerbach, T.~C. Chen, and W.~J. Paul, ``High-performance multiple port
+  memory,'' Aug 1988.
+
+\bibitem{EMY91}
+K.~Endo, T.~Matsumura, and J.~Yamada, ``Pipelined, time-sharing access
+  technique for an integrated multiport memory,'' {\em IEEE Journal of
+  Solid-State Circuits}, vol.~26, pp.~549--554, Apr 1991.
+
+\bibitem{RG91}
+R.~L. Rivest and L.~A. Glasser, ``A fast multiport memory based on single-port
+  memory cells,'' Tech. Rep. MIT/LCS/TM-455, Massachusetts Inst. of Tech.
+  Cambridge Lab. for Computer Science, 1991.
+
+\bibitem{CCES93}
+B.~A. Chappell, T.~I. Chappell, M.~K. Ebcioglu, and S.~E. Schuster, ``Virtual
+  multi-port ram,'' Apr 1993.
+
+\bibitem{Memoir_xor}
+S.~Iyer and S.-T. Chuang, ``System and method for storing multiple copies of
+  data in a high speed memory system,'' Jan 2015.
+
+\bibitem{Memoir_xor_virtual}
+S.~Iyer and S.-T. Chuang, ``System and method for storing data in a virtualized
+  high speed memory system with an integrated memory mapping table,'' Aug 2013.
+
+\bibitem{Weatherspoon:2002}
+H.~Weatherspoon and J.~Kubiatowicz, ``Erasure coding vs. replication: {A}
+  quantitative comparison,'' in {\em Revised Papers from the First
+  International Workshop on Peer-to-Peer Systems}, IPTPS '01, pp.~328--338,
+  2002.
+
+\bibitem{batchcodes}
+Y.~Ishai, E.~Kushilevitz, R.~Ostrovsky, and A.~Sahai, ``Batch codes and their
+  applications,'' in {\em Proc. of thirty-sixth annual ACM symposium on Theory
+  of computing (STOC)}, pp.~262--271, 2004.
+
+\bibitem{RSDG16}
+A.~S. Rawat, Z.~Song, A.~G. Dimakis, and A.~Gal, ``Batch codes through dense
+  graphs without short cycles,'' {\em IEEE Transactions on Information Theory},
+  vol.~62, pp.~1592--1604, April 2016.
+
+\bibitem{WKCB17}
+Z.~Wang, H.~M. Kiah, Y.~Cassuto, and J.~Bruck, ``Switch codes: Codes for fully
+  parallel reconstruction,'' {\em IEEE Transactions on Information Theory},
+  vol.~63, pp.~2061--2075, April 2017.
+
+\bibitem{kim2014hbm}
+J.~Kim and Y.~Kim, ``Hbm: Memory solution for bandwidth-hungry processors,'' in
+  {\em Hot Chips 26 Symposium (HCS), 2014 IEEE}, pp.~1--24, IEEE, 2014.
+
+\bibitem{HMC_slides}
+J.~T. Pawlowski, ``Hybrid memory cube {(HMC)},'' in {\em Proceedings of IEEE
+  Hot Chips 23 Symposium (HCS)}, pp.~1--24, Aug 2011.
+
+\bibitem{khan}
+O.~Khan, R.~Burns, J.~Park, and C.~Huang, ``In search of {I/O}-optimal recovery
+  from disk failures,'' in {\em Proc. of 3rd USENIX Conference on Hot Topics in
+  Storage and File Systems (HotStorage)}, pp.~6--6, June 2011.
+
+\bibitem{dimakis}
+A.~G. Dimakis, P.~Godfrey, Y.~Wu, M.~Wainwright, and K.~Ramchandran, ``Network
+  coding for distributed storage systems,'' {\em IEEE Transactions on
+  Information Theory}, vol.~56, pp.~4539--4551, Sept 2010.
+
+\bibitem{Azure12}
+C.~Huang, H.~Simitci, Y.~Xu, A.~Ogus, B.~Calder, P.~Gopalan, J.~Li, and
+  S.~Yekhanin in {\em Proc. of 2012 USENIX Conference on Annual Technical
+  Conference}, USENIX ATC'12, pp.~15--26, USENIX Association, 2012.
+
+\bibitem{sathiamoorthy}
+M.~Sathiamoorthy, M.~Asteris, D.~Papailiopoulos, A.~G. Dimakis, R.~Vadali,
+  S.~Chen, and D.~Borthakur, ``{XORing} elephants: Novel erasure codes for big
+  data,'' {\em Proc. of 39th International Conference on Very Large Data Bases
+  (VLDB)}, vol.~6, pp.~325--336, June 2013.
+
+\bibitem{Hitchhiker}
+K.~Rashmi, N.~B. Shah, D.~Gu, H.~Kuang, D.~Borthakur, and K.~Ramchandran, ``A
+  "hitchhiker's" guide to fast and efficient data reconstruction in
+  erasure-coded data centers,'' in {\em Proc. of the 2014 ACM Conference on
+  SIGCOMM}, pp.~331--342, Aug. 2014.
+
+\bibitem{RPDV16}
+A.~S. Rawat, D.~S. Papailiopoulos, A.~G. Dimakis, and S.~Vishwanath, ``Locality
+  and availability in distributed storage,'' {\em IEEE Transactions on
+  Information Theory}, vol.~62, pp.~4481--4493, Aug 2016.
+
+\bibitem{luan2017dynamic}
+H.~Luan, A.~Gatherer, S.~Vishwanath, C.~Hunger, and H.~Jain, ``Dynamic coding
+  algorithm for intelligent coded memory system,'' Feb.~2 2017.
+\newblock US Patent App. 14/811,357.
+
+\bibitem{luan2017intelligent}
+H.~Luan, A.~Gatherer, S.~Vishwanath, C.~Hunger, and H.~Jain, ``Intelligent code
+  apparatus, method, and computer program for memory,'' Feb.~2 2017.
+\newblock US Patent App. 14/811,763.
+
+\bibitem{luan2017intelligent2}
+H.~Luan, A.~Gatherer, S.~Vishwanath, C.~Hunger, and H.~Jain, ``Intelligent
+  memory architecture for increased efficiency,'' Feb.~2 2017.
+\newblock US Patent App. 14/810,895.
+
+\bibitem{huang}
+C.~Huang, H.~Simitci, Y.~Xu, A.~Ogus, B.~Calder, P.~Gopalan, J.~Li, and
+  S.~Yekhanin, ``Erasure coding in windows azure storage,'' in {\em Proc. of
+  USENIX Annual Technical Conference (USENIX ATC)}, pp.~15--26, 2012.
+
+\bibitem{SPEC2006}
+J.~Henning, ``{SPEC CPU2006} benchmark descriptions,'' {\em ACM SIGARCH
+  Computer Architecture News}, vol.~34, pp.~1--17, Sept 2006.
+
+\bibitem{mcf}
+S.~2006, ``429.mcf - spec cpu2006 benchmark description,''
+
+\bibitem{Kim2016}
+J.~Kim, S.~H. Pugsley, P.~V. Gratz, A.~L.~N. Reddy, C.~Wilkerson, and
+  Z.~Chishti, ``Path confidence based lookahead prefetching,'' in {\em 49th
+  Annual IEEE/ACM International Symposium on Microarchitecture (MICRO)},
+  pp.~1--12, Oct 2016.
+
+\bibitem{Kadjo2014}
+D.~Kadjo, J.~Kim, P.~Sharma, R.~Panda, P.~Gratz, and D.~Jimenez, ``B-fetch:
+  Branch prediction directed prefetching for chip-multiprocessors,'' in {\em
+  Proceedings of 47th Annual IEEE/ACM International Symposium on
+  Microarchitecture}, pp.~623--634, Dec 2014.
+
+\bibitem{Shevgoor2015}
+M.~Shevgoor, S.~Koladiya, R.~Balasubramonian, C.~Wilkerson, S.~H. Pugsley, and
+  Z.~Chishti, ``Efficiently prefetching complex address patterns,'' in {\em
+  2015 48th Annual IEEE/ACM International Symposium on Microarchitecture
+  (MICRO)}, pp.~141--152, Dec 2015.
+
+\bibitem{JL2013}
+A.~Jain and C.~Lin, ``Linearizing irregular memory accesses for improved
+  correlated prefetching,'' in {\em Proc. of the 46th Annual IEEE/ACM
+  International Symposium on Microarchitecture}, (New York, NY, USA),
+  pp.~247--259, ACM, 2013.
+
+\end{thebibliography}

@@ -1,0 +1,22 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Background}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Multi-core Setup and Bank Conflicts}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Coding Techniques: Preliminaries}{section.2}% 4
+\BOOKMARK [3][-]{subsubsection.2.2.1}{Block Codes}{subsection.2.2}% 5
+\BOOKMARK [3][-]{subsubsection.2.2.2}{Encoding Memory Banks}{subsection.2.2}% 6
+\BOOKMARK [2][-]{subsection.2.3}{Emulating Multi-port Memories}{section.2}% 7
+\BOOKMARK [2][-]{subsection.2.4}{High Bandwidth Memory}{section.2}% 8
+\BOOKMARK [2][-]{subsection.2.5}{Related Work}{section.2}% 9
+\BOOKMARK [1][-]{section.3}{CODED MEMORY SYSTEM}{}% 10
+\BOOKMARK [2][-]{subsection.3.1}{Coded Multi-bank Storage Space}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.2}{Memory Controller Design}{section.3}% 12
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Reorder buffer}{subsection.3.2}% 13
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Read algorithm}{subsection.3.2}% 14
+\BOOKMARK [3][-]{subsubsection.3.2.3}{Write algorithm}{subsection.3.2}% 15
+\BOOKMARK [3][-]{subsubsection.3.2.4}{Writeback algorithm}{subsection.3.2}% 16
+\BOOKMARK [1][-]{section.4}{Experiments}{}% 17
+\BOOKMARK [2][-]{subsection.4.1}{HBM Implementation}{section.4}% 18
+\BOOKMARK [2][-]{subsection.4.2}{Methodology}{section.4}% 19
+\BOOKMARK [2][-]{subsection.4.3}{Cycle Simulation Results}{section.4}% 20
+\BOOKMARK [1][-]{section.5}{Conclusion}{}% 21
+\BOOKMARK [1][-]{section.6}{References}{}% 22

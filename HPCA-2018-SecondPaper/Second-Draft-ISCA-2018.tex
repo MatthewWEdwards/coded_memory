@@ -1,0 +1,200 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is the template for submission to ISCA 2018
+% The cls file is a modified from  'sig-alternate.cls'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{sig-alternate} 
+\usepackage{mathptmx} % This is Times font
+
+\newcommand{\ignore}[1]{}
+\usepackage{fancyhdr}
+\usepackage[normalem]{ulem}
+\usepackage[hyphens]{url}
+\usepackage{microtype}
+%\usepackage{fancyhdr}
+%\usepackage[normalem]{ulem}
+%\usepackage[hyphens]{url}
+
+
+
+%%%%%%%%%%%---EXTRA PACKAGES-----%%%%%%%%%%%%%
+%\usepackage[pass]{geometry}
+\usepackage{paralist}
+\usepackage{pifont}
+\usepackage{float}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{comment}
+\usepackage{cases}
+\usepackage{bbm}
+\usepackage{graphicx}
+\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage{algpseudocode}
+%\usepackage{csvsimple}
+\usepackage{array}
+%\usepackage{flushend}
+\usepackage{balance}
+\usepackage{multirow}
+\usepackage{mathtools}
+%\newcommand{\ignore}[1]{}
+\usepackage[normalem]{ulem}
+\usepackage[hyphens]{url}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{nicefrac}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{subfloat}
+\usepackage{graphics}
+\usepackage{verbatim}
+%\usepackage{subfig}
+\usepackage{color}
+\usepackage{footnote}
+%newadded for url
+\usepackage[hyphens]{url}
+%\usepackage{hyperref}
+%\usepackage[bookmarks=false]{hyperref}
+%%%%%%%%%%%---DONE-----%%%%%%%%%%%%%
+
+% Always include hyperref last
+\usepackage[bookmarks=true,breaklinks=true,letterpaper=true,colorlinks,linkcolor=black,citecolor=blue,urlcolor=black]{hyperref}
+
+% Ensure letter paper
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{claim}{Claim}[section]
+\newtheorem{definition}{Definition}
+
+%\newtheorem{definition}{Definition}%[section]
+\newtheorem{example}{Example}%[section]
+\newtheorem{conjecture}{Conjecture}%[section]
+\newtheorem{construction}{Construction}%[section]
+\newtheorem{remark}{Remark}%[section]
+
+%\newtheorem{remark}{Remark}%[section]
+\newtheorem{case}{Case}%[section]
+\newtheorem{assumption}{Assumption}
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
+\newcommand{\iscasubmissionnumber}{211}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%---DRAFT COMMENTS-----%%%%%%%%%%%%%
+\newcommand*\cn{{\color{red}{\textbf{[Citation Needed]}}}}
+\newcommand*\Ankit[1]{{\color{red}{\textbf{[ANKIT:~#1]}}}}
+\newcommand*\Hardik[1]{{\color{blue}{\textbf{[HARDIK:~#1]}}}}
+\newcommand*\Ethan[1]{{\color{magenta}{\textbf{[ETHAN:~#1]}}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\fancypagestyle{firstpage}{
+  \fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+  \fancyhead[C]{\normalsize{ISCA 2018 Submission
+      \textbf{\#\iscasubmissionnumber} \\ Confidential Draft: DO NOT DISTRIBUTE}} 
+  \fancyfoot[C]{\thepage}
+}  
+
+\pagenumbering{arabic}
+
+
+%\fancypagestyle{firstpage}{
+%  \fancyhf{}
+%\setlength{\headheight}{50pt}
+%\renewcommand{\headrulewidth}{0pt}
+%  \fancyhead[C]{\normalsize{ISCA 2018 Submission
+%      \textbf{\#\iscasubmissionnumber} \\ Confidential Draft: DO NOT DISTRIBUTE}} 
+%  \pagenumbering{arabic}
+%}  
+
+%%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
+\title{Coded Access Architectures for Dense Memory Systems}
+\author{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+\thispagestyle{firstpage}
+\pagestyle{plain}
+
+\input{tex_files/00abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Intrroduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{tex_files/01introduction.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Background and Related Work
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{tex_files/02background.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code design
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{tex_files/03codeDforDM.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Coding Architecture for HBM
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{tex_files/04codingArchitecture.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experiment methodology
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{tex_files/05experimentMethod.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Results
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{tex_files/results.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{tex_files/conclusion.tex}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Acknowledgements
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \comment{
+% \section{Acknowledgements}
+% We would like to thank Dr. Alan Gatherer and Hao Luan from Futurewei Technologies, and Chuiye Kong from The University of Texas at Austin for their guidance and feedback on the work described in this paper. 
+% }
+%%%%%%% -- PAPER CONTENT ENDS -- %%%%%%%%
+
+\newpage 
+
+%%%%%%%%% -- BIB STYLE AND FILE -- %%%%%%%%
+\bibliographystyle{ieeetr}
+\bibliography{tex_files/ref}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{tex_files/conclusion.tex}
+
+\comment{
+\section{HBM details: removed from background sections}
+
+% Each HBM channel is expected to provide a 128-bit data interface that supports up to 1-2 Gbps of data rate per signal equivalent to 500-1000MHz of DDR memory. This is equivalent to 16-32 GB/sec of bandwidth per channel. With 8 channels stacked together it can provide 128-256 GB/sec of access bandwidth per stack. 
+
+% The HBM specification document lists two modes of operation: legacy mode and pseudo channel mode. A memory controller can support either the legacy or the pseudo channel mode. 
+
+% In case of the legacy mode, each read or write transaction transfers 256 bits in a burst that consists of 2 cycles of 128 bits each. In pseudo channel mode, the 128-bit bus is split into 2 individual 64-bit segments. On each segment, a read or write transaction transfers 256 bits as well, but in a burst that lasts 4 cycles (of 64 bits each). The pseudo channel conceptually divides the memory of a single channel in half and assigns each half to a fixed pseudo channel. The pseudo channels share the same address and command bus: you can send a command and addresses to one pseudo channel or the other, but not to both.
+% }
