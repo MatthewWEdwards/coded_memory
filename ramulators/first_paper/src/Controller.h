@@ -460,30 +460,33 @@ public:
 				if (req->type == Request::Type::WRITE) {
 					channel->update_serving_requests(req->addr_vec.data(), -1, clk);
 				}
-
-				// Find matching req, erase
-				// XXX Messy
-				int req_bank = 0;
-				if(queue != &otherq)
-					req_bank = req->addr_vec[static_cast<int>(T::Level::Bank)];
-				auto erase_req = queue->queues[req_bank].begin(); 
-				while(true)
-				{
-					if(erase_req == queue->queues[req_bank].end())
-						assert(false);
-					if(*req == *erase_req)
-					{
-						queue->queues[req_bank].erase(erase_req);
-						break;
-					}
-					erase_req++;
-				}
+				erase_request(*queue, *req);
 			}
 		}
 
 		/*** 7. Recode using idle banks ***/
 		access_scheduler->rewrites(data_banks, reqs_scheduled);
     }
+
+	void erase_request(coding::BankQueue& queue, Request req)
+	{
+		// XXX Messy
+		int req_bank = 0;
+		if(&queue != &otherq)
+			req_bank = req.addr_vec[static_cast<int>(T::Level::Bank)];
+		auto erase_req = queue.queues[req_bank].begin(); 
+		while(true)
+		{
+			if(erase_req == queue.queues[req_bank].end())
+				assert(false);
+			if(req == *erase_req)
+			{
+				queue.queues[req_bank].erase(erase_req);
+				break;
+			}
+			erase_req++;
+		}
+	}
 
     bool is_ready(list<Request>::iterator req)
     {

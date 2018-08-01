@@ -177,7 +177,7 @@ We illustrate the aforementioned functioning of the write pattern builder with t
 
 \begin{remark}
 In the example described in Figure~\ref{fig:writeAlgoAccessPattern}, the queues for all data banks become full at the same time. In general, this is not the case and the write queues for some of the data banks become full before it does so for the other data banks. In this case, the write requests for only some of the banks get scheduled in a given memory cycle.{\color{blue} We note that the controller is designed to schedule both read and write for each bank depending on 
-the queue size and availability of the parity of banks. Therefore, if a data bank is not utilized to serve a write request in a memory cycle, it can be potentially utilized to serve a read request in that cycle.}
+the queue size and availability of the parity of banks. Therefore, if a data bank is not utilized to serve a write request in a memory cycle, it can be potentially utilized to serve a read request in that cycle.} \Matt{The current simulations only schedule reads requests OR write requests in a single memory cycle. There are issues in Ramulator when scheduling reads and writes simultaneously...}
 \end{remark}
 
 \begin{remark}

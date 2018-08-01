@@ -170,10 +170,10 @@ public:
 		BankQueue * readq = new BankQueue(*cur_queue);
 
 		// Grab read requests from data banks
-		for(DataBank& data_bank : *data_banks)
+		for(auto data_bank = data_banks->begin(); data_bank != data_banks->end(); data_bank++)
 		{
-			auto req = readq->queues[data_bank.index].begin();
-			while(req != readq->queues[data_bank.index].end())
+			auto req = readq->queues[data_bank->index].begin();
+			while(req != readq->queues[data_bank->index].end())
 			{
 				auto coding_status = recoder_unit->get(*req);
 				if(coding_status == CodeStatus::FreshParity)
@@ -182,11 +182,11 @@ public:
 					continue;  // Data bank has stale data for the row requested
 					//TODO It may be possible to use a parity bank to recover the data, hardware complexity problems?
 				}
-				data_bank.lock();
+				data_bank->lock();
 				recoder_unit->receive_row(req->addr);
 				reqs_scheduled.push_back(*req);
 				Request ref_req = *req; // XXX
-				req = readq->queues[data_bank.index].erase(req);
+				req = readq->queues[data_bank->index].erase(req);
 				serve_with_parity(ref_req, reqs_scheduled, readq);
 				break;
 			}

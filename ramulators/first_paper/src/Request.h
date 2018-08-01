@@ -31,8 +31,7 @@ public:
     } type;
 
     long arrive = -1;
-    long depart;
-    bool bypass_dram = false;
+    long depart = -1;
     function<void(Request&)> callback; // call back with more info
 
     Request(long addr, Type type, int coreid = 0)
