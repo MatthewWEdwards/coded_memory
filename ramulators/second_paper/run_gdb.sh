@@ -12,4 +12,11 @@ sudo gdb --args ./ramulator configs/HBM-config.cfg --mode=cpu \
 
 
 
+#sudo gdb --args ./ramulator configs/HBM-config.cfg --mode=cpu \
+#	../../dsp_traces/lte/dsp_0_trace.txt \
+#	../../dsp_traces/lte/dsp_1_trace.txt \
+#	../../dsp_traces/lte/dsp_2_trace.txt \
+#	../../dsp_traces/lte/dsp_3_trace.txt \
+#	../../dsp_traces/lte/dsp_4_trace.txt \
+#	../../dsp_traces/lte/dsp_5_trace.txt
 

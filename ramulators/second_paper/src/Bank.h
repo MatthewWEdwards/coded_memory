@@ -98,6 +98,10 @@ class ParityArchitecture
 				for(int i = 0; i < 8; i++)
 					parity_banks.push_back(ParityBank(trivial_parity_types[i]));
 				break;
+			case 5:
+				for(int i = 0; i < dual_parity_types.size(); i++)
+					parity_banks.push_back(ParityBank(dual_parity_types[i]));
+				break;
 			default:
 				return;
 			}
@@ -129,6 +133,7 @@ class ParityArchitecture
 
 	private:
 		vector<vector<int>> parity_types { {0,1,2,3}, {4,5,6,7}, {0,2,4,6}, {1,3,5,7} };
+		vector<vector<int>> dual_parity_types { {0,1}, {0,2}, {0,3}, {1,2}, {1,3}, {2,3}, {4,5}, {4,6}, {4,7}, {5,6}, {5,7}, {6,7} };
 		vector<vector<int>> trivial_parity_types { {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7} };
 };
 

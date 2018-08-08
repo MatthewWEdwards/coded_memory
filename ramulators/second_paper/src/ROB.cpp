@@ -65,7 +65,7 @@ public:
 		int bank = req->addr_vec[int(T::Level::Bank)];
 		auto it = robMap.find(row);
 		robRecencyQueue[row] = clk;
-		if(it == robMap.end())
+		if(it == robMap.end() || !req->just_arrived)
 		{
 			if(robMap.size() >= max_map_size)
 			{
@@ -84,6 +84,7 @@ public:
 			return read_from_memory(req);
 		}else
 		{
+			req->just_arrived = false;
 			robMap[row][int(Entry::ReadWrite)] = int(RW::Read);
 			if((robMap[row][(int(Entry::DB))] >> bank & 0x1) == 0x1)//(robMap[row][int(Entry::DValid)]))
 			{ 

@@ -541,7 +541,7 @@ private:
     void print_bank_queues() {
         cout << "Pending Reads, CLK = " << clk << ",  size = " << pending.size() << endl;
         for(auto pending_read : pending) {
-            cout << "{"; 
+            cout << "\t\t{"; 
             for(auto num = pending_read.addr_vec.begin();
                     num != pending_read.addr_vec.end();
                     num++) {
@@ -555,11 +555,11 @@ private:
         }
         for(unsigned int bank = 0; bank < readq.queues.size(); bank++)
         {
-            cout << "Readq" << ", bank = " << bank << ", size = " << readq.queues[bank].size() << endl;
+            cout << "\tReadq" << ", bank = " << bank << ", size = " << readq.queues[bank].size() << endl;
             for(auto read_queue = readq.queues[bank].begin();
                     read_queue != readq.queues[bank].end();
                     read_queue++) {
-                cout << "{"; 
+                cout << "\t\t{"; 
                 for(auto num = read_queue->addr_vec.begin();
                         num != read_queue->addr_vec.end();
                         num++) {
@@ -572,11 +572,11 @@ private:
                      << ", CoreID = " << read_queue->coreid << endl;
             }
 
-            cout << "Writeq" << ", bank = " << bank << ", size = " << writeq.queues[bank].size() << endl;
+            cout << "\tWriteq" << ", bank = " << bank << ", size = " << writeq.queues[bank].size() << endl;
             for(auto write_queue = writeq.queues[bank].begin();
                     write_queue != writeq.queues[bank].end();
                     write_queue++) {
-                cout << "{"; 
+                cout << "\t\t{"; 
                 for(auto num = write_queue->addr_vec.begin();
                         num != write_queue->addr_vec.end();
                         num++) {

@@ -1,0 +1,181 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{Moore}
+\citation{hennesey}
+\citation{Wulf1995}
+\citation{zhao2006new}
+\citation{kapasi2003programmable}
+\citation{patterson1997case}
+\citation{hennesey}
+\citation{Ramulator}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}}
+\newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
+\citation{patterson1997case}
+\citation{kapasi2003programmable}
+\citation{MacSlo}
+\citation{MacSlo}
+\citation{RS1960}
+\citation{shanmugam}
+\citation{GW16}
+\citation{intel}
+\citation{kim}
+\citation{ibm}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Multi-core Architecture with shared memory.\relax }}{2}{figure.caption.2}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:multicore}{{1}{2}{Multi-core Architecture with shared memory.\relax }{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background}{2}{section.2}}
+\newlabel{sec:bg}{{2}{2}{Background}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Multi-core Setup and Bank Conflicts}{2}{subsection.2.1}}
+\newlabel{sec:multi-core}{{2.1}{2}{Multi-core Setup and Bank Conflicts}{subsection.2.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Coding Techniques: Preliminaries}{2}{subsection.2.2}}
+\newlabel{sec:coding_prelims}{{2.2}{2}{Coding Techniques: Preliminaries}{subsection.2.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Block Codes}{2}{subsubsection.2.2.1}}
+\newlabel{sec:block-codes}{{2.2.1}{2}{Block Codes}{subsubsection.2.2.1}{}}
+\citation{Suzuki}
+\citation{WLCH14}
+\citation{ACP88}
+\citation{EMY91}
+\citation{RG91}
+\citation{CCES93}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{ACP88}
+\citation{RG91}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{MacSlo}
+\citation{Weatherspoon:2002}
+\citation{batchcodes}
+\citation{RSDG16}
+\citation{WKCB17}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Encoding Memory Banks}{3}{subsubsection.2.2.2}}
+\newlabel{sec:encoding}{{2.2.2}{3}{Encoding Memory Banks}{subsubsection.2.2.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Emulating Multi-port Memories}{3}{subsection.2.3}}
+\newlabel{sec:emulation}{{2.3}{3}{Emulating Multi-port Memories}{subsection.2.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Parity bank obtained by performing bit-wise XOR on the two data banks $\mathbf  {a}$ and $\mathbf  {b}$.\relax }}{3}{figure.caption.3}}
+\newlabel{fig:example1}{{2}{3}{Parity bank obtained by performing bit-wise XOR on the two data banks $\mathbf {a}$ and $\mathbf {b}$.\relax }{figure.caption.3}{}}
+\citation{ACP88}
+\citation{ACP88}
+\citation{kim2014hbm}
+\newlabel{fig:emulation_r}{{3a}{4}{$2$-replication scheme.\relax }{figure.caption.4}{}}
+\newlabel{sub@fig:emulation_r}{{a}{4}{$2$-replication scheme.\relax }{figure.caption.4}{}}
+\newlabel{fig:emulation_ec}{{3b}{4}{Bit-wise XOR.\relax }{figure.caption.4}{}}
+\newlabel{sub@fig:emulation_ec}{{b}{4}{Bit-wise XOR.\relax }{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Supporting multiple simultaneous read accesses using single-port memory banks. Let's consider two concurrent requests for data $\{a(i), a(j)\}$ which cause bank conflict in a single memory banks. 1) For the replication-based design, since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. 2) In the coded memory system, as shown in Figure\nobreakspace  {}\ref  {fig:emulation_ec}, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank 1 , and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively.\relax }}{4}{figure.caption.4}}
+\newlabel{fig:emulation}{{3}{4}{Supporting multiple simultaneous read accesses using single-port memory banks. Let's consider two concurrent requests for data $\{a(i), a(j)\}$ which cause bank conflict in a single memory banks. 1) For the replication-based design, since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. 2) In the coded memory system, as shown in Figure~\ref {fig:emulation_ec}, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank 1 , and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively.\relax }{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces High Density Memory (HBM) architecture\footnotemark . The 3D stacking of memory channels provides an orthogonal plane to pack a large amount of storage in a smaller footprint while maintaining the system's electromagnetic characteristics.\relax }}{4}{figure.caption.5}}
+\newlabel{fig:hbm-arch}{{4}{4}{High Density Memory (HBM) architecture\protect \footnotemark . The 3D stacking of memory channels provides an orthogonal plane to pack a large amount of storage in a smaller footprint while maintaining the system's electromagnetic characteristics.\relax }{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}High Bandwidth Memory}{4}{subsection.2.4}}
+\newlabel{sec:hbm}{{2.4}{4}{High Bandwidth Memory}{subsection.2.4}{}}
+\citation{HMC_slides}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Block diagram description of new memory system architectures with distributed memory controllers. This architecture includes a control logic closer to the data bank. This control logic is capable of certain fixed computation that can be exploited to reduce the access bandwidth between the bank and the main controller.\relax }}{5}{figure.caption.6}}
+\newlabel{fig:HBM}{{5}{5}{Block diagram description of new memory system architectures with distributed memory controllers. This architecture includes a control logic closer to the data bank. This control logic is capable of certain fixed computation that can be exploited to reduce the access bandwidth between the bank and the main controller.\relax }{figure.caption.6}{}}
+\citation{khan}
+\citation{dimakis}
+\citation{Azure12}
+\citation{sathiamoorthy}
+\citation{Hitchhiker}
+\citation{batchcodes}
+\citation{RPDV16}
+\citation{RSDG16}
+\citation{WKCB17}
+\citation{luan2017dynamic}
+\citation{luan2017intelligent}
+\citation{luan2017intelligent2}
+\citation{luan2017dynamic}
+\citation{luan2017intelligent}
+\citation{luan2017intelligent2}
+\citation{RG91}
+\citation{Memoir_xor}
+\citation{Memoir_xor_virtual}
+\citation{EMY91}
+\citation{EMY91}
+\citation{huang}
+\citation{sathiamoorthy}
+\citation{shanmugam}
+\citation{sathiamoorthy}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Related Work}{6}{subsection.2.5}}
+\newlabel{sec:related}{{2.5}{6}{Related Work}{subsection.2.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}CODED MEMORY SYSTEM}{6}{section.3}}
+\newlabel{sec:codingArchitecture}{{3}{6}{CODED MEMORY SYSTEM}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Coded Multi-bank Storage Space}{6}{subsection.3.1}}
+\newlabel{sec:codedBanks}{{3.1}{6}{Coded Multi-bank Storage Space}{subsection.3.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Data storage layout for coded memory system\relax }}{7}{figure.caption.7}}
+\newlabel{fig:memsys}{{6}{7}{Data storage layout for coded memory system\relax }{figure.caption.7}{}}
+\newlabel{rem:degraded}{{3}{7}{Coded Multi-bank Storage Space}{remark.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Memory Controller Design}{7}{subsection.3.2}}
+\newlabel{sec:controller}{{3.2}{7}{Memory Controller Design}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Reorder buffer}{7}{subsubsection.3.2.1}}
+\newlabel{sec:reorder}{{3.2.1}{7}{Reorder buffer}{subsubsection.3.2.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Example of a single entry \texttt  {0x2} in the reorder buffer across time during a Read-Write-Read request pattern. At t=$1$, there is a read from $B0$--$B1$, followed by a read at $t=2$ from $B0$--$B7$ which includes both data and parity banks. A write request to $B0$ occurs from $t=3$ to $t=6$, during which $DB_0$ is updated, $D_{\rm  valid}$ is set to $1$, bits for parities banks, i.e., $PB_0$--$PB_7$, are updated, $P_{\rm  valid}$ is set to $1$, and $Done$ is set to $1$. Since data banks are valid after $t=4$, a read from $B{4} $--$B6$ is served using only data banks at $t=5$, which sets the $R/W$ bit to $R$. A read from $B0 $--$B7$ occurs at $t=7$, which does not change the state of the reorder buffer.\relax }}{8}{table.caption.8}}
+\newlabel{fig:rob}{{1}{8}{Example of a single entry \texttt {0x2} in the reorder buffer across time during a Read-Write-Read request pattern. At t=$1$, there is a read from $B0$--$B1$, followed by a read at $t=2$ from $B0$--$B7$ which includes both data and parity banks. A write request to $B0$ occurs from $t=3$ to $t=6$, during which $DB_0$ is updated, $D_{\rm valid}$ is set to $1$, bits for parities banks, i.e., $PB_0$--$PB_7$, are updated, $P_{\rm valid}$ is set to $1$, and $Done$ is set to $1$. Since data banks are valid after $t=4$, a read from $B{4} $--$B6$ is served using only data banks at $t=5$, which sets the $R/W$ bit to $R$. A read from $B0 $--$B7$ occurs at $t=7$, which does not change the state of the reorder buffer.\relax }{table.caption.8}{}}
+\newlabel{rem:priority}{{5}{8}{Reorder buffer}{remark.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Read algorithm}{8}{subsubsection.3.2.2}}
+\newlabel{sec:read}{{3.2.2}{8}{Read algorithm}{subsubsection.3.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Description of the read algorithm.\relax }}{8}{figure.caption.9}}
+\newlabel{fig:read}{{7}{8}{Description of the read algorithm.\relax }{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Write algorithm}{9}{subsubsection.3.2.3}}
+\newlabel{sec:write}{{3.2.3}{9}{Write algorithm}{subsubsection.3.2.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Description of the write algorithm.\relax }}{9}{figure.caption.10}}
+\newlabel{fig:write}{{8}{9}{Description of the write algorithm.\relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}Writeback algorithm}{9}{subsubsection.3.2.4}}
+\newlabel{sec:writeback}{{3.2.4}{9}{Writeback algorithm}{subsubsection.3.2.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{9}{section.4}}
+\newlabel{sec:experiments}{{4}{9}{Experiments}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}HBM Implementation}{9}{subsection.4.1}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary table of design parameters.\relax }}{9}{table.caption.11}}
+\newlabel{tab:design_params}{{2}{9}{Summary table of design parameters.\relax }{table.caption.11}{}}
+\citation{Ramulator}
+\citation{SPEC2006}
+\citation{mcf}
+\newlabel{rem:address}{{6}{10}{HBM Implementation}{remark.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Address mapping for channels.\relax }}{10}{figure.caption.12}}
+\newlabel{fig:mapping}{{9}{10}{Address mapping for channels.\relax }{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Single-core CPU Simulation.\relax }}{10}{figure.caption.13}}
+\newlabel{fig:single-core-cpu}{{10}{10}{Single-core CPU Simulation.\relax }{figure.caption.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Multi-core CPU Simulation.\relax }}{10}{figure.caption.14}}
+\newlabel{fig:multi-core-cpu}{{11}{10}{Multi-core CPU Simulation.\relax }{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Methodology}{10}{subsection.4.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Cycle Simulation Results}{10}{subsection.4.3}}
+\newlabel{sec:results}{{4.3}{10}{Cycle Simulation Results}{subsection.4.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Cycle Simulation Results}{10}{subsection.4.4}}
+\newlabel{sec:results}{{4.4}{10}{Cycle Simulation Results}{subsection.4.4}{}}
+\citation{mcf}
+\citation{Kim2016}
+\citation{Kadjo2014}
+\citation{Shevgoor2015}
+\citation{JL2013}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $\{8,16,32,64,128,\infty \}$). \relax }}{11}{figure.caption.15}}
+\newlabel{fig:spec-cycles}{{12}{11}{Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $\{8,16,32,64,128,\infty \}$). \relax }{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven wireless SoC traces (reorder buffer size $16$) \relax }}{11}{figure.caption.16}}
+\newlabel{fig:lte_umts}{{13}{11}{Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven wireless SoC traces (reorder buffer size $16$) \relax }{figure.caption.16}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{11}{section.5}}
+\newlabel{sec:conclusion}{{5}{11}{Conclusion}{section.5}{}}
+\bibstyle{ieeetr}
+\bibdata{tex_files/ref}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Memory bank accesses across a 3 $\mu $s trace, which suggest linear access patterns. The right figure is an enlarged version of the top half of the left figure. \relax }}{12}{figure.caption.17}}
+\newlabel{fig:prefetch1}{{14}{12}{Memory bank accesses across a 3 $\mu $s trace, which suggest linear access patterns. The right figure is an enlarged version of the top half of the left figure. \relax }{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $\{8,16,32,64,128,\infty \}$). \relax }}{12}{figure.caption.18}}
+\newlabel{fig:spec-cycles}{{15}{12}{Simulated Number of CPU cycles: Baseline HBM versus Coded HBM across different benchmarks (with reorder buffer size of $\{8,16,32,64,128,\infty \}$). \relax }{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}HBM details: removed from background sections}{12}{section.6}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Acknowledgements}{12}{section.7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven Wireless SoC traces (reorder buffer size $16$) \relax }}{13}{figure.caption.19}}
+\newlabel{fig:lte_umts}{{16}{13}{Simulated Number of active DRAM cycles: Baseline HBM versus Coded HBM across application-driven Wireless SoC traces (reorder buffer size $16$) \relax }{figure.caption.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Memory bank accesses across a 3 $\mu $s trace, which suggest linear access patterns. The right figure is an enlarged version of the top half of the left figure. \relax }}{13}{figure.caption.20}}
+\newlabel{fig:prefetch1}{{17}{13}{Memory bank accesses across a 3 $\mu $s trace, which suggest linear access patterns. The right figure is an enlarged version of the top half of the left figure. \relax }{figure.caption.20}{}}

@@ -34,6 +34,7 @@ public:
 
     long arrive = -1;
     long depart;
+	bool just_arrived = true;
     function<void(Request&)> callback; // call back with more info
 
     Request(long addr, Type type, int coreid = 0)

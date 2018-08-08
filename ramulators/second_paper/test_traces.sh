@@ -78,12 +78,12 @@ sed -i "19s/.*/ rob_length = $rob_length/" configs/HBM-config.cfg
 if [[ $trace == "lte" ]] || [[ $trace == "umts" ]];
 then
 	./ramulator configs/HBM-config.cfg --mode=cpu \
-		dsp_traces/${trace}/dsp_0_trace.txt \
-		dsp_traces/${trace}/dsp_1_trace.txt \
-		dsp_traces/${trace}/dsp_2_trace.txt \
-		dsp_traces/${trace}/dsp_3_trace.txt \
-		dsp_traces/${trace}/dsp_4_trace.txt \
-		dsp_traces/${trace}/dsp_5_trace.txt
+		../../dsp_traces/${trace}/dsp_0_trace.txt \
+		../../dsp_traces/${trace}/dsp_1_trace.txt \
+		../../dsp_traces/${trace}/dsp_2_trace.txt \
+		../../dsp_traces/${trace}/dsp_3_trace.txt \
+		../../dsp_traces/${trace}/dsp_4_trace.txt \
+		../../dsp_traces/${trace}/dsp_5_trace.txt
 
 fi
 
