@@ -9,6 +9,7 @@
 #include <queue>
 #include <list>
 #include <functional>
+#include <set>
 
 #include "Request.h"
 #include "Bank.h"
@@ -30,6 +31,11 @@ public:
 	ParityArchitecture parity_arch;
 	BankArchitecture bank_arch = BankArchitecture();
 	
+	/* Dynamic Encoding variables */
+	double alpha = 1;
+	double code_region_length = 1;
+	unsigned int num_rows_per_region;
+	set<unsigned int> active_regions;
 
 	enum class Entry: int
 	{
@@ -46,8 +52,17 @@ private:
 	uint32_t max_map_size = 0;
 	float writeback_trigger_threshold = 0.8;
 	float map_reduce_threshold = 0.5;
+	
 
 public:
+	ROB(const Config& configs, double alpha, double code_region_length, unsigned int num_rows_per_region):
+		alpha(alpha),
+		code_region_length(code_region_length),
+		num_rows_per_region(num_rows_per_region)
+	{
+		parity_arch = ParityArchitecture(configs.get_parity_architecture());
+		max_map_size = configs.get_rob_length();
+	}
 	ROB(const Config& configs)
 	{
 		parity_arch = ParityArchitecture(configs.get_parity_architecture());
@@ -346,6 +361,9 @@ private:
 	*/
 	bool parity_read(int row, int bank_num)
 	{
+		unsigned int row_region = (row / num_rows_per_region) / code_region_length;
+		if(active_regions.find(row_region) == active_regions.end())
+			return false;
 		vector<reference_wrapper<ParityBank>> parities_available;
 		vector<reference_wrapper<ParityBank>> parities_to_use;
 		vector<reference_wrapper<Bank>> memory_banks_to_use;

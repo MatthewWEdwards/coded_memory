@@ -17,10 +17,12 @@
 #include "Statistics.h"
 #include "ROB.cpp"
 #include "Bank.h"
+#include "DynamicEncoder.h"
 
 #include "ALDRAM.h"
 #include "SALP.h"
 #include "TLDRAM.h"
+#include <set>
 
 using namespace std;
 
@@ -76,6 +78,7 @@ public:
     RowTable<T>* rowtable;  // tracks metadata about rows (e.g., which are open and for how long)
     Refresh<T>* refresh;
 	ROB<T> rob;
+	DynamicEncoder<T> * dynamic_encoder;
 
     BankQueue readq = BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);  // queue for read requests
     BankQueue writeq = BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);  // queue for write requests
@@ -84,6 +87,18 @@ public:
     deque<Request> pending;  // read requests that are about to receive data from DRAM
     bool write_mode = false;  // whether write requests should be prioritized over reads
     //long refreshed = 0;  // last time refresh requests were generated
+
+	/* Dynamic Encoder variables */
+	double alpha = .02; // TODO: Config
+	double region_length = .01; // TODO Config
+	unsigned int num_regions = 1 / region_length;  // TODO: Round up
+	unsigned int num_regions_to_select = alpha / region_length; // TODO Round down
+	unsigned int num_rows_per_region = channel->spec->org_entry.count[static_cast<int>(T::Level::Row)] * region_length;
+	set<unsigned int> active_regions;
+	set<unsigned int> selected_regions;
+	vector<unsigned int> region_hits = vector<unsigned int>(num_regions, 0);
+	unsigned int coding_region_counter = 0;
+	unsigned int coding_region_reschedule_ticks = 1e3;
 
     /* Command trace for DRAMPower 3.1 */
     string cmd_trace_prefix = "cmd-trace-";
@@ -100,7 +115,7 @@ public:
         rowpolicy(new RowPolicy<T>(this)),
         rowtable(new RowTable<T>(this)),
         refresh(new Refresh<T>(this)),
-		rob(configs),
+		rob(ROB<T>(configs)),
         cmd_trace_files(channel->children.size())
     {
 		print_bank_queues_flag = configs.print_bank_queues();
@@ -115,6 +130,17 @@ public:
             for (unsigned int i = 0; i < channel->children.size(); i++)
                 cmd_trace_files[i].open(prefix + to_string(i) + suffix);
         }
+
+		/* Dynamic Encoding Preparation */
+		for(unsigned int select = 0; select < num_regions_to_select; select++)
+			active_regions.insert(select);
+		selected_regions = active_regions;
+		dynamic_encoder = new DynamicEncoder<T>(active_regions, alpha, region_length, num_rows_per_region);
+		rob.alpha = alpha;
+		rob.code_region_length = region_length;
+		rob.num_rows_per_region = num_rows_per_region;
+		rob.active_regions = active_regions;
+		
 
         // regStats
 
@@ -403,6 +429,13 @@ public:
 					}
 				}
 
+				/* record hit */
+				if (req->type == Request::Type::READ || req->type == Request::Type::WRITE) {
+					unsigned int region = req->addr_vec[static_cast<int>(T::Level::Row)] / num_rows_per_region;
+					region_hits[region]++;
+				}
+
+
 				if (req == bank_queue->end() || !is_ready(req)) {
 					// we couldn't find a command to schedule -- let's try to be speculative
 					auto cmd = T::Command::PRE;
@@ -471,8 +504,54 @@ public:
 		}
 		/*** 5 Complete write requests and use idle banks to fill the ROB **/
 		rob.issue_cmds();
+		coding_region_controller(rob.bank_arch.banks);
 
     }
+
+    void coding_region_controller(vector<Bank>& data_banks)
+    {
+        coding_region_counter++;
+        if (coding_region_counter >= coding_region_reschedule_ticks) {
+            /* find the coding regions with the most hits */
+            set<unsigned int> regions_selected;
+            for(unsigned int num_region = 0; num_region < num_regions_to_select; num_region++)
+            {
+                unsigned int max_idx = distance(region_hits.begin(), max_element(region_hits.begin(), region_hits.end()));
+                if(region_hits[max_idx] == 0)
+                    break;
+                regions_selected.insert(max_idx);
+                region_hits[max_idx] = 0;
+            }
+            for(auto top_sel_idx : regions_selected)
+            {
+                if(find(selected_regions.begin(), selected_regions.end(), top_sel_idx) == selected_regions.end())
+                {
+                    selected_regions = regions_selected;
+                    switch_coding_regions(regions_selected);
+                    break;
+                }
+            }
+            /* reset tracking counters */
+            region_hits.assign(region_hits.size(), 0);
+            coding_region_counter = 0;
+        }
+        // Use idle banks and current reads to prepare region switches
+        dynamic_encoder->fill_data_using_banks(data_banks);
+		dynamic_encoder->fill_data_using_rob(rob.robMap);
+
+        // Check we can swap an encoded regions
+        active_regions = dynamic_encoder->replace_regions();
+		rob.active_regions = active_regions;
+    }
+
+    void switch_coding_regions(set<unsigned int>& regions_selected)
+    {
+        // Grab active topologies
+        //topology_switches++; FIXME implement this stat recording
+        dynamic_encoder->switch_regions(channel->spec, regions_selected);
+    }
+
+
 
     bool is_ready(list<Request>::iterator req)
     {

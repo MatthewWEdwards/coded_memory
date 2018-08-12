@@ -158,6 +158,8 @@ class Bank {
 		inline bool is_free() {return !busy;}
 
 		inline void read() {busy = true;}
+
+		inline void lock() {busy = true;}
 };
 
 
