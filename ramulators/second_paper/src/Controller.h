@@ -89,7 +89,7 @@ public:
     //long refreshed = 0;  // last time refresh requests were generated
 
 	/* Dynamic Encoder variables */
-	double alpha = .02; // TODO: Config
+	double alpha = .03; // TODO: Config
 	double region_length = .01; // TODO Config
 	unsigned int num_regions = 1 / region_length;  // TODO: Round up
 	unsigned int num_regions_to_select = alpha / region_length; // TODO Round down

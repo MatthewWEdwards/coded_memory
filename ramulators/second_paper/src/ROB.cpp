@@ -361,7 +361,7 @@ private:
 	*/
 	bool parity_read(int row, int bank_num)
 	{
-		unsigned int row_region = (row / num_rows_per_region) / code_region_length;
+		unsigned int row_region = (row / num_rows_per_region);
 		if(active_regions.find(row_region) == active_regions.end())
 			return false;
 		vector<reference_wrapper<ParityBank>> parities_available;
