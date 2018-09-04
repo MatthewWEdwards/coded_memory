@@ -77,7 +77,8 @@ sed -i "19s/.*/ rob_length = $rob_length/" configs/HBM-config.cfg
 # Run simulation
 if [[ $trace == "lte" ]] || [[ $trace == "umts" ]];
 then
-	./ramulator configs/HBM-config.cfg --mode=cpu \
+	stats_name="HBM_${arch}_${rob_length}.stats"
+	./ramulator configs/HBM-config.cfg --mode=cpu --stats $stats_name \
 		../../dsp_traces/${trace}/dsp_0_trace.txt \
 		../../dsp_traces/${trace}/dsp_1_trace.txt \
 		../../dsp_traces/${trace}/dsp_2_trace.txt \

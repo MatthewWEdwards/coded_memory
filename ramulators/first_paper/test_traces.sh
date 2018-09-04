@@ -69,7 +69,14 @@ sed -i "19s/.*/ alpha = $alpha/" configs/HBM-config.cfg
 ### Run simulation ###
 if [[ $trace == "lte" ]] || [[ $trace == "umts" ]];
 then
-	./ramulator configs/HBM-config.cfg --mode=cpu \
+	stats_name="results/HBM_${arch}_${alpha}.stats"
+	./ramulator configs/HBM-config.cfg --mode=cpu --stats $stats_name \
+		../../dsp_traces/${trace}/dsp_0_trace.txt \
+		../../dsp_traces/${trace}/dsp_1_trace.txt \
+		../../dsp_traces/${trace}/dsp_2_trace.txt \
+		../../dsp_traces/${trace}/dsp_3_trace.txt \
+		../../dsp_traces/${trace}/dsp_4_trace.txt \
+		../../dsp_traces/${trace}/dsp_5_trace.txt \
 		../../dsp_traces/${trace}/dsp_0_trace.txt \
 		../../dsp_traces/${trace}/dsp_1_trace.txt \
 		../../dsp_traces/${trace}/dsp_2_trace.txt \

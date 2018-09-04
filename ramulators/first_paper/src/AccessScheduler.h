@@ -130,13 +130,13 @@ public:
 		delete dynamic_encoder;
 	}
 
-	void tick(long clk, coding::BankQueue* readq, coding::BankQueue* writeq, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled, bool write_mode)
+	void tick(long clk, coding::BankQueue* readq, coding::BankQueue* writeq, list<Request>* pending_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled, bool write_mode)
 	{
 		/* refresh banks */
 		for (ParityBank& bank : parity_banks)
 			bank.tick();
 		if(!write_mode)
-			read_pattern_builder(clk, readq, data_banks, reqs_scheduled);
+			read_pattern_builder(clk, readq, pending_queue, data_banks, reqs_scheduled);
 		else
 			write_pattern_builder(clk, writeq, data_banks, reqs_scheduled);
 	}
@@ -163,7 +163,7 @@ public:
 
 //=========Read Build Pattern===============================================
 	//TODO Prioritize data bank queues which are longer
-    void read_pattern_builder(long clk, coding::BankQueue* cur_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
+    void read_pattern_builder(long clk, coding::BankQueue* cur_queue, list<Request>* pending_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled)
     {
 		this->clk = clk;
 
@@ -200,7 +200,7 @@ public:
 			auto req = bank_queue->begin();
 			while(req != bank_queue->end())
 			{
-				bool parity_success = attempt_parity_read(*req, data_banks, reqs_scheduled);
+				bool parity_success = attempt_parity_read(*req, data_banks, reqs_scheduled, *pending_queue);
 				if(parity_success)	
 					req = bank_queue->erase(req);
 				else
@@ -210,7 +210,7 @@ public:
 		delete readq;
     }
 
-	bool attempt_parity_read(const Request& req, vector<DataBank>* data_banks, list<Request>& reqs_scheduled)
+	bool attempt_parity_read(const Request& req, vector<DataBank>* data_banks, list<Request>& reqs_scheduled, list<Request>& pending_queue)
 	{
 		// This function attempts to used each parity banks as the "base" decoding bank
 		for(auto parity_bank = parity_banks.begin();
@@ -243,6 +243,18 @@ public:
 				{
 					if(xor_regions.request_region(req) == other_region &&
 					   xor_regions.same_request_row_numbers(read, req))
+					{
+						matched_read = true;
+						break;
+					}
+				}
+				if(matched_read)
+					continue;
+
+				// Check if requests in the pending queue can be used to satisfy an xor region
+				for(auto pending_req : pending_queue)
+				{
+					if(other_region.contains(pending_req) && xor_regions.same_request_row_numbers(pending_req, req))
 					{
 						matched_read = true;
 						break;
@@ -403,7 +415,8 @@ public:
 				// XXX
 				Request dummy_req = recode_req->req;
 				dummy_req.addr_vec[static_cast<int>(T::Level::Bank)] = bank_needed;
-				bool parity_read = attempt_parity_read(dummy_req, &data_banks, reqs_scheduled);
+				list<Request> dummy_pending_queue;
+				bool parity_read = attempt_parity_read(dummy_req, &data_banks, reqs_scheduled, dummy_pending_queue);
 				if(parity_read)
 					banks_satisfied.push_back(bank_needed);
 			}
@@ -495,9 +508,6 @@ private:
     void switch_coding_regions(set<unsigned int>& regions_selected)
 	{
 		// Grab active topologies
-		set<ParityBankTopology> new_tops;
-		for(auto top_idx : regions_selected)
-			new_tops.insert(topologies[top_idx]);
 		topology_switches++;
 		dynamic_encoder->switch_regions(channel->spec, regions_selected);
     }

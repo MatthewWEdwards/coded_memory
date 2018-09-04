@@ -392,7 +392,7 @@ public:
 		if(queue == &otherq){
 			reqs_scheduled.push_back(queue->queues[0].front());
 		}else{
-			access_scheduler->tick(clk, &readq, &writeq, &data_banks, reqs_scheduled, write_mode); 
+			access_scheduler->tick(clk, &readq, &writeq, &pending, &data_banks, reqs_scheduled, write_mode); 
 		}
 
 		/*** 6. Schedule Requests ***/
