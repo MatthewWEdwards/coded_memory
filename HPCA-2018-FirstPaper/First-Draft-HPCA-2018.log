@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.7.30)  8 AUG 2018 10:13
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.7.30)  5 SEP 2018 11:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -426,11 +426,7 @@ Excluding comment 'comment')
 \c@remark=\count134
 \c@case=\count135
 \c@assumption=\count136
- (./First-Draft-HPCA-2018.aux
-
-LaTeX Warning: Label `sec:simulation' multiply defined.
-
-)
+ (./First-Draft-HPCA-2018.aux)
 \openout1 = `First-Draft-HPCA-2018.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 67.
@@ -447,7 +443,8 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 67.
 LaTeX Font Info:    ... okay on input line 67.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 67.
 LaTeX Font Info:    ... okay on input line 67.
- (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+
+(/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count137
 \scratchdimen=\dimen148
@@ -544,12 +541,12 @@ File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 LaTeX Warning: No \author given.
 
 Excluding 'comment' comment. Excluding 'comment' comment. (./intro.tex
-<fig/cpuvsmemory.jpg, id=126, 638.385pt x 344.78813pt>
+<fig/cpuvsmemory.jpg, id=142, 638.385pt x 344.78813pt>
 File: fig/cpuvsmemory.jpg Graphic file (type jpg)
 <use fig/cpuvsmemory.jpg>
 Package pdftex.def Info: fig/cpuvsmemory.jpg  used on input line 8.
 (pdftex.def)             Requested size: 167.99927pt x 90.73183pt.
-<fig/multicore-sys.pdf, id=130, 720.40726pt x 580.90837pt>
+<fig/multicore-sys.pdf, id=146, 720.40726pt x 580.90837pt>
 File: fig/multicore-sys.pdf Graphic file (type pdf)
 <use fig/multicore-sys.pdf>
 Package pdftex.def Info: fig/multicore-sys.pdf  used on input line 26.
@@ -561,7 +558,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
  <./fig/cpuvsmemory.jpg>]
-<fig/example-xor.pdf, id=154, 454.62257pt x 561.27667pt>
+<fig/example-xor.pdf, id=170, 454.62257pt x 561.27667pt>
 File: fig/example-xor.pdf Graphic file (type pdf)
 <use fig/example-xor.pdf>
 Package pdftex.def Info: fig/example-xor.pdf  used on input line 36.
@@ -589,12 +586,12 @@ Overfull \hbox (10.28725pt too wide) in paragraph at lines 10--11
 \T1/aer/bx/n/10 multi-port RAMs and their em-u-la-tion us-ing single-
  []
 
-<fig/read-replication.pdf, id=279, 541.5657pt x 566.59224pt>
+<fig/read-replication.pdf, id=295, 541.5657pt x 566.59224pt>
 File: fig/read-replication.pdf Graphic file (type pdf)
 <use fig/read-replication.pdf>
 Package pdftex.def Info: fig/read-replication.pdf  used on input line 27.
 (pdftex.def)             Requested size: 102.00073pt x 106.71127pt.
-<fig/rw-replication.pdf, id=280, 990.96793pt x 738.54044pt>
+<fig/rw-replication.pdf, id=296, 990.96793pt x 738.54044pt>
 File: fig/rw-replication.pdf Graphic file (type pdf)
 <use fig/rw-replication.pdf>
 Package pdftex.def Info: fig/rw-replication.pdf  used on input line 36.
@@ -647,12 +644,12 @@ Overfull \hbox (8.08853pt too wide) in paragraph at lines 43--44
 []\T1/aer/m/it/10 Let's con-sider a setup with two data banks
  []
 
-<fig/example-inter-bank.pdf, id=411, 410.08739pt x 268.95341pt>
+<fig/example-inter-bank.pdf, id=427, 410.08739pt x 268.95341pt>
 File: fig/example-inter-bank.pdf Graphic file (type pdf)
 <use fig/example-inter-bank.pdf>
 Package pdftex.def Info: fig/example-inter-bank.pdf  used on input line 74.
 (pdftex.def)             Requested size: 109.43866pt x 71.77298pt.
-<fig/example-inter-bank-2.pdf, id=412, 418.74182pt x 264.2934pt>
+<fig/example-inter-bank-2.pdf, id=428, 418.74182pt x 264.2934pt>
 File: fig/example-inter-bank-2.pdf Graphic file (type pdf)
 <use fig/example-inter-bank-2.pdf>
 Package pdftex.def Info: fig/example-inter-bank-2.pdf  used on input line 80.
@@ -673,13 +670,13 @@ Underfull \hbox (badness 10000) in paragraph at lines 213--217
 
  []
 
-<fig/Code-Design-1.pdf, id=572, 1019.2555pt x 403.43013pt>
+<fig/Code-Design-1.pdf, id=588, 1019.2555pt x 403.43013pt>
 File: fig/Code-Design-1.pdf Graphic file (type pdf)
 <use fig/Code-Design-1.pdf>
 Package pdftex.def Info: fig/Code-Design-1.pdf  used on input line 222.
 (pdftex.def)             Requested size: 240.0pt x 94.99077pt.
 [8 <./fig/Code-Design-1.pdf>]
-<fig/Code-Design-2.pdf, id=881, 983.27771pt x 499.98636pt>
+<fig/Code-Design-2.pdf, id=897, 983.27771pt x 499.98636pt>
 File: fig/Code-Design-2.pdf Graphic file (type pdf)
 <use fig/Code-Design-2.pdf>
 Package pdftex.def Info: fig/Code-Design-2.pdf  used on input line 283.
@@ -714,13 +711,13 @@ Underfull \hbox (badness 10000) in paragraph at lines 292--293
 
  []
 
-<fig/Code-Design-3_9banks.pdf, id=884, 850.15291pt x 401.17508pt>
+<fig/Code-Design-3_9banks.pdf, id=900, 850.15291pt x 401.17508pt>
 File: fig/Code-Design-3_9banks.pdf Graphic file (type pdf)
 <use fig/Code-Design-3_9banks.pdf>
 Package pdftex.def Info: fig/Code-Design-3_9banks.pdf  used on input line 339.
 (pdftex.def)             Requested size: 240.0pt x 113.2526pt.
 [9 <./fig/Code-Design-2.pdf> <./fig/Code-Design-3_9banks.pdf>]
-<fig/Code-Design-3_8banks.pdf, id=1558, 781.61192pt x 397.43854pt>
+<fig/Code-Design-3_8banks.pdf, id=1574, 781.61192pt x 397.43854pt>
 File: fig/Code-Design-3_8banks.pdf Graphic file (type pdf)
 <use fig/Code-Design-3_8banks.pdf>
 Package pdftex.def Info: fig/Code-Design-3_8banks.pdf  used on input line 358.
@@ -731,31 +728,37 @@ Overfull \hbox (4.57657pt too wide) in paragraph at lines 6--15
 \T1/aer/m/n/10 ory sys-tem re-dun-dantly stores the data in mem-ory banks,
  []
 
-<fig/controllerArchitecture.pdf, id=1560, 1011.78pt x 758.835pt>
+<fig/controllerArchitecture.pdf, id=1576, 1011.78pt x 758.835pt>
 File: fig/controllerArchitecture.pdf Graphic file (type pdf)
 <use fig/controllerArchitecture.pdf>
 Package pdftex.def Info: fig/controllerArchitecture.pdf  used on input line 25.
 
 (pdftex.def)             Requested size: 167.99927pt x 125.98973pt.
 [10 <./fig/Code-Design-3_8banks.pdf> <./fig/controllerArchitecture.pdf>]
-<fig/coded_access_scheduler.pdf, id=1911, 1011.78pt x 758.835pt>
+<fig/coded_access_scheduler.pdf, id=1927, 1011.78pt x 758.835pt>
 File: fig/coded_access_scheduler.pdf Graphic file (type pdf)
 <use fig/coded_access_scheduler.pdf>
 Package pdftex.def Info: fig/coded_access_scheduler.pdf  used on input line 65.
 
 (pdftex.def)             Requested size: 167.99927pt x 125.98973pt.
-<fig/read_pattern_algo.png, id=1914, 1387.1825pt x 2350.7825pt>
+<fig/read_pattern_algo.png, id=1930, 1387.1825pt x 2350.7825pt>
 File: fig/read_pattern_algo.png Graphic file (type png)
 <use fig/read_pattern_algo.png>
-Package pdftex.def Info: fig/read_pattern_algo.png  used on input line 95.
+Package pdftex.def Info: fig/read_pattern_algo.png  used on input line 92.
 (pdftex.def)             Requested size: 230.40161pt x 390.44502pt.
-<fig/Read-Algo-Example.pdf, id=1916, 1024.67719pt x 506.8826pt>
+<fig/Read-Algo-Example.pdf, id=1932, 1024.67719pt x 506.8826pt>
 File: fig/Read-Algo-Example.pdf Graphic file (type pdf)
 <use fig/Read-Algo-Example.pdf>
-Package pdftex.def Info: fig/Read-Algo-Example.pdf  used on input line 104.
+Package pdftex.def Info: fig/Read-Algo-Example.pdf  used on input line 101.
 (pdftex.def)             Requested size: 230.40161pt x 113.97404pt.
 
-Overfull \hbox (6.36801pt too wide) in paragraph at lines 112--115
+Overfull \hbox (23.65617pt too wide) in paragraph at lines 109--110
+|   []   |   []   |   []   |   []   |   []   |   []   |   []   |   []   |   [] 
+  |   []   |   []
+ []
+
+
+Overfull \hbox (6.85226pt too wide) in paragraph at lines 109--110
 |   []   |   []   |   []   |   []   |   []   |   []   |   []   |   []   |   []
  []
 
@@ -763,125 +766,117 @@ Overfull \hbox (6.36801pt too wide) in paragraph at lines 112--115
 Underfull \vbox (badness 3514) has occurred while \output is active []
 
  [11 <./fig/coded_access_scheduler.pdf> <./fig/read_pattern_algo.png>]
-Overfull \hbox (3.01662pt too wide) in paragraph at lines 126--141
+Overfull \hbox (3.01662pt too wide) in paragraph at lines 121--136
 \T1/aer/m/n/10 abil-ity of par-ity banks. It marks a par-ity bank busy/used
  []
 
-
-Underfull \vbox (badness 6445) has occurred while \output is active []
-
- [12 <./fig/Read-Algo-Example.pdf>]
-<fig/Write-Algo-Example.pdf, id=2183, 1027.84pt x 648.2365pt>
+[12 <./fig/Read-Algo-Example.pdf>]
+<fig/Write-Algo-Example.pdf, id=2200, 1027.84pt x 648.2365pt>
 File: fig/Write-Algo-Example.pdf Graphic file (type pdf)
 <use fig/Write-Algo-Example.pdf>
-Package pdftex.def Info: fig/Write-Algo-Example.pdf  used on input line 203.
+Package pdftex.def Info: fig/Write-Algo-Example.pdf  used on input line 198.
 (pdftex.def)             Requested size: 240.0pt x 151.35635pt.
- [13 <./fig/Write-Algo-Example.pdf>]
-Overfull \hbox (6.2973pt too wide) in paragraph at lines 242--246
+
+Overfull \hbox (6.2973pt too wide) in paragraph at lines 237--241
 []\T1/aer/m/n/10 We make sim-i-lar ob-ser-va-tion from Fig-ure []17[] for UMTS.
 
  []
 
-<fig/core_access1.jpg, id=2525, 562.1pt x 421.575pt>
+<fig/core_access1.jpg, id=2206, 562.1pt x 421.575pt>
 File: fig/core_access1.jpg Graphic file (type jpg)
 <use fig/core_access1.jpg>
-Package pdftex.def Info: fig/core_access1.jpg  used on input line 256.
+Package pdftex.def Info: fig/core_access1.jpg  used on input line 251.
 (pdftex.def)             Requested size: 120.0pt x 90.00002pt.
-<fig/core_access2.jpg, id=2526, 562.1pt x 421.575pt>
+<fig/core_access2.jpg, id=2207, 562.1pt x 421.575pt>
 File: fig/core_access2.jpg Graphic file (type jpg)
 <use fig/core_access2.jpg>
-Package pdftex.def Info: fig/core_access2.jpg  used on input line 261.
+Package pdftex.def Info: fig/core_access2.jpg  used on input line 256.
 (pdftex.def)             Requested size: 120.0pt x 90.00002pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 255--265
+Underfull \hbox (badness 10000) in paragraph at lines 250--260
 []$[]$
  []
 
-<fig/bank_access.jpg, id=2527, 562.1pt x 421.575pt>
+
+Underfull \vbox (badness 4279) has occurred while \output is active []
+
+ [13 <./fig/Write-Algo-Example.pdf>]
+<fig/bank_access.jpg, id=2544, 562.1pt x 421.575pt>
 File: fig/bank_access.jpg Graphic file (type jpg)
 <use fig/bank_access.jpg>
-Package pdftex.def Info: fig/bank_access.jpg  used on input line 276.
+Package pdftex.def Info: fig/bank_access.jpg  used on input line 271.
 (pdftex.def)             Requested size: 120.0pt x 90.00002pt.
-<fig/bank_access1.jpg, id=2528, 2427.0675pt x 658.46pt>
+<fig/bank_access1.jpg, id=2545, 2427.0675pt x 658.46pt>
 File: fig/bank_access1.jpg Graphic file (type jpg)
 <use fig/bank_access1.jpg>
-Package pdftex.def Info: fig/bank_access1.jpg  used on input line 360.
+Package pdftex.def Info: fig/bank_access1.jpg  used on input line 355.
 (pdftex.def)             Requested size: 120.0pt x 32.55318pt.
-<fig/queue_lookahead.jpg, id=2531, 1371.1225pt x 653.44125pt>
+<fig/queue_lookahead.jpg, id=2548, 1371.1225pt x 653.44125pt>
 File: fig/queue_lookahead.jpg Graphic file (type jpg)
 <use fig/queue_lookahead.jpg>
-Package pdftex.def Info: fig/queue_lookahead.jpg  used on input line 384.
+Package pdftex.def Info: fig/queue_lookahead.jpg  used on input line 379.
 (pdftex.def)             Requested size: 240.0pt x 114.37387pt.
 
-Underfull \vbox (badness 1558) has occurred while \output is active []
+Underfull \vbox (badness 4279) has occurred while \output is active []
 
  [14 <./fig/core_access1.jpg> <./fig/core_access2.jpg> <./fig/bank_access.jpg>]
 )
-(./experimental_methodology.tex) (./simulation_results.tex) [15 <./fig/bank_acc
-ess1.jpg> <./fig/queue_lookahead.jpg>] (./First-Draft-HPCA-2018.bbl [16])
+(./experimental_methodology.tex
+<fig/dedup_whole.png, id=2555, 1503.6175pt x 875.27pt>
+File: fig/dedup_whole.png Graphic file (type png)
+<use fig/dedup_whole.png>
+Package pdftex.def Info: fig/dedup_whole.png  used on input line 19.
+(pdftex.def)             Requested size: 240.0pt x 139.6988pt.
+<fig/dedup_dense.png, id=2556, 1497.595pt x 843.15pt>
+File: fig/dedup_dense.png Graphic file (type png)
+<use fig/dedup_dense.png>
+Package pdftex.def Info: fig/dedup_dense.png  used on input line 22.
+(pdftex.def)             Requested size: 240.0pt x 135.1126pt.
+ [15 <./fig/bank_access1.jpg> <./fig/queue_lookahead.jpg>]) (./simulation_resul
+ts.tex [16 <./fig/dedup_whole.png> <./fig/dedup_dense.png>]) [17] (./First-Draf
+t-HPCA-2018.bbl)
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 222.
-
-[17
-
-]
+ [18]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 222.
- (./First-Draft-HPCA-2018.aux)
+
+(./First-Draft-HPCA-2018.aux)
 Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 222.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 222.
-
-
-Package rerunfilecheck Warning: File `First-Draft-HPCA-2018.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `First-Draft-HPCA-2018.out':
-(rerunfilecheck)             Before: C1BB2C8E1748A35CEE885AFA9820241D;2007
-(rerunfilecheck)             After:  67E289CF0A7593FDFB78171360A52AA5;1886.
-
-LaTeX Warning: There were multiply-defined labels.
-
+Package rerunfilecheck Info: File `First-Draft-HPCA-2018.out' has not changed.
+(rerunfilecheck)             Checksum: C8DDE94CA1EC9A10CCA4D449B51710E6;2298.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 222.
  ) 
 Here is how much of TeX's memory you used:
- 8933 strings out of 492982
- 131982 string characters out of 6134896
- 249630 words of memory out of 5000000
- 12179 multiletter control sequences out of 15000+600000
+ 8958 strings out of 492982
+ 132446 string characters out of 6134896
+ 249909 words of memory out of 5000000
+ 12195 multiletter control sequences out of 15000+600000
  69390 words of font info for 103 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  39i,12n,43p,2136b,481s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{section.9} has been referenced but does not exist
-, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.7.1} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.5.1} has been referenced but does not ex
-ist, replaced by a fixed one
-
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/share/texlive/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texlive/texmf-dist/font
-s/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pf
-b></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/
-share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/te
-xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
-ic/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/h
-elvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.
-pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on First-Draft-HPCA-2018.pdf (17 pages, 2383142 bytes).
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
+e/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texlive/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.
+pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/
+texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texliv
+e/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
+blic/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
+/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8
+a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on First-Draft-HPCA-2018.pdf (18 pages, 2505499 bytes).
 PDF statistics:
- 2645 PDF objects out of 2984 (max. 8388607)
- 2265 compressed objects within 23 object streams
- 118 named destinations out of 1000 (max. 500000)
- 338 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2679 PDF objects out of 2984 (max. 8388607)
+ 2294 compressed objects within 23 object streams
+ 125 named destinations out of 1000 (max. 500000)
+ 380 words of extra memory for PDF output out of 10000 (max. 10000000)
 

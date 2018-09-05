@@ -21,7 +21,13 @@
 \BOOKMARK [2][-]{subsection.4.6}{Dynamic Coding}{section.4}% 21
 \BOOKMARK [2][-]{subsection.4.7}{Prefetching Codes}{section.4}% 22
 \BOOKMARK [1][-]{section.5}{Experimental Methodology}{}% 23
-\BOOKMARK [1][-]{section.6}{Simulation Results}{}% 24
-\BOOKMARK [2][-]{subsection.6.1}{Design Parameters}{section.6}% 25
-\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 26
-\BOOKMARK [1][-]{section.8}{References}{}% 27
+\BOOKMARK [2][-]{subsection.5.1}{Memory Trace Generation}{section.5}% 24
+\BOOKMARK [2][-]{subsection.5.2}{PARSEC Trace Attributes}{section.5}% 25
+\BOOKMARK [2][-]{subsection.5.3}{Ramulator}{section.5}% 26
+\BOOKMARK [1][-]{section.6}{Simulation Results}{}% 27
+\BOOKMARK [2][-]{subsection.6.1}{PARSEC Results}{section.6}% 28
+\BOOKMARK [2][-]{subsection.6.2}{PARSEC augmentation}{section.6}% 29
+\BOOKMARK [2][-]{subsection.6.3}{Augmented PARSEC Results}{section.6}% 30
+\BOOKMARK [2][-]{subsection.6.4}{Design Parameters}{section.6}% 31
+\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 32
+\BOOKMARK [1][-]{section.8}{References}{}% 33
