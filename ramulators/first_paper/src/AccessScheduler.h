@@ -6,6 +6,7 @@
 #include "Statistics.h"
 #include "RecodingUnit.h"
 #include "DynamicEncoder.h"
+#include "Prefetcher.h"
 
 namespace coding
 {
@@ -44,6 +45,9 @@ private:
 	set<unsigned int> selected_regions;
 	set<unsigned int> active_regions;
 	vector<coding::ParityBankTopology<T>> topologies; 
+
+	// Prefetcher Variables
+	Prefetcher<T> * prefetcher;
 
 public:
 	AccessScheduler(int memory_coding, double alpha, double coding_region_length, DRAM<T>* channel)
@@ -116,6 +120,9 @@ public:
 		/* init Dynamic Encoder */
 		this->dynamic_encoder = new coding::DynamicEncoder<T>(topologies, active_regions);
 
+		/* init Prefetcher */
+		this->prefetcher = new coding::Prefetcher<T>();
+
 		/* Set up stats */
 		topology_switches
 		.name("topology_switches_"+to_string(channel->id))
@@ -128,12 +135,13 @@ public:
 	{
 		delete recoder_unit;
 		delete dynamic_encoder;
+		delete prefetcher;
 	}
 
 	void tick(long clk, coding::BankQueue* readq, coding::BankQueue* writeq, list<Request>* pending_queue, vector<coding::DataBank>* data_banks, list<Request>& reqs_scheduled, bool write_mode)
 	{
 		/* refresh banks */
-		for (ParityBank& bank : parity_banks)
+		for(ParityBank& bank : parity_banks)
 			bank.tick();
 		if(!write_mode)
 			read_pattern_builder(clk, readq, pending_queue, data_banks, reqs_scheduled);
@@ -145,7 +153,7 @@ public:
 	{
 		recoding_controller(data_banks, reqs_scheduled);      // ReCoding Unit
 		coding_region_controller(data_banks, reqs_scheduled); // Dynmaic Recoder
-		//TODO: Add code prefetcher
+		prefetcher_tick();       							  // Prefetcher
 	}
 
 private:
@@ -169,6 +177,22 @@ public:
 
 		BankQueue * readq = new BankQueue(*cur_queue);
 
+		// Check Code Prefetcher
+		for(auto queue = readq->queues.begin(); queue != readq->queues.end(); queue++)
+		{
+			for(auto req = queue->begin(); req != queue->end();)
+			{
+				if(prefetcher->find_code(req->addr))
+				{
+					reqs_scheduled.push_back(*req);
+					req = queue->erase(req);
+				}else
+				{	
+					req++;
+				}
+			}
+		}
+					
 		// Grab read requests from data banks
 		for(auto data_bank = data_banks->begin(); data_bank != data_banks->end(); data_bank++)
 		{
@@ -213,17 +237,17 @@ public:
 	bool attempt_parity_read(const Request& req, vector<DataBank>* data_banks, list<Request>& reqs_scheduled, list<Request>& pending_queue)
 	{
 		// This function attempts to used each parity banks as the "base" decoding bank
-		for(auto parity_bank = parity_banks.begin();
-		parity_bank != parity_banks.end();
-		parity_bank++)
+		for(auto parity_bank = parity_banks.begin(); parity_bank != parity_banks.end(); parity_bank++)
 		{
+			/* Check the status of this parity bank */
 			if(parity_bank->busy() || !parity_bank->contains(req))
 				continue;
 			auto coding_status = recoder_unit->get(req);
 			if(coding_status == CodeStatus::FreshParity)
-				{}// TODO:It may be possible to serve the request using fresh data in the parity.
+				{}// TODO:It may be possible to serve the request directly using fresh data in the parity.
 			if(coding_status != CodeStatus::Updated)
 				continue;  // Parity bank has stale data (or no data) for the row requested
+
 			/* get a list of all the XOR regions needed to complete the parity */
 			const XorCodedRegions& xor_regions { parity_bank->request_xor_regions(req) };
 			const MemoryRegion& read_region {xor_regions.request_region(req)};
@@ -232,49 +256,18 @@ public:
 			for (const MemoryRegion& region : xor_regions.regions)
 				if (region != read_region)
 					other_regions.push_back(region);
+
 			/* find a read in the same row number or read from an idle data bank for every other XOR region */
 			bool read_flag = true;
 			vector<int> data_banks_to_read;
 			for(const MemoryRegion& other_region : other_regions)
 			{
-				// Check if a scheduled read matches the xor region
-				bool matched_read = false;
-				for(auto read : reqs_scheduled)
-				{
-					if(xor_regions.request_region(req) == other_region &&
-					   xor_regions.same_request_row_numbers(read, req))
-					{
-						matched_read = true;
-						break;
-					}
-				}
-				if(matched_read)
+				if(check_scheduled_reads(reqs_scheduled, req, xor_regions, other_region))
 					continue;
-
-				// Check if requests in the pending queue can be used to satisfy an xor region
-				for(auto pending_req : pending_queue)
-				{
-					if(other_region.contains(pending_req) && xor_regions.same_request_row_numbers(pending_req, req))
-					{
-						matched_read = true;
-						break;
-					}
-				}
-				if(matched_read)
+				if(check_pending_queue(pending_queue, req, xor_regions, other_region))
 					continue;
-
-				// Check if an idle data bank can be used to satisfy an xor region
-				long region_bank_num = other_region.get_bank();
-				auto region_addr_needed = req.addr_vec;
-				region_addr_needed[static_cast<int>(T::Level::Bank)] = region_bank_num;
-				long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
-
-				auto coding_status = recoder_unit->get(region_line_needed, region_bank_num);
-				if(!data_banks->at(region_bank_num).busy() && coding_status != CodeStatus::FreshParity)
-				{
-					data_banks_to_read.push_back(region_bank_num);
+				if(check_data_banks(recoder_unit, req, other_region, data_banks, data_banks_to_read))
 					continue;
-				}
 				read_flag = false;  // Memory region could not be decoded
 				data_banks_to_read.clear();
 				break;
@@ -294,9 +287,45 @@ public:
 		}
 		return false;
 	}
+	
+	// Helper for attempt_parity_read()
+	bool check_scheduled_reads(const list<Request>& reqs_scheduled, const Request& req, const XorCodedRegions& xor_regions, const MemoryRegion& other_region)
+	{
+		for(auto read : reqs_scheduled)
+			if(xor_regions.request_region(req) == other_region && xor_regions.same_request_row_numbers(read, req))
+				return true;
+		return false;
+	}
+	
+	// Helper for attempt_parity_read()
+	bool check_pending_queue(const list<Request>& pending_queue, const Request& req, const XorCodedRegions& xor_regions, const MemoryRegion& other_region)
+	{
+		for(auto pending_req : pending_queue)
+			if(other_region.contains(pending_req) && xor_regions.same_request_row_numbers(pending_req, req))
+				return true;
+		return false;
+	}
+
+	// Helper for attempt_parity_read()
+	bool check_data_banks(const RecodingUnit<T>* recoder_unit, const Request& req, const MemoryRegion& other_region, 
+		vector<DataBank>* data_banks, vector<int>& data_banks_to_read)
+	{
+		long region_bank_num = other_region.get_bank();
+		auto region_addr_needed = req.addr_vec;
+		region_addr_needed[static_cast<int>(T::Level::Bank)] = region_bank_num;
+		long region_line_needed = addr_vec_to_row_index(channel->spec, region_addr_needed);
+
+		auto coding_status = recoder_unit->get(region_line_needed, region_bank_num);
+		if(!data_banks->at(region_bank_num).busy() && coding_status != CodeStatus::FreshParity)
+		{
+			data_banks_to_read.push_back(region_bank_num);
+			return true;
+		}
+		return false;
+	}
 
    /* Searches the read queue for a request with the same relative row as the input request and
-    * attempts to the request using a parity bank.
+    * attempts to serve the request using a parity bank.
 	*
 	* input_req: The request to match with a parity read.
 	* reqs_scheduled: Requests scheduled by the Access Scheduler. This function pushes another request 
@@ -511,6 +540,20 @@ private:
 		topology_switches++;
 		dynamic_encoder->switch_regions(channel->spec, regions_selected);
     }
+
+//=========Prefetcher=======================================================
+public:
+	void prefetcher_receive(Request& req)
+	{
+		prefetcher->get_request(req);
+	}
+
+	void prefetcher_tick()
+	{
+		for(auto parity = parity_banks.begin(); parity != parity_banks.end(); parity++)
+			if(!parity->busy())
+				prefetcher->get_fetch(*parity);
+	}
 
 };
 

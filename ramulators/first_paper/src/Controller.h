@@ -333,6 +333,7 @@ public:
 			pending.push_back(req);
 			readq.queues[bank].pop_back();
         }
+		access_scheduler->prefetcher_receive(req);
         return true;
     }
 

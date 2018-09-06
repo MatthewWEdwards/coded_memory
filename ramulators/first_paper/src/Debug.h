@@ -26,6 +26,7 @@ public:
 			}
 			cout << "}" << " Arrive = " << pending_read.arrive
 				 << ", Depart = " << pending_read.depart
+				 << ", Long Address = " << pending_read.addr
 				 << ", CoreID = " << pending_read.coreid << endl;
 		}
 		for(unsigned int bank = 0; bank < num_banks; bank++)
