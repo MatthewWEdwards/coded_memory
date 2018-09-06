@@ -106,7 +106,7 @@ Due to write requests, the information stored in the memory banks need to be con
 %\subsection{Read Algorithm for Coded Memory system}
 \subsection{Read pattern builder}
 \label{sec:readCodingAlgo}
-The primary objective of the access scheduler it to maximize the number of read requests served in a given memory cycle. This is achieved by the block {\em read pattern builder}. The main idea here is to exploit the redundancy in the parity banks in order to serve as many simultaneous read requests as possible. \sout{However, reading elements from a parity bank is useful only if the corresponding accesses to data banks are also performed. For example, the parity element $a(1) + b(1)$ helps serve the read request for $a(1)$ only if we also read $b(1)$ for the associated data bank.} 
+The primary objective of the access scheduler it to maximize the number of read requests served in a given memory cycle. This is achieved by the block {\em read pattern builder}. The main idea here is to exploit the redundancy in the parity banks in order to serve as many simultaneous read requests as possible.
 
 \Matt{We should include an example where using idle data banks is advantageous} We describe the algorithm employed by the read request pattern in Figure~\ref{fig:readAlgo}. We illustrate this algorithm with the help of an example, which is shown in Figure~\ref{fig:readAlgoAccessPattern}. %The accesses from parity banks is useful only if one of the corresponding access  is made to the data bank. Figure ~\ref{fig:readAlgo} describes the algorithm. Figure ~\ref{fig:readAlgoAccessPattern} describes an access pattern scenario. 
 %The reads are maximized by using the parity banks. The key here is to be able to use the parity bank to serve the reads to other banks. 
@@ -226,38 +226,24 @@ system, when various cores try to work from a shared memory location, they tend
 to generate accesses to a localized region of memory. This motivates the idea of 
 coding the localized region during the period of heavy access, and dynamically 
 changing the region whenever there is change in the locality of memory accesses.
-Figure~\ref{fig:dsp_access1} shows the access pattern of the LTE cores 0 to 5.  
-The y-axis of the figure shows the address accessed by the LTE cores over a 
+Figure~\ref{fig:dedup_whole} shows the access pattern for cores 0 to 7 running the dedup PARSEC benchmark.  
+The y-axis of the figure shows the address accessed by the coress over a 
 period of time. The x-axis denotes the time in nanoseconds. This plot shows that 
-most of the access from various cores are limited to the memory range from 
-0x007a1200 to 0x00c65d40 (lower and higher range on the y axis). It also 
-suggests that most (about 60$\%$) of the accesses belong to the memory region of 
-0x00a037a0 to 0x00b71b00. 
-
-We make similar observation from Figure~\ref{fig:dsp_access2} for UMTS. The 
-access pattern for UMTS is more concentrated. Here again, all of the access for 
-a duration of approximately 0.2 ms is in the address range of 0x007a1200 to 
-0x01036640. 
-
-\Matt{We may need to use a different example if we don't end up using these traces. The parsec benchmarks only have 2 heavily accessed regions, and though this is simpler than the LTE/UMTS example, it is still demonstrates the idea behind the dynamic encoder}
-Figure~\ref{fig:bank_access} shows a view of memory accesses from the bank's 
-side. It shows the access request pattern for each memory bank. The 
-concentration of accesses to a region is observed across memory banks. This 
-makes us conclude that the memory banks can be parallelly coded for a particular 
-region as shown as green and yellow color in figure~\ref{fig:design1}. 
+most of the access from various cores are primarily located in the lower memory band. Greater than 95\% of all memory accesses are from this band ~\ref{fig:dedup_dense} magnifies this band and reveals that the lower band is composed of two subbands of roughly equal density.
 
 \begin{figure}[htbp]
-	\begin{minipage}{0.5\linewidth}
-		\includegraphics[width=\linewidth]{fig/core_access1.jpg}
-		\caption{Memory Access by LTE Cores}
-		\label{fig:dsp_access1}
-	\end{minipage}
-	\begin{minipage}{0.5\linewidth}
-		\includegraphics[width=\linewidth]{fig/core_access2.jpg}
-		\caption{Memory Access by UMTS Cores}
-		\label{fig:dsp_access2}
-	\end{minipage}
-\end{figure} From the above observations, we demonstrate the idea of coding the 
+		\includegraphics[width=\linewidth]{fig/dedup_whole.png}
+		\caption{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.}
+		\label{fig:dedup_whole}
+\end{figure}
+
+\begin{figure}[htbp]
+		\includegraphics[width=\linewidth]{fig/dedup_dense.png}
+		\caption{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses}
+		\label{fig:dedup_dense}
+\end{figure}
+
+From the above observations, we demonstrate the idea of coding the 
 highly accessed portion of the memory. This scheme benefits from a huge 
 reduction of the memory overhead with coding. The reduction in the memory 
 overhead can be used to reduce the complexity of the decoder by using simple 
@@ -265,17 +251,11 @@ coding functions (e.g. xor) and for denser coding (e.g. repeatedly coding a
 single element using 2 elements). 
 
 The scheme of dynamic coding requires that the currently coded region changes 
-when the access pattern changes.
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{fig/bank_access.jpg}
-\caption{ Memory Access per bank for LTE }
-\label{fig:bank_access}
-\end{figure} That is, the localized memory area that is most heavily accessed 
+when the access pattern changes. That is, the localized memory area that is most heavily accessed 
 can change, and it will require the system to recode the new localized access 
 region. We assume that the working area of a program changes with change in the 
 input parameters to the program. It can be easily observed from the above 
-figures that the working area or the localized area is constant for at least 0.2 
+figures that the working area or the localized area is constant for at least 1 
 ms. This suggests that the switching of the coded region is not very frequent. 
 %{\bf During these periods of coding switches, it is also guaranteed that the number 
 %of accesses served from the memory is at worst equal to the number of banks 
@@ -315,11 +295,14 @@ codes described are obtained by linear combination of data elements of the same
 row in various memory bank. So, essentially the window parameter for address 
 signifies the row start.
 
+The {\em dynamic coding} block splits the each memory bank according to the memory partition coefficient {\em r}. Each bank is split into $\lceil\frac{1}{r}\rceil$ partitions. The block can select up to $\frac{\alpha}{r} - 1$ regions to be encoded in the parity banks. A single region is reserved to allow the dynamic coding block to encode a new region.
+
+Every $T$ ticks, the {\em dynamic coding} block chooses the $\frac{\alpha}{r} - 1$ regions with the greatest number of memory accesses. The block will then encode these regions in the parity banks. If all the selected regions are already encoded, theblock has nothing to do. Otherwise, the block begins encoding the regions in order of most accesses. Once the block is finished encoding a new region, the region becomes available for use by the rest of the memory controller. If the memory ceiling $\alpha - r$ is reached when a new memory region is encoded, the {\em dynamic coding} block evicts the least frequently used memory region. 
+
 The dynamic coding controller resets the count of access to the subregions at 
 the switch of the subregion. The new counts determine the next change of the 
 coded subregion.
 
-\Matt{TODO: Discuss what condition triggers a switch. Also, to what degree does decreasing the length of the sub-region increase the complexity of the dynamic encoder? How small can the subregions be until the complexity is too great?}
 %\ignore{
 \subsection{Prefetching Codes}
 \label{sec:prefetching}
