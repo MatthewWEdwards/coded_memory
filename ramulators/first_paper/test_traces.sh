@@ -91,14 +91,14 @@ then
     trace_list=""
     for file in ${trace_path}/*.txt;
     do
-        if [[ -f "${file}" ]] && [[ $file =~ ${prefix} ]] ;
+        if [[ -f "${file}" ]] && [[ $file =~ ^$trace_path/$prefix ]] ;
         then
             trace_list+="${file}  "
         fi
     done
 
 	stats_name="results/HBM_${arch}_${alpha}.stats"
-    ./ramulator configs/HBM-config.cfg --mode=cpu --stats $stats_name $trace_list
+    ./ramulator configs/HBM-config.cfg --mode=cpu --stats $stats_name $trace_list 
 fi
 
 

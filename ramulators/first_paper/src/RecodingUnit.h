@@ -11,7 +11,6 @@ namespace coding
 // Note that "Uncoded" isn't a value stored in the map, it merely indicates that a row isn't present in the bank.
 enum CodeStatus {Updated, FreshData, FreshParity, Uncoded, MAX}; 
 
-
 template <typename T>
 class RecodeRequest
 {

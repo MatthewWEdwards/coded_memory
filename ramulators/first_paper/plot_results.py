@@ -1,11 +1,28 @@
 #!/usr/bin/python
 
+# Native python imports
 import os
 import sys
+import re
 
+# Additional imports
+import matplotlib
 import matplotlib.pyplot as plot
 import numpy as np
 import pandas as pd
+
+# Configure plot text
+SMALL_SIZE = 14
+MEDIUM_SIZE = 24
+BIGGER_SIZE = 26
+
+plot.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plot.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+plot.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plot.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plot.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plot.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plot.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 def print_help():
     print("Usage: " + sys.argv[0] + " <results_directory>")
@@ -38,7 +55,7 @@ baseline = pd.read_csv(files_to_plot[0], header=None, names=["alphas", "cpu_cycl
 del files_to_plot[0]
 
 fig, ax1 = plot.subplots()
-ax1.set_xlabel("alpha")
+ax1.set_xlabel("Alpha")
 ax1.set_ylabel("Cpu Cycles Relative to Baseline")
 ax2 = ax1.twinx()
 ax2.set_ylabel("Average Region Switches Per Channel")
@@ -55,6 +72,7 @@ for file_num, file_path in files_to_plot.iteritems():
 	data["cpu_cycles_norm"] = data["cpu_cycles"] / baseline["cpu_cycles"][0]
 
 	ax2.bar(data["alphas"] + bar_offset, data["region_switches"], width=0.01, color=colors_bars[color_idx])
+	#ax2.plot(data["alphas"], data["region_switches"], color=colors_bars[color_idx])
 	bar_offset += .01
 	color_idx += 1
 
@@ -73,8 +91,12 @@ for file_num, file_path in files_to_plot.iteritems():
 
 ax1.legend(["Scheme 1 Cycles", "Scheme 2 Cycles", "Scheme 3 Cycles"], bbox_to_anchor=(1,1))
 ax2.legend(["Scheme 1 Switches", "Scheme 2 Switches", "Scheme 3 Switches"], bbox_to_anchor=(1, .8))
-plot.xticks(data["alphas"], data["alphas"])
-plot.title("Coding Scheme Performance on \"" + results_dir + "\" Benchmark")
+plot.xticks(np.array(data["alphas"]), data["alphas"])
+
+benchmark_regex = re.compile("/[a-z_A-Z]+$")
+regex_match = benchmark_regex.search(results_dir)
+plot.title("Coding Scheme Performance on the " + regex_match.string[regex_match.start()+1:regex_match.end()] + " Benchmark")
+
 plot.show()
 
 

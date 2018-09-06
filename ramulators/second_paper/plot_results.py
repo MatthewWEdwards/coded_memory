@@ -42,26 +42,38 @@ fig, ax1 = plot.subplots()
 ax1.set_xlabel("Parity Scheme")
 ax1.set_ylabel("Cpu Cycles Relative to Baseline")
 
-colors_bars = [(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1), (0, 1, 1, 1)]
+colors_bars = [(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1), (0, 1, 1, 1), (1, 0, 1, 1), (1, 1, 0, 1), (0, 0, 0, 1)]
 x_axis_labels = ["8-banks 4-message symbols", "4-banks 4-message symbols", "No parities", "8-bank duplicate", "12-bank 2-message symbols"]
 
-bar_positions = np.array([-.05, 0, .05, .1])
 file_num = 1
-
+legend_names = np.ndarray((0,))
 for file_num, file_path in files_to_plot.iteritems():
 	# Import data
 	data = pd.read_csv(file_path, header=None, names=["rob_length", "cpu_cycles"])
 	data = data.sort_values("rob_length")
 	data["cpu_cycles_norm"] = data["cpu_cycles"] / baseline["cpu_cycles"][0]
+
+	# Arrange bars
+	bar_positions = np.ndarray((0,))
+	for pos in range(0, len(data["cpu_cycles"])):
+		new_pos = .05 * (pos - len(data["cpu_cycles"])/2)
+		bar_positions = np.append(bar_positions, new_pos)
+
+	# Plot data
 	ax1.bar(bar_positions + file_num, data["cpu_cycles_norm"], width=0.05, color=colors_bars)
 
+	# If first file, set up data
+	if len(legend_names) == 0:
+		for length in data["rob_length"]: 
+			legend_names = np.append(legend_names, "ROB length " + str(length))
 	file_num += 1
 
 legend_patches = np.array([])
 for color in colors_bars:
 	legend_patches = np.append(legend_patches, patch.Patch(color=color))
 
-ax1.legend(legend_patches, ["ROB length 8", "ROB length 32", "ROB length 128", "ROB length 1024"])
+
+ax1.legend(legend_patches, legend_names)
 plot.xticks([1,2,3,4,5], x_axis_labels)
 plot.title("Coding Scheme Performance on \"" + results_dir + "\" Benchmark")
 plot.show()

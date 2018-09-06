@@ -94,7 +94,7 @@ then
 	trace_list=""
 	for file in ${trace_path}/*.txt;
 	do
-		if [[ -f "${file}" ]] && [[ $file =~ ${prefix} ]] ;
+		if [[ -f "${file}" ]] && [[ $file =~ ^$trace_path/$prefix ]] ;
 		then
 			trace_list+="${file}  "
 			echo "File: $file"

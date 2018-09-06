@@ -39,7 +39,7 @@ def main():
 	print "spawned %s: %d (%d)" % (cmd, p.pid, cnt)
 	sleep(0.5) # give ramulator a moment to read the config
 
-	alphas =  map(str, [.05, .1, .25, .5, 1])
+	alphas =  map(str, [.01, .02, .1, 1])
 	archs = map(str, [1, 2, 3])
 
 	for arch in archs:
