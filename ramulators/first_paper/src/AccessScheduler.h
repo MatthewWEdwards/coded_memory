@@ -35,6 +35,7 @@ private:
 	coding::RecodingUnit<T> * recoder_unit;
 	int coding_region_counter = 0; // Counts how many memory ticks since last recoding check
 	const int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
+	int min_coding_hits = coding_region_reschedule_ticks / 100; // Minimum number of hits to encode a region
 	double coding_region_length = .01; 
 	double alpha = 1;
 
@@ -42,7 +43,7 @@ private:
 	DynamicEncoder<T> * dynamic_encoder;
 	vector<unsigned long> topology_hits;
 	unsigned int active_topology_idx = 0; 
-	set<unsigned int> selected_regions;
+	set<unsigned int> cur_selected_regions;
 	set<unsigned int> active_regions;
 	vector<coding::ParityBankTopology<T>> topologies; 
 
@@ -57,6 +58,7 @@ public:
 		this->coding_region_length = coding_region_length;
 		this->num_banks = channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
 		this->recoder_unit = new coding::RecodingUnit<T>(channel->spec);
+		this-> min_coding_hits = coding_region_reschedule_ticks / (5*alpha/coding_region_length); 
 
 		/* build a list of possible memory topologies that can be selected for
 		 * coding based on the number of hits */
@@ -109,13 +111,13 @@ public:
 
 		/* get init coding regions */
 		for(unsigned int tops = 0; tops < alpha/coding_region_length; tops++)
-			selected_regions.insert(tops);
+			cur_selected_regions.insert(tops);
 
 		/* init active topology */
-		init_coding_regions(selected_regions);
+		init_coding_regions(cur_selected_regions);
 		
 		/* assume the default coded regions are encoded before execution */
-		active_regions = selected_regions;
+		active_regions = cur_selected_regions;
 	
 		/* init Dynamic Encoder */
 		this->dynamic_encoder = new coding::DynamicEncoder<T>(topologies, active_regions);
@@ -469,16 +471,16 @@ public:
 			for(unsigned int num_top = 0; num_top < num_topologies_to_select; num_top++)
 			{
 				unsigned int max_idx = distance(topology_hits.begin(), max_element(topology_hits.begin(), topology_hits.end()));
-				if(topology_hits[max_idx] == 0)
+				if(topology_hits[max_idx] <= min_coding_hits)
 					break;
 				regions_selected.insert(max_idx);
 				topology_hits[max_idx] = 0;
 			}
 			for(auto top_sel_idx : regions_selected)
 			{
-				if(find(selected_regions.begin(), selected_regions.end(), top_sel_idx) == selected_regions.end())
+				if(find(cur_selected_regions.begin(), cur_selected_regions.end(), top_sel_idx) == cur_selected_regions.end())
 				{
-					selected_regions = regions_selected;
+					cur_selected_regions = regions_selected;
 					switch_coding_regions(regions_selected);
 					break;
 				}
