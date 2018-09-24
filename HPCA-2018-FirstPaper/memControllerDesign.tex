@@ -3,7 +3,7 @@
 % This file contains description of the controller architecture.
 \section{Memory Controller Design}
 \label{sec:memcontrol}
-The previous section describes various coding schemes to design the storage space of the proposed memory systems. In this section, we discuss the architecture of memory controller which constitutes the second main component of the memory system. Given that our memory system redundantly stores the data in memory banks, the design of the memory controller involves many novel ideas that enable it to exploit this redundancy in order to provide improved parallel access to the memory banks. This section presents these key architectural ideas behind the memory controller design along with various implementation related deails.
+The previous section describes various coding schemes to design the storage space of the proposed memory systems. In this section, we discuss the architecture of memory controller which constitutes the second main component of the memory system. Given that our memory system redundantly stores the data in memory banks, the design of the memory controller involves many novel ideas that enable it to exploit this redundancy in order to provide improved parallel access to the memory banks. This section presents these key architectural ideas behind the memory controller design along with various implementation related details.
 %The memory design involves two key components: 1) storage space comprising of memory banks and 2) memory controller 
 %The coding schemes discussed in previous section is implemented using systemC. 
 %This section describes the architectural detail of how the schemes are 
@@ -14,7 +14,7 @@ The previous section describes various coding schemes to design the storage spac
 %and follow it by discussing the potential benefits of prefetching the codes.\\
 
 \subsection{Main units at memory controller}
-A general memory controller consists of three main levels of processing (cf.~Figure~\ref{fig:pseudo-code}). The first level deals with handling the access requests from cores which is performed by {\em core arbiter}. The second level of processing is conducted by {\em bank arbiter} which is responsible for tracking requests for different data banks. The third main unit {\em access scheduler} deals with the final level of processing by scheduling the most efficient access patters for each memory clock cycle from the set of accesses {\color{red} assigned by the bank aribiter}. Next, we discuss all of these three units and their functions in a greater detail.
+A general memory controller consists of three main levels of processing (cf.~Figure~\ref{fig:pseudo-code}). The first level deals with handling the access requests from cores which is performed by {\em core arbiter}. The second level of processing is conducted by {\em bank queues} which are responsible for tracking requests for different data banks. The third main unit {\em access scheduler} deals with the final level of processing by scheduling the most efficient access patters for each memory clock cycle from the set of accesses present in the bank queues. Next, we discuss all of these three units and their functions in a greater detail.
 %first level is {\em Core Arbiter }, the unit responsible for handling requests 
 %from cores.  The second level is {\em Bank Arbiter} responsible for arbitrating 
 %requests to banks.  The third level is {\em Access Scheduler} which schedules 
@@ -40,7 +40,7 @@ and determines the priority order. It uses a two-step priority order mechanism:
 1) First, it arranges the request in order of QoS with high QoS at high 
 priority; and  2) {Second}, for request having same priority, it arranges them using 
 round robin.
-\item \textbf{Bank arbiter:~}This unit contains read  and write queues for each data bank. The core arbitrator arbitrates requests from 
+\item \textbf{Bank queues:~}This unit contains read  and write queues for each data bank. The core arbitrator arbitrates requests from 
 cores, expands them and fills them in the bank queues. The depth of bank queues 
 in current implementation is $10$. This means that the depth of each read 
 and write queue is $10$. These queues are for each bank. In an eight bank system, 
@@ -57,7 +57,7 @@ full. The reads are given priority over writes until the write queue gets
 filled.
 \end{itemize}
 
-{\color{red} We note that the first two components of the memory controller, i.e., core arbiter and bank arbiter, in the setting with coded memory banks should not differ much from those in the traditional setup with uncoded storage space. It's the third component, access scheduler, that directly interacts with the array of memory banks and it should take the underlying coding scheme into account while scheduling both read and write requests.} In the rest of this section, we discuss various parts of the access scheduler in detail.
+{\color{red} We note that the first two components of the memory controller, i.e., core arbiter and bank queues, in the setting with coded memory banks should not differ much from those in the traditional setup with uncoded storage space. It's the third component, access scheduler, that directly interacts with the array of memory banks and it should take the underlying coding scheme into account while scheduling both read and write requests.} In the rest of this section, we discuss various parts of the access scheduler in detail.
 
 %-----------------------
 \begin{figure}[tbp]
@@ -136,7 +136,7 @@ access scheduler goes over the data bank in order of their queue sizes. This ena
 Here we note that the aforementioned approach of maximizing the number of read request being served per cycle does come with a cost.  It 
 increases the chances of having {\em out-of-order execution} of memory access requests. This does not pose a problem in the case when the memory requests go out of order for different cores. {\color{blue}However, in order to prevent the out-of-order execution of the access requests arising from the same core, the logic needs to take care of in-order execution of requests from each cores.} \Ankit{How does logic take care of this...Can you write 1-2 line on that? Would it affect the performance of the read algorithm?}
 \\
-\Matt{A solution to this problem is to only allow requests to enter the bank arbiter if they can be served immediately without risk of out-of-order execution.}
+\Matt{A solution to this problem is to only allow requests to enter the bank queues if they can be served immediately without risk of out-of-order execution.}
 \end{remark}
 \ignore{
 %-----------------------
@@ -156,10 +156,18 @@ increases the chances of having {\em out-of-order execution} of memory access re
 %\subsection{Write Algorithm for Coded Memory system}
 \subsection{Write pattern builder}
 \label{sec:writeCodingAlgo}
-\Matt{Do we want a flowchart in here to parallel the one in section 4.3?}
-Next, we address the issue of scheduling write requests during the operation of the proposed memory system. Recall that the write requests are first filled in the write queues for each bank by the bank arbiter. The unit that resides in the access scheduler and commit these write requests to the memory banks is referred to as {\em write pattern builder}. The write pattern builder waits till a write queue gets full to schedule the write requests to be served. This approach is adopted in order to ensure that the read requests get priority over the write requests.
+Next, we address the issue of scheduling write requests during the operation of the proposed memory system. Recall that the write requests are first filled in a write queue for each bank. The unit that resides in the access scheduler and commit these write requests to the memory banks is referred to as {\em write pattern builder}. The write pattern builder waits till a write queue gets full to schedule the write requests to be served. This approach is adopted in order to ensure that the read requests get priority over the write requests.
 
-In particular, we aim to commit $2$ write request per data bank in the given memory cycle. When the write queue for a particular bank gets full, the write pattern builder picks $2$ write request from the head of the queue. It write the first write request to the corresponding data bank. For the other write request to be scheduled, the builder commits this request to one of the parity banks that depend on the data bank associated with the write request. {\color{blue}In particular, the builder replaces the parity element that depends on the data element of the write request with the data element itself. Note that this destroys the parity elements and the coding scheme (in the corresponding row is deemed outdated).} This requires us to update the code status table accordingly. We handle the outdated coding scheme using another block of the access scheduler, namely {\em ReCoding unit} (cf.~Section~\ref{sec:recoding}).
+%-----------------------
+\begin{figure}[htbp]
+\centering
+	\includegraphics[width=\linewidth]{fig/write_pattern_algo.png}
+	\caption{{ Flowchart of write pattern builder}}
+	\label{fig:writeFlow}
+\end{figure}
+%-------------------------
+
+In particular, we aim to commit $2$ write request per data bank in the given memory cycle. When the write queue for a particular bank gets full, the write pattern builder picks $2$ write request from the head of the queue. It write the first write request to the corresponding data bank. For the other write request to be scheduled, the builder commits this request to one of the parity banks that depend on the data bank associated with the write request. {\color{blue}In particular, the builder replaces the parity element that depends on the data element of the write request with the data element itself. Note that this destroys the parity elements and the coding scheme (in the corresponding row is deemed outdated).} This requires us to update the code status table accordingly. We handle the outdated coding scheme using another block of the access scheduler, namely {\em ReCoding unit} (cf.~Section~\ref{sec:recoding}). Figure~\ref{fig:writeFlow} illustrates the logic of the write pattern builder.
 
 % When a write is scheduled for a particular bank, the scheduler picks up {\bf 
 %two} requests from the head of the queue. It writes the first request to the 
@@ -167,18 +175,17 @@ In particular, we aim to commit $2$ write request per data bank in the given mem
 %respective row. Figure ~\ref{fig:writeAlgo} describes the write algorithm as a 
 %flowchart. \\
 
-We illustrate the aforementioned functioning of the write pattern builder with the help of an example shown in Figure~\ref{fig:writeAlgoAccessPattern}. In this example, the write queue is full for all the four banks. The controller picks up $2$ write requests from each of these queues and schedules them to be written to the respective data bank and one parity bank. The controller also updates the code status table map with the appropriate status. It updates the writes committed to data bank with $01$ and writes committed to parity bank with $10$. The write build pattern will only serve a write using parity banks if the request's row exists in the parity bank.
-
+We illustrate the aforementioned functioning of the write pattern builder with the help of an example shown in Figure~\ref{fig:writeAlgoAccessPattern}. In this example, the write queue is full for all the four banks. The controller picks up $2$ write requests from each of these queues and schedules them to be written to the respective data bank and one parity bank. The controller also updates the code status table map with the appropriate status. It updates the writes committed to data bank with $01$ and writes committed to parity bank with $10$. The write build pattern will only serve a write using parity banks if the request's row exists in the parity bank. 
 
 \begin{remark}
 In the example described in Figure~\ref{fig:writeAlgoAccessPattern}, the queues for all data banks become full at the same time. In general, this is not the case and the write queues for some of the data banks become full before it does so for the other data banks. In this case, the write requests for only some of the banks get scheduled in a given memory cycle.{\color{blue} We note that the controller is designed to schedule both read and write for each bank depending on 
 the queue size and availability of the parity of banks. Therefore, if a data bank is not utilized to serve a write request in a memory cycle, it can be potentially utilized to serve a read request in that cycle.} \Matt{The current simulations only schedule reads requests OR write requests in a single memory cycle. There are issues in Ramulator when scheduling reads and writes simultaneously...}
 \end{remark}
 
-\begin{remark}
-An exception to the standard logic of the write pattern builder is invoked when the accesses are linear in nature for all $4$ data banks. For example, if we have write requests for the elements $a(1), b(1), c(1),$ and $d(1)$. In such a case, the controller directly updates all the parity banks by writing the updated versions of the parity elements $a(1) + b(1), a(1) + c(1), a(1) + d(1), b(1) + c(1), b(1) + d(1),$ and $c(1) + d(1)$. This ensures that the parity banks remain updated and the 
-memory controller no longer need to update the parity bank using ReCoding unit (cf.~Section~\ref{sec:recoding}). The reason for invoking this exception is to avoid the extra cost involved in recoding the whole row. Though this saving in the cost of recoding come at a price as we fall back to $1$ write request per data bank in the underlying memory cycle. 
-\end{remark}
+%\begin{remark}
+%An exception to the standard logic of the write pattern builder is invoked when the accesses are linear in nature for all $4$ data banks. For example, if we have write requests for the elements $a(1), b(1), c(1),$ and $d(1)$. In such a case, the controller directly updates all the parity banks by writing the updated versions of the parity elements $a(1) + b(1), a(1) + c(1), a(1) + d(1), b(1) + c(1), b(1) + d(1),$ and $c(1) + d(1)$. This ensures that the parity banks remain updated and the 
+%memory controller no longer need to update the parity bank using ReCoding unit (cf.~Section~\ref{sec:recoding}). The reason for invoking this exception is to avoid the extra cost involved in recoding the whole row. Though this saving in the cost of recoding come at a price as we fall back to $1$ write request per data bank in the underlying memory cycle. 
+%\end{remark}
 
 %Figure~\ref{fig:writeAlgoAccessPattern} describes the writes algorithm with an example.
 %The write is selected for a bank when the write queue is full. The scheduler picks up two 
@@ -189,7 +196,7 @@ memory controller no longer need to update the parity bank using ReCoding unit (
 \ignore{writes are scheduled to address {\em a2} and {\em a9}. The write to {\em 
 	a2} goes to {\em a2}, however, the write to {\em a9} goes to the data 
 bank {\em a9 + b9}. This helps us do two writes in one cycle.  However, the 
-databank of {\em a9} still contains the stale value. The scheduler updates the 
+data bank of {\em a9} still contains the stale value. The scheduler updates the 
 {\em coding status} of each row after committing a write. }
 %-----------------------
 \begin{figure}[t!]
@@ -229,7 +236,7 @@ changing the region whenever there is change in the locality of memory accesses.
 Figure~\ref{fig:dedup_whole} shows the access pattern for cores 0 to 7 running the dedup PARSEC benchmark.  
 The y-axis of the figure shows the address accessed by the coress over a 
 period of time. The x-axis denotes the time in nanoseconds. This plot shows that 
-most of the access from various cores are primarily located in the lower memory band. Greater than 95\% of all memory accesses are from this band ~\ref{fig:dedup_dense} magnifies this band and reveals that the lower band is composed of two subbands of roughly equal density.
+most of the access from various cores are primarily located in the lower memory band. Greater than 95\% of all memory accesses are from this band ~\ref{fig:dedup_dense} magnifies this band and reveals that the lower band is composed of two sub-bands of roughly equal density.
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/dedup_whole.png}
@@ -243,7 +250,7 @@ most of the access from various cores are primarily located in the lower memory 
 		\label{fig:dedup_dense}
 \end{figure}
 
-From the above observations, we demonstrate the idea of coding the 
+From these observations, we demonstrate the idea of coding the 
 highly accessed portion of the memory. This scheme benefits from a huge 
 reduction of the memory overhead with coding. The reduction in the memory 
 overhead can be used to reduce the complexity of the decoder by using simple 
@@ -271,7 +278,8 @@ ms. This suggests that the switching of the coded region is not very frequent.
 %reads from the coded region to access the data that is to be coded. In addition, 
 %reads are also scheduled in the idle periods, when there is no read or write 
 %request to the bank/banks.\\
-{\em Dynamic coding} requires the system to divide the memory into sub-regions and to 
+
+Dynamic coding requires the system to divide the memory into sub-regions and to 
 keep track of accesses in these sub-regions. Once the number of accesses to a 
 sub-region reaches a given threshold, it must then make this region the 
 currently coded area. We propose this mechanism based on window concept. The 
@@ -282,10 +290,10 @@ associated with each of the sub-region which is incremented for each hit. The
 system makes a decision of coding a particular sub-region based on its counter 
 value. The number of coded sub-regions at a particular time is based on the 
 sub-region size and the code storage size. The eviction of a coded region 
-follows the Least Recently Used (LRU) policy similar to cache.
+follows the Least Recently Used (LRU) policy similar to cache. 
 
 The block implements a simple logic to determine heavy access to a particular 
-region. It divides the whole memory in to subregions. The memory can be 
+region. It divides the whole memory in to sub-regions. The memory can be 
 divided dynamically with the provision of the following window parameters 
 \{StartAddress,Length\} . The controller can have multiple window parameters 
 with the constraint that the total length should be less than the available 
@@ -297,11 +305,7 @@ signifies the row start.
 
 The {\em dynamic coding} block splits the each memory bank according to the memory partition coefficient {\em r}. Each bank is split into $\lceil\frac{1}{r}\rceil$ partitions. The block can select up to $\frac{\alpha}{r} - 1$ regions to be encoded in the parity banks. A single region is reserved to allow the dynamic coding block to encode a new region.
 
-Every $T$ ticks, the {\em dynamic coding} block chooses the $\frac{\alpha}{r} - 1$ regions with the greatest number of memory accesses. The block will then encode these regions in the parity banks. If all the selected regions are already encoded, theblock has nothing to do. Otherwise, the block begins encoding the regions in order of most accesses. Once the block is finished encoding a new region, the region becomes available for use by the rest of the memory controller. If the memory ceiling $\alpha - r$ is reached when a new memory region is encoded, the {\em dynamic coding} block evicts the least frequently used memory region. 
-
-The dynamic coding controller resets the count of access to the subregions at 
-the switch of the subregion. The new counts determine the next change of the 
-coded subregion.
+Every $T$ ticks, the {\em dynamic coding} block chooses the $\frac{\alpha}{r} - 1$ regions with the greatest number of memory accesses. The block will then encode these regions in the parity banks. If all the selected regions are already encoded, the block does nothing. Otherwise, the block begins encoding the most accessed region. Once the block is finished encoding a new region, the region becomes available for use by the rest of the memory controller. If the memory ceiling $\alpha - r$ is reached when a new memory region is encoded, the {\em dynamic coding} block evicts the least frequently used encoded region. After the dynamic coding controller selects a new set of regions to encode, it resets the hit-count of all the regions.
 
 %\ignore{
 \subsection{Prefetching Codes}
@@ -313,7 +317,7 @@ codes. This is done by exploiting the gaps in the memory access to any bank and
 using these gaps to prefetch the code/data for a future memory access. During a 
 program, there are access cycles when certain banks do not have any access 
 scheduled for a read/write. We propose the prefetching technique where we look 
-forward in the queue and anticipate a pre-fetch for the data/code for that bank.  
+forward in the queue and anticipate a prefetch for the data/code for that bank.  
 We explore the implementation of a memory prefetching unit, similar to an 
 instruction or cache prefetching unit. This unit can detect linear access 
 patterns to regions in memory.  For example, if a string of memory accesses are 
@@ -321,18 +325,18 @@ issued in sequential byte sized order, then the prefetching unit will predict
 the next access to be in byte increments. The memory prefetching works by 
 fetching a predicted address from the parity bank during accesses that the 
 parity bank is idle. When future memory accesses are issued, they are first 
-checked with the pre-fetched data to see if they can be used to decode any 
+checked with the prefetched data to see if they can be used to decode any 
 subsequent memory accesses. If so, the memory access is obtained from the 
-current accesses and pre-fetched data. For example, say the pre-fetcher sees 2 
+current accesses and prefetched data. For example, say the prefetcher sees 2 
 consecutive memory requests in a row. It then predicts that the next two 
 accesses, locations $a_0$ and $b_0$, are likely to be accessed in the near 
 future. It reads $a_0+b_0$ from the parity bank for future use. Next, access to 
 location $a_0$ and $b_0$ are issued to the memory. Now, instead of reading both 
 $a_0$ and $b_0$, only a single location has to be read from in memory, while the 
-other location can be obtained from the pre-fetched data. This allows for an 
+other location can be obtained from the prefetched data. This allows for an 
 additional access to be issued from the now free memory bank.  In these cases, 
 it is possible to obtain up to two additional memory accesses in a given cycle, 
-one from the pre-fetched data and one from the parity bank.
+one from the prefetched data and one from the parity bank.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.5\linewidth]{fig/bank_access1.jpg}
@@ -341,9 +345,9 @@ one from the pre-fetched data and one from the parity bank.
 \end{figure} Implementation of a memory prefetch should only require overhead 
 for space and the associated logic to implement it. Since memory accesses are 
 often stalled due to bank conflicts, checking pending accesses to the 
-pre-fetched data should require no additional time overhead. As memory accesses 
+prefetched data should require no additional time overhead. As memory accesses 
 wait to be issued in the bank queues, they can simultaneously be checked with 
-the pre-fetched data. Thus, no extra latency is anticipated by the addition of a 
+the prefetched data. Thus, no extra latency is anticipated by the addition of a 
 memory prefetching unit.
 Figure~\ref{fig:bank_access1} shows two plots of memory accesses to a bank with 
 respect to time. The left figure shows the accesses to the memory bank by 

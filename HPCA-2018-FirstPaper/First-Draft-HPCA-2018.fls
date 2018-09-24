@@ -269,6 +269,9 @@ INPUT fig/Read-Algo-Example.pdf
 INPUT ./fig/Read-Algo-Example.pdf
 INPUT ./fig/Read-Algo-Example.pdf
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/ae/aebxti10.tfm
+INPUT fig/write_pattern_algo.png
+INPUT ./fig/write_pattern_algo.png
+INPUT ./fig/write_pattern_algo.png
 INPUT /usr/share/texlive/texmf-dist/fonts/vf/public/ae/aebxti10.vf
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbxsl10.tfm
 INPUT fig/Write-Algo-Example.pdf

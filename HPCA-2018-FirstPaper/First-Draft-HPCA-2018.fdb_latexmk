@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex First-Draft-HPCA-2018"] 1536262650 "First-Draft-HPCA-2018.aux" "First-Draft-HPCA-2018.bbl" "First-Draft-HPCA-2018" 1536266675
+["bibtex First-Draft-HPCA-2018"] 1537567086 "First-Draft-HPCA-2018.aux" "First-Draft-HPCA-2018.bbl" "First-Draft-HPCA-2018" 1537567096
   "/usr/share/texlive/texmf-dist/bibtex/bst/IEEEtran/IEEEtran.bst" 1480098433 57748 7c8250ecf02814ce6ddc0cdbb63df1dd ""
-  "First-Draft-HPCA-2018.aux" 1536266674 22394 0d43f77b91a38ba37e465a6a469ac2d5 ""
+  "First-Draft-HPCA-2018.aux" 1537567095 22636 80e1032cfd6547ad19f9e5567b84bb5d ""
   "First-Draft-HPCA-2018.bcf" 0 -1 0 ""
   "references.bib" 1536097013 22814 174d948458e61eb688fbddc47074baf8 ""
   (generated)
   "First-Draft-HPCA-2018.bbl"
   "First-Draft-HPCA-2018.blg"
-["pdflatex"] 1536266669 "First-Draft-HPCA-2018.tex" "First-Draft-HPCA-2018.pdf" "First-Draft-HPCA-2018" 1536266675
+["pdflatex"] 1537567086 "First-Draft-HPCA-2018.tex" "First-Draft-HPCA-2018.pdf" "First-Draft-HPCA-2018" 1537567096
   "/etc/texmf/web2c/texmf.cnf" 1532973258 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1480098666 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
@@ -164,13 +164,13 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1520210507 32485 c64754543d8ac501bea6e75e209ea521 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1532976848 2700761 ac0584cc9514ab21918550a6948c4ee2 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1532976879 4126629 cf49185d84f48dfeb9e41d33b110b370 ""
-  "First-Draft-HPCA-2018.aux" 1536266674 22394 0d43f77b91a38ba37e465a6a469ac2d5 ""
-  "First-Draft-HPCA-2018.bbl" 1536262651 9202 5a9ccb0dc283b99654a36105fed59d75 "bibtex First-Draft-HPCA-2018"
-  "First-Draft-HPCA-2018.out" 1536266674 2298 846efd5e788d8328389b0771a26b1216 ""
-  "First-Draft-HPCA-2018.tex" 1536266669 14218 19fc8b204452472f5718ba702f5ccf10 ""
+  "First-Draft-HPCA-2018.aux" 1537567095 22636 80e1032cfd6547ad19f9e5567b84bb5d ""
+  "First-Draft-HPCA-2018.bbl" 1537567086 9202 5a9ccb0dc283b99654a36105fed59d75 "bibtex First-Draft-HPCA-2018"
+  "First-Draft-HPCA-2018.out" 1537567095 2298 846efd5e788d8328389b0771a26b1216 ""
+  "First-Draft-HPCA-2018.tex" 1537567073 14218 19fc8b204452472f5718ba702f5ccf10 ""
   "bgd_relatedwork.tex" 1533068628 24022 868c124c8fe309b0705aec035d7c530a ""
   "code_design.tex" 1533068628 31432 91d420a13719ed0eb708680c92766038 ""
-  "experimental_methodology.tex" 1536266179 4535 97379010e19e0b0d8e749a7847b77044 ""
+  "experimental_methodology.tex" 1537560164 4874 49adb1c43017c07a40314771f92f458c ""
   "fig/Code-Design-1.pdf" 1533068629 961143 9b2aaec1e25c7762de5cdb7436de420a ""
   "fig/Code-Design-2.pdf" 1533068629 1284279 b0d07d57515a63d91ba12c9d3713b80e ""
   "fig/Code-Design-3_8banks.pdf" 1533068629 839263 ecff93a27c3363a781b7b1691f20a39c ""
@@ -197,12 +197,13 @@
   "fig/vips_ramp_results.png" 1536259095 122724 b24b0776fdc746a0b07c24350933386b ""
   "fig/vips_split.png" 1536260859 463980 39166634c94a9fdf565b6956637b094c ""
   "fig/vips_split_results.png" 1536259015 136028 75da7c84290c8f62cf569dade3a554e2 ""
+  "fig/write_pattern_algo.png" 1537560110 40487 233f13bc9c8c1615aa9b24dc45158c3f ""
   "intro.tex" 1533068628 15713 b7710f52b04cbb2794787c914ae0f549 ""
-  "memControllerDesign.tex" 1536266665 32147 b3e79b1f858d4f30dad35bb881938ba8 ""
+  "memControllerDesign.tex" 1537560606 32263 a7b4d5c3d597c7571a6f5603da816894 ""
   "sig-alternate.cls" 1533068628 58103 9d556c99bb91b2342d0abee2c6f81de9 ""
-  "simulation_results.tex" 1536266417 9172 07397626198b70692135e943a5209851 ""
+  "simulation_results.tex" 1537555906 9805 923d3860ef6c13bf7752fc3df3f3622f ""
   (generated)
-  "First-Draft-HPCA-2018.out"
-  "First-Draft-HPCA-2018.aux"
   "First-Draft-HPCA-2018.pdf"
+  "First-Draft-HPCA-2018.aux"
+  "First-Draft-HPCA-2018.out"
   "First-Draft-HPCA-2018.log"
