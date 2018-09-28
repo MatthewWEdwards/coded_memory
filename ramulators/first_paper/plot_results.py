@@ -93,7 +93,7 @@ ax1.legend(["Scheme 1 Cycles", "Scheme 2 Cycles", "Scheme 3 Cycles"], bbox_to_an
 ax2.legend(["Scheme 1 Switches", "Scheme 2 Switches", "Scheme 3 Switches"], bbox_to_anchor=(1, .8))
 plot.xticks(np.array(data["alphas"]), data["alphas"])
 
-benchmark_regex = re.compile("/[a-z_A-Z]+$")
+benchmark_regex = re.compile("/[a-z_A-Z0-9]+$")
 regex_match = benchmark_regex.search(results_dir)
 plot.title("Coding Scheme Performance on the " + regex_match.string[regex_match.start()+1:regex_match.end()] + " Benchmark")
 

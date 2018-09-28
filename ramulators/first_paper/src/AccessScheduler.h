@@ -34,7 +34,7 @@ private:
 	// ReCoding Controller Variables
 	coding::RecodingUnit<T> * recoder_unit;
 	int coding_region_counter = 0; // Counts how many memory ticks since last recoding check
-	const int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
+	int coding_region_reschedule_ticks = 1e3; // TODO: Discuss how to choose this value
 	int min_coding_hits = coding_region_reschedule_ticks / 100; // Minimum number of hits to encode a region
 	double coding_region_length = .01; 
 	double alpha = 1;
@@ -51,11 +51,13 @@ private:
 	Prefetcher<T> * prefetcher;
 
 public:
-	AccessScheduler(int memory_coding, double alpha, double coding_region_length, DRAM<T>* channel)
+	AccessScheduler(int memory_coding, double alpha, double coding_region_length, int dynamic_period, int min_recoding_hits, DRAM<T>* channel)
 	{
 		this->channel = channel;
 		this->alpha = alpha;
 		this->coding_region_length = coding_region_length;
+		this->coding_region_reschedule_ticks = dynamic_period;
+		this->min_coding_hits = min_recoding_hits;
 		this->num_banks = channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
 		this->recoder_unit = new coding::RecodingUnit<T>(channel->spec);
 		this-> min_coding_hits = coding_region_reschedule_ticks / (5*alpha/coding_region_length); 

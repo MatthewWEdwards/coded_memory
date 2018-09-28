@@ -108,12 +108,13 @@ public:
         refresh(new Refresh<T>(this)),
         cmd_trace_files(channel->children.size())
     {
+		unsigned int bank_depth = configs.get_bank_queue_depth();
 		num_banks = channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)];
 		for(unsigned int bank = 0; bank < num_banks; bank++)
 			data_banks.push_back(coding::DataBank(bank));
-		readq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);
-		writeq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)]);
-        otherq = coding::BankQueue(1);
+		readq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)], bank_depth);
+		writeq = coding::BankQueue(channel->spec->org_entry.count[static_cast<int>(T::Level::Bank)], bank_depth);
+        otherq = coding::BankQueue(1, bank_depth);
 
         record_cmd_trace = configs.record_cmd_trace();
         print_cmd_trace = configs.print_cmd_trace();
@@ -131,7 +132,7 @@ public:
 		// Prepare access scheduler
 		memory_coding = configs.get_memory_coding();
 		access_scheduler = new coding::AccessScheduler<T>(memory_coding, 
-			configs.get_alpha(), configs.get_region_fraction(), channel);
+			configs.get_alpha(), configs.get_region_fraction(), configs.get_dynamic_period(), configs.get_min_recoding_hits(), channel);
 
 //===Statistics===================================================================================//
         row_hits

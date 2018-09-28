@@ -72,9 +72,10 @@ public:
 		
 		BankQueue() {}
 
-		BankQueue(uint32_t num_banks)
+		BankQueue(uint32_t num_banks, unsigned int depth = 10)
 		{
 			queues.resize(num_banks);
+			max = depth;
 		}
 		
 		BankQueue(const BankQueue& q)

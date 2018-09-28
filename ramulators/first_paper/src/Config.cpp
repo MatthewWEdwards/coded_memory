@@ -60,6 +60,12 @@ void Config::parse(const string& fname)
           alpha = atof(tokens[1].c_str());
         } else if (tokens[0] == "region_fraction") {
           region_fraction = atof(tokens[1].c_str());
+        } else if (tokens[0] == "dynamic_period") {
+          dynamic_period = atoi(tokens[1].c_str());
+        } else if (tokens[0] == "min_recoding_hits") {
+          min_recoding_hits = atoi(tokens[1].c_str());
+        } else if (tokens[0] == "bank_queue_depth") {
+          bank_queue_depth = atoi(tokens[1].c_str());
         } else if (tokens[0] == "expected_limit_insts") {
           expected_limit_insts = atoi(tokens[1].c_str());
         }

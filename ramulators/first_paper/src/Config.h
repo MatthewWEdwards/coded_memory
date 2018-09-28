@@ -24,6 +24,9 @@ private:
 	int memory_coding = 1;
 	double alpha = .125;
 	double region_fraction = .025;
+	int dynamic_period = 1e3;
+	int min_recoding_hits = 50;
+	int bank_queue_depth = 10;
     long expected_limit_insts = 0;
 
 public:
@@ -65,6 +68,9 @@ public:
     int get_memory_coding() const {return memory_coding;}
     double get_alpha() const {return alpha;}
     double get_region_fraction() const {return region_fraction;}
+    double get_dynamic_period() const {return dynamic_period;}
+    double get_min_recoding_hits() const {return min_recoding_hits;}
+    double get_bank_queue_depth() const {return bank_queue_depth;}
     long get_expected_limit_insts() const {return expected_limit_insts;}
     bool has_l3_cache() const {
       if (options.find("cache") != options.end()) {
