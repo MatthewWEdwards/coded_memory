@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.7.30)  21 SEP 2018 16:58
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.10.13)  15 OCT 2018 15:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -724,8 +724,8 @@ Package pdftex.def Info: fig/Code-Design-3_8banks.pdf  used on input line 358.
 (pdftex.def)             Requested size: 240.0pt x 122.03424pt.
 
 Excluding 'comment' comment.) (./memControllerDesign.tex
-Overfull \hbox (4.57657pt too wide) in paragraph at lines 6--15
-\T1/aer/m/n/10 ory sys-tem re-dun-dantly stores the data in mem-ory banks,
+Overfull \hbox (2.5268pt too wide) in paragraph at lines 6--15
+\T1/aer/m/n/10 mem-ory con-troller of the pro-posed mem-ory sys-tem. This
  []
 
 <fig/controllerArchitecture.pdf, id=1576, 1011.78pt x 758.835pt>
@@ -734,13 +734,13 @@ File: fig/controllerArchitecture.pdf Graphic file (type pdf)
 Package pdftex.def Info: fig/controllerArchitecture.pdf  used on input line 25.
 
 (pdftex.def)             Requested size: 167.99927pt x 125.98973pt.
-<fig/coded_access_scheduler.pdf, id=1578, 1011.78pt x 758.835pt>
+[10 <./fig/Code-Design-3_8banks.pdf> <./fig/controllerArchitecture.pdf>]
+<fig/coded_access_scheduler.pdf, id=1927, 1011.78pt x 758.835pt>
 File: fig/coded_access_scheduler.pdf Graphic file (type pdf)
 <use fig/coded_access_scheduler.pdf>
 Package pdftex.def Info: fig/coded_access_scheduler.pdf  used on input line 65.
 
 (pdftex.def)             Requested size: 167.99927pt x 125.98973pt.
-[10 <./fig/Code-Design-3_8banks.pdf> <./fig/controllerArchitecture.pdf>]
 <fig/read_pattern_algo.png, id=1930, 1387.1825pt x 2350.7825pt>
 File: fig/read_pattern_algo.png Graphic file (type png)
 <use fig/read_pattern_algo.png>
@@ -799,47 +799,44 @@ Package pdftex.def Info: fig/queue_lookahead.jpg  used on input line 366.
 (pdftex.def)             Requested size: 240.0pt x 114.37387pt.
 ) (./experimental_methodology.tex
 [15 <./fig/bank_access1.jpg> <./fig/queue_lookahead.jpg>])
-(./simulation_results.tex
-<fig/dedup_benchmark_results.png, id=2568, 1339.1631pt x 716.1957pt>
+(./simulation_results.tex [16]
+<fig/dedup_benchmark_results.png, id=2574, 1339.1631pt x 716.1957pt>
 File: fig/dedup_benchmark_results.png Graphic file (type png)
 <use fig/dedup_benchmark_results.png>
 Package pdftex.def Info: fig/dedup_benchmark_results.png  used on input line 12
 .
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-<fig/dedup_hundreth.png, id=2569, 1339.1631pt x 716.1957pt>
+<fig/dedup_hundreth.png, id=2575, 1339.1631pt x 716.1957pt>
 File: fig/dedup_hundreth.png Graphic file (type png)
 <use fig/dedup_hundreth.png>
-Package pdftex.def Info: fig/dedup_hundreth.png  used on input line 17.
+Package pdftex.def Info: fig/dedup_hundreth.png  used on input line 18.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
- [16]
 <fig/vips_split.png, id=2583, 1339.1631pt x 716.1957pt>
 File: fig/vips_split.png Graphic file (type png)
 <use fig/vips_split.png>
-Package pdftex.def Info: fig/vips_split.png  used on input line 29.
+Package pdftex.def Info: fig/vips_split.png  used on input line 30.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
 <fig/vips_ramp.png, id=2584, 1339.1631pt x 716.1957pt>
 File: fig/vips_ramp.png Graphic file (type png)
 <use fig/vips_ramp.png>
-Package pdftex.def Info: fig/vips_ramp.png  used on input line 36.
+Package pdftex.def Info: fig/vips_ramp.png  used on input line 37.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
  [17 <./fig/dedup_benchmark_results.png> <./fig/dedup_hundreth.png> <./fig/vips
 _split.png> <./fig/vips_ramp.png>]
-<fig/vips_split_results.png, id=2603, 1339.1631pt x 716.1957pt>
+<fig/vips_split_results.png, id=2605, 1339.1631pt x 716.1957pt>
 File: fig/vips_split_results.png Graphic file (type png)
 <use fig/vips_split_results.png>
-Package pdftex.def Info: fig/vips_split_results.png  used on input line 50.
+Package pdftex.def Info: fig/vips_split_results.png  used on input line 51.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-<fig/vips_ramp_results.png, id=2606, 1339.1631pt x 716.1957pt>
+<fig/vips_ramp_results.png, id=2608, 1339.1631pt x 716.1957pt>
 File: fig/vips_ramp_results.png Graphic file (type png)
 <use fig/vips_ramp_results.png>
-Package pdftex.def Info: fig/vips_ramp_results.png  used on input line 56.
+Package pdftex.def Info: fig/vips_ramp_results.png  used on input line 57.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
 ) [18 <./fig/vips_split_results.png> <./fig/vips_ramp_results.png>]
-(./First-Draft-HPCA-2018.bbl [19])
+(./First-Draft-HPCA-2018.bbl)
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 220.
- [20
-
-]
+ [19]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 220.
  (./First-Draft-HPCA-2018.aux)
 Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 220.
@@ -849,9 +846,9 @@ Package rerunfilecheck Info: File `First-Draft-HPCA-2018.out' has not changed.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 220.
  ) 
 Here is how much of TeX's memory you used:
- 8989 strings out of 492982
- 133223 string characters out of 6134896
- 246770 words of memory out of 5000000
+ 8988 strings out of 492982
+ 133216 string characters out of 6134895
+ 247769 words of memory out of 5000000
  12215 multiletter control sequences out of 15000+600000
  69390 words of font info for 103 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -875,10 +872,10 @@ ype1/public/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
 blic/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 /helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8
 a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on First-Draft-HPCA-2018.pdf (20 pages, 3291763 bytes).
+Output written on First-Draft-HPCA-2018.pdf (19 pages, 3290934 bytes).
 PDF statistics:
- 2721 PDF objects out of 2984 (max. 8388607)
- 2319 compressed objects within 24 object streams
- 132 named destinations out of 1000 (max. 500000)
+ 2717 PDF objects out of 2984 (max. 8388607)
+ 2316 compressed objects within 24 object streams
+ 131 named destinations out of 1000 (max. 500000)
  400 words of extra memory for PDF output out of 10000 (max. 10000000)
 
