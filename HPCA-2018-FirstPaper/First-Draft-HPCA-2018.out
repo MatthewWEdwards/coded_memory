@@ -13,7 +13,7 @@
 \BOOKMARK [3][-]{subsubsection.3.2.2}{Code Design II}{subsection.3.2}% 13
 \BOOKMARK [3][-]{subsubsection.3.2.3}{Code Design III}{subsection.3.2}% 14
 \BOOKMARK [1][-]{section.4}{Memory Controller Design}{}% 15
-\BOOKMARK [2][-]{subsection.4.1}{Main units at memory controller}{section.4}% 16
+\BOOKMARK [2][-]{subsection.4.1}{Memory Controller Stages}{section.4}% 16
 \BOOKMARK [2][-]{subsection.4.2}{Code Status Table}{section.4}% 17
 \BOOKMARK [2][-]{subsection.4.3}{Read pattern builder}{section.4}% 18
 \BOOKMARK [2][-]{subsection.4.4}{Write pattern builder}{section.4}% 19

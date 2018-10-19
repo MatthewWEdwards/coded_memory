@@ -13,8 +13,8 @@ In this section, we discuss the architecture of the memory controller of the pro
 %associated with the parity banks. We first discuss the scheme of dynamic coding 
 %and follow it by discussing the potential benefits of prefetching the codes.\\
 
-\subsection{Main units at memory controller}
-A general memory controller consists of three stages of processing (cf.~Figure~\ref{fig:pseudo-code}). The first stage, the {\em core arbiter}, gathers access request from the processor cores. The {\em core arbiter} then routes the requests to the proper {\em bank queue}. The {\em bank queues} are the second stage of processing, and they are responsible for storing and tracking requests for different data banks. The {\em access scheduler} is the final stage of processing. It is responsible for scheduling the requests in the bank queues. Each memory cycle, the {\em access scheduler} generates an access pattern based on the requests present in the bank queues. A primary concern of the design of the {\em access scheduler} is the tradeoff between the complexity of the scheduler and the efficiency of the access pattern generation. Next, we discuss all of these three units and their functions in a greater detail.
+\subsection{Memory Controller Stages}
+A general memory controller consists of three stages of processing (cf.~Figure~\ref{fig:pseudo-code}). The first stage, the {\em core arbiter}, gathers access request from the processor cores. The core arbiter then routes the requests to the proper {\em bank queue}. The bank queues are the second stage of processing, and they are responsible for storing and tracking requests for different data banks. The {\em access scheduler} is the final stage of processing. It is responsible for scheduling the requests in the bank queues. Each memory cycle, the access scheduler generates an access pattern based on the requests present in the bank queues. A primary concern of the design of the access scheduler is the trade-off between the complexity of the scheduler and the efficiency of the access pattern generation. Next, we discuss all of these three units and their functions in a greater detail.
 %first level is {\em Core Arbiter }, the unit responsible for handling requests 
 %from cores.  The second level is {\em Bank Arbiter} responsible for arbitrating 
 %requests to banks.  The third level is {\em Access Scheduler} which schedules 
@@ -29,32 +29,13 @@ A general memory controller consists of three stages of processing (cf.~Figure~\
 \end{figure}
 %-------------------------
 \begin{itemize}
-\item \textbf{Core arbiter:~}The {\em core arbiter} receives request from all the cores at every clock cycle.  
-It maintains a queue for each core. The depth of each queue is {\em 8 requests}.  
-That is, it can hold 8 requests from each core for service. When a queue is 
-filled up, the controller signals the respective core as busy. So, the core 
-cannot issue a memory request and hence stalls until the controller's status 
-gets back to normal. This unit is also responsible for arbitration among the 
-request for cores. The arbitrator goes through the last element of each queue 
-and determines the priority order. It uses a two-step priority order mechanism:
-1) First, it arranges the request in order of QoS with high QoS at high 
-priority; and  2) {Second}, for request having same priority, it arranges them using 
-round robin.
-\item \textbf{Bank queues:~}This unit contains read  and write queues for each data bank. The core arbitrator arbitrates requests from 
-cores, expands them and fills them in the bank queues. The depth of bank queues 
-in current implementation is $10$. This means that the depth of each read 
-and write queue is $10$. These queues are for each bank. In an eight bank system, 
-there are total of eight read queues and eight write queues. This requires a 
-total of $160$ requests to be stored in these queues.
-\item \textbf{Access scheduler:~}The access scheduler is responsible for scheduling access to
-various memory banks in the storage space at every clock cycle.  This logic looks at the read and write queues for 
-each data bank and forms an access pattern which is most efficient. In doing so, it 
-goes through the requests in the bank and makes the pattern. It prioritizes the
-requests at the bottom of the queue however, in case of coding memory systems 
-(discussed in \ref{sec:readCodingAlgo}) it looks ahead in the queue to maximize 
-the accesses per cycle. The write queues hold the writes until the writes are 
-full. The reads are given priority over writes until the write queue gets 
-filled.
+\item \textbf{Core arbiter:~}Every clock cycle, the core arbiter receives up to one request from each core which it stores in an internal queue. The core arbiter attempts to push these request to the appropriate bank queue. If in attempting to push a request the core arbiter detects that the destination bank queue is full, the controller signals that the core is busy which stalls the core. The core arbiter is also responsible for arbitration among the access requests. It arranges the requests stored in its internal queue using a two-step priority order mechanism. It arranges the request in order of QoS priority, and it arranges requests with the same QoS priority using round-robin scheduling.
+\item \textbf{Bank queues:~}Each data bank has a corresponding read queue and write queue.  The core arbiter sends memory requests to the bank queues until the queues are full. In our simulations, we use a bank queue depth of 10. 
+
+In addition to the read and write banks, there is a single queue in the bank queues structure which hold special requests such as memory refresh requests.
+\item \textbf{Access scheduler:~}The access scheduler is responsible for scheduling access to the various memory banks in the storage space. Every memory cycle, the access scheduler chooses to serve read requests or write requests and algorithmically determines which requests in the bank queues it will schedule. The algorithms the access scheduler uses to choose which requests to schedule are called pattern builders. Every memory cycle, the access scheduler invokes either the read pattern builder or the write pattern builder to schedule read or write requests respectively. A key design trade-off of the pattern builder algorithms is the relationship between the complexity of the access scheduler and the efficiency of the memory access scheduling.
+
+We note that the first two components of the memory controller, i.e., core arbiter and bank queues, in the setting with coded memory banks should not differ much from those in the traditional setup with uncoded storage space. The access scheduler directly interacts with the memory banks and must be designed with our proposed coding schemes in mind. The rest of this section is devoted to discussing the access scheduler in detail.
 \end{itemize}
 
 {\color{red} We note that the first two components of the memory controller, i.e., core arbiter and bank queues, in the setting with coded memory banks should not differ much from those in the traditional setup with uncoded storage space. It's the third component, access scheduler, that directly interacts with the array of memory banks and it should take the underlying coding scheme into account while scheduling both read and write requests.} In the rest of this section, we discuss various parts of the access scheduler in detail.
@@ -70,22 +51,13 @@ filled.
 %-------------------------
 \subsection{Code Status Table}
 \label{sec:codeStatusTable}
-Due to write requests, the information stored in the memory banks need to be constantly updated. However, the updating an information element requires more work in the setup with coded memory banks as all the parity elements that depend on the information element also need be updated. In order to keep track of the freshness of the data stored in the various memory banks, we assign a storage space, namely {\em code status table}, in the access scheduler. As depicted in Figure~\ref{fig:coded_access_scheduler}, this block's rows correspond to rows of the memory banks. The different columns of the status table are associated to different memory banks in our memory design.  Each cell in the status table stores $2$ bits, which are mapped to the status of the code for the corresponding row of the memory banks as per Table ~\ref{table:codestatusmap}. We assume that the elements of the code status table are accessible at a very fast rate. %This memory is present in the memory controller and is assumed to be accessible at a very fast rate.
+The code status table keeps track of the validity of data stored the data and parity banks. The access scheduler may serve a write request using either a data or parity bank. When a write is served to a row in a data bank, any parity bank which uses that data bank to construct coded elements now contains invalid data in the row written to. Additionally, when a parity bank is written to, both the data bank the write request would normally write to, and any parity banks which utilize that data bank contain invalid data in the row written to. The code status table keeps track of where invalid data exists so the access schedule does not erroneously serve read request with stale data, and so the access scheduler can update banks with valid data. 
+
+Figure~\ref{fig:coded_access_scheduler} depicts one implementation of the code status table, and this implementation is the one we use for simulating our proposed memory system. This implementation of thee code status table contains an entry for each row of each data bank. Each entry can take one of three values, either the data in both the data bank and parity banks is fresh, the data bank contains the most recent data, or one of the parity banks contains the most recent data. We assume that the elements of the code status table are accessible at a very fast rate. This implementation of the code status table could be made more effective. 
+
+The implementation of the code status table used in our simulation could be improved. The code status table does not keep track of the intermediate steps the access scheduler takes when rebuilding codes after a write is served. Full knowledge of the status of all data and parity banks allows the access scheduler to serve more requests in some scenarios. Take for example the rebuilding process after a write request is written to a data bank. The access scheduler will rebuilt the elements in all parity banks which use the data bank after the write requests. The code status table will indicate that parities are available for use if and only if all the parity contain updated elements. If some but not all parity banks are updated with rebuilt elements then parity banks can be used, however the access scheduler has no way of knowing which subset of the parity banks contain valid data. The  parity banks containing valid data my go unused when they may have been useful for serving read requests. Keeping track of the status of individual parity banks solves this problem. \Matt{is this example necessary? Is the tangent worth the insight?}
 
 
-\begin{table}[h!]
-	\centering
-	\begin{tabular}{|c | c|}
-\hline
-00 &  {Codes are up-to-date}\\ \hline 
-01 &  Codes are outdated. Fresh data in Data bank \\ \hline 
-10 &  Codes are outdated. Fresh data in Parity bank \\ \hline 
-11 &  Reserved \\
-\hline
-\end{tabular}
-\caption{Code Status Map}
-\label{table:codestatusmap}
-\end{table}
 %-----------------------
 \begin{figure}[t!]
 	%\includegraphics[width=0.9\linewidth]{fig/Read-algo.pdf}
@@ -106,37 +78,16 @@ Due to write requests, the information stored in the memory banks need to be con
 %\subsection{Read Algorithm for Coded Memory system}
 \subsection{Read pattern builder}
 \label{sec:readCodingAlgo}
-The primary objective of the access scheduler it to maximize the number of read requests served in a given memory cycle. This is achieved by the block {\em read pattern builder}. The main idea here is to exploit the redundancy in the parity banks in order to serve as many simultaneous read requests as possible.
+A principal goal of the proposed memory system is to serve many read requests in a single memory cycle. The redundant memory provided by the parity banks gives the memory controller the potential to serve more read requests in a single memory cycle. It is the job of the access scheduler to execute that potential. When serving read requests, the access scheduler selects a set of requests to be scheduled from the bank queues. In order to select the set of requests to be scheduled, the access scheduler must determine how the memory requests will be served by the data and parity banks. Serving a memory request from a data bank is straightforward, because  the symbols in the data banks are at any time ready to be read as long as the code status table indicates that the memory in the data banks is up-to-date. Serving a memory request using a parity bank more complex, because parity banks which contain coded symbols must use symbols downloaded from data banks in order to be decoded. The access scheduler uses the read pattern builder algorithm to determine which requests to serve using parity and data banks. \Matt{is the introduction of the paragraph too wordy?}
 
-\Matt{We should include an example where using idle data banks is advantageous} We describe the algorithm employed by the read request pattern in Figure~\ref{fig:readAlgo}. We illustrate this algorithm with the help of an example, which is shown in Figure~\ref{fig:readAlgoAccessPattern}. %The accesses from parity banks is useful only if one of the corresponding access  is made to the data bank. Figure ~\ref{fig:readAlgo} describes the algorithm. Figure ~\ref{fig:readAlgoAccessPattern} describes an access pattern scenario. 
-%The reads are maximized by using the parity banks. The key here is to be able to use the parity bank to serve the reads to other banks. 
-The controller first marks {\em a(1)} to be read from the data bank $\mathbf{a}$. It then iterates through the read requests fro the data banks $\mathbf{b}, \mathbf{c},$ and $\mathbf{d}$ to find out if any of those requests can be served by combining $a(1)$ with parity elements from the unused parity banks. As it so happens, the read requests for $b(1), c(1)$ and $d(1)$ can be served using $a(1)$ and the parity banks. The controller marks the corresponding parity banks to be used (or busy). Then it moves to the data bank $\mathbf{b}$ to serves the read request for $b(2)$ using this bank. It then searches if it can serve any request for the elements in the data banks $\mathbf{a}, \mathbf{c},$ and  $\mathbf{d}$ by combining the downloaded data element $b(2)$ with the parity elements from the unused parity banks. As a result of this search, it decides to serve the read requests for $c(2)$ and $d(2)$ with the help of the (unused) parity banks storing the parity elements $b(2) + c(2)$ and $b(2) + d(2)$. Similarly, the read pattern builder goes through bank banks $\mathbf{c}$ and $\mathbf{d}$ to form the complete access pattern. As it can be observed from Figure ~\ref{fig:readAlgoAccessPattern}, the controller 
-serves $4, 3, 2$, and  $1$ read requests for the data banks $\mathbf{d}, \mathbf{c}, \mathbf{b},$ and $\mathbf{a}$, respectively. The banks are thus 
-accessed in order of their queue size with the least queue size accessed first 
-for forming the access pattern. However, this rule does not always guarantee that 
-there would be $1$ read requests for the first bank and $4$ access for the last bank. This 
-is dependent on the actual read requests present in the queues. \Ankit{Also, we need to make sure that we are not jumping any write request while going through the queues to build a pattern, right? Or are we only doing FIFO processing of the read requests?}
-\Matt{The Core arbiter should be designed such that jumping write requests is impossible}
+The read pattern builder selects which memory requests to serve and determines how requests served by parity banks will be decoded. The algorithm is designed to serve many read requests in a single memory cycle. Figure \ref{fig:readAlgo} is one possible implementation of the read pattern builder. It is important to note that the algorithm depicted will not always schedule the maximum number of read requests in a single memory cycle. The implementation of the read pattern builder shown here is the implementation we use in our simulations described in sections 5 and 6. 
 
-The example considered in Figure~\ref{fig:readAlgoAccessPattern} highlights three different aspect of the read algorithm (cf. Figure~\ref{fig:readAlgo}). {First}, the access scheduler iteratively tries to schedule the maximum number of read requests in a given memory cycle. The accesses from the other banks are searched. The controller maintains a bitmap of availability of parity banks. It marks a parity bank busy/used when it assigns a read request to be served with the help of this bank. {Second}, the access scheduler has the ability to search in the whole queue in order to find a request which can be served from the parity banks. {Third}, the 
-access scheduler goes over the data bank in order of their queue sizes. This enables it to maximize the chance of serving $4$ read requests for the last data bank in the considered ordering.
-%\ignore{ we access {\em a1 + b1 } from the parity bank, we need to have either 
-%	{\em a1}  or {\em b1} in order to decode the other. Now it is quite 
-%	common the case when the access across the banks are not to the same 
-%	row. For example, if the accesses are to {\em a1} and {\em b5}, the 
-%	parity bank {\em a + b} cannot be used. However, if there was a request 
-%	in the queue for {\em a} for {\em a5} or in {\em b} for {\em a1}, it can 
-%	serve all the three requests in one cycle. That is, it can serve {\em 
-%	a1} , {\em b5} and either {\em b1} or {\em a5} in one cycle.  This 
-%	approach helps increase number of accesses per cycle. In case of the 
-%	described coding system, for a best case scenario of each region, we can 
-%	serve 10 accesses per cycle since we have 10 banks. This in simple terms 
-%is a direct {\bf 2.5} times more than the baseline system for each region. \\}
+Figure ~\ref{fig:readAlgoAccessPattern} shows the algorithm depicted in one scenario. First, the read pattern builder marks $a(1)$ to be read from data bank $\mathbf{a}$. It then looks through banks $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ searching for requests for requests for rows $b(1)$, $c(1)$, or $d(1)$ because these symbols can be decoded from a parity bank using the $a(1)$ symbol. In this scenario $b(1$), $c(1)$, and $d(1)$ are all present in the bank queues and are served using parity banks. Symbols equal to  $a(1) + b(1)$, $a(1) + c(1)$, and $a(1) + d(1)$ are all downloaded from parity banks and decoded with $a(1)$. Next, $b(2$) is read from a data bank. Similar to before, $c(2)$ and $d(2)$ are served using parity banks. Again as before, $c(3)$ is read from data bank and $d(3)$ is decoded using $c(3)$. Finally, $d(4)$ is read from a parity bank. In this scenario, Only the top loop of the read pattern builder as pictured in Figure~\ref{fig:readAlgo} successfully serves reads, but there are scenarios where the bottom loop is useful. 
+
 \begin{remark}
 Here we note that the aforementioned approach of maximizing the number of read request being served per cycle does come with a cost.  It 
-increases the chances of having {\em out-of-order execution} of memory access requests. This does not pose a problem in the case when the memory requests go out of order for different cores. {\color{blue}However, in order to prevent the out-of-order execution of the access requests arising from the same core, the logic needs to take care of in-order execution of requests from each cores.} \Ankit{How does logic take care of this...Can you write 1-2 line on that? Would it affect the performance of the read algorithm?}
-\\
-\Matt{A solution to this problem is to only allow requests to enter the bank queues if they can be served immediately without risk of out-of-order execution.}
+increases the chances of having {\em out-of-order execution} of memory access requests. This does not pose a problem in the case when the memory requests go out of order for different cores. However, in order to prevent the out-of-order execution of the access requests arising from the same core, the logic needs to take care of in-order execution of requests from each cores. We assume that the code arbiter only admits requests into the bank queues if the requests do not pose a threat of out-of-order execution.
+
 \end{remark}
 \ignore{
 %-----------------------
@@ -156,7 +107,7 @@ increases the chances of having {\em out-of-order execution} of memory access re
 %\subsection{Write Algorithm for Coded Memory system}
 \subsection{Write pattern builder}
 \label{sec:writeCodingAlgo}
-Next, we address the issue of scheduling write requests during the operation of the proposed memory system. Recall that the write requests are first filled in a write queue for each bank. The unit that resides in the access scheduler and commit these write requests to the memory banks is referred to as {\em write pattern builder}. The write pattern builder waits till a write queue gets full to schedule the write requests to be served. This approach is adopted in order to ensure that the read requests get priority over the write requests.
+In addition to the increase in possible read requests per memory cycle, the parity banks allows the memory controller to serve more write requests per cycle. The memory controller serve multiple writes for a single data bank in a single memory cycle by committing some of the writes to parity banks. Similar to the read pattern builder, the access scheduler implements a write pattern builder algorithm which determines which write requests to schedule in a single memory cycle. 
 
 %-----------------------
 \begin{figure}[htbp]
@@ -167,32 +118,12 @@ Next, we address the issue of scheduling write requests during the operation of 
 \end{figure}
 %-------------------------
 
-In particular, we aim to commit $2$ write request per data bank in the given memory cycle. When the write queue for a particular bank gets full, the write pattern builder picks $2$ write request from the head of the queue. It write the first write request to the corresponding data bank. For the other write request to be scheduled, the builder commits this request to one of the parity banks that depend on the data bank associated with the write request. {\color{blue}In particular, the builder replaces the parity element that depends on the data element of the write request with the data element itself. Note that this destroys the parity elements and the coding scheme (in the corresponding row is deemed outdated).} This requires us to update the code status table accordingly. We handle the outdated coding scheme using another block of the access scheduler, namely {\em ReCoding unit} (cf.~Section~\ref{sec:recoding}). Figure~\ref{fig:writeFlow} illustrates the logic of the write pattern builder.
-
-% When a write is scheduled for a particular bank, the scheduler picks up {\bf 
-%two} requests from the head of the queue. It writes the first request to the 
-%corresponding data bank. The second write is committed to the parity bank of the 
-%respective row. Figure ~\ref{fig:writeAlgo} describes the write algorithm as a 
-%flowchart. \\
+Figure~\ref{fig:writeFlow} shows a flowchart describing a potential implementation of the write pattern builder. We use this implementation of the write pattern builder in the simulations described in sections 5 and 6. In this implementation, the access scheduler serves write request with lower priority that read requests. Only when the write bank queues are nearly full does the access scheduler run the write pattern builder algorithm. Figure~\ref{fig:writeAlgoAccessPattern} shows how the write pattern builder described in Figure~\ref{fig:writeFlow} works one scenario. Without the parity banks, only one write per data bank is possible, resulting in the service of four write requests. The introduction of parity banks allow for a total of 10 write requests. Note that an element which is destined for row $n$ in a data bank can only be written to the corresponding row $n$ in the parity banks. 
 
 We illustrate the aforementioned functioning of the write pattern builder with the help of an example shown in Figure~\ref{fig:writeAlgoAccessPattern}. In this example, the write queue is full for all the four banks. The controller picks up $2$ write requests from each of these queues and schedules them to be written to the respective data bank and one parity bank. The controller also updates the code status table map with the appropriate status. It updates the writes committed to data bank with $01$ and writes committed to parity bank with $10$. The write build pattern will only serve a write using parity banks if the request's row exists in the parity bank. 
 
-\begin{remark}
-In the example described in Figure~\ref{fig:writeAlgoAccessPattern}, the queues for all data banks become full at the same time. In general, this is not the case and the write queues for some of the data banks become full before it does so for the other data banks. In this case, the write requests for only some of the banks get scheduled in a given memory cycle.{\color{blue} We note that the controller is designed to schedule both read and write for each bank depending on 
-the queue size and availability of the parity of banks. Therefore, if a data bank is not utilized to serve a write request in a memory cycle, it can be potentially utilized to serve a read request in that cycle.} \Matt{The current simulations only schedule reads requests OR write requests in a single memory cycle. There are issues in Ramulator when scheduling reads and writes simultaneously...}
-\end{remark}
+Figure~\ref{fig:writeAlgoAccessPattern} also demonstrates how the code status table changes to reflect the freshness of the elements in the data and parity banks. Here, the 00 status indicates that all elements are updated. The 01 status indicates that the data banks contain fresh elements and the elements in the parity banks must be recoded. The 10 status indicates that the parity banks contain fresh elements, and that the data bank must be updated and the elements in the parity banks must be updated.
 
-%\begin{remark}
-%An exception to the standard logic of the write pattern builder is invoked when the accesses are linear in nature for all $4$ data banks. For example, if we have write requests for the elements $a(1), b(1), c(1),$ and $d(1)$. In such a case, the controller directly updates all the parity banks by writing the updated versions of the parity elements $a(1) + b(1), a(1) + c(1), a(1) + d(1), b(1) + c(1), b(1) + d(1),$ and $c(1) + d(1)$. This ensures that the parity banks remain updated and the 
-%memory controller no longer need to update the parity bank using ReCoding unit (cf.~Section~\ref{sec:recoding}). The reason for invoking this exception is to avoid the extra cost involved in recoding the whole row. Though this saving in the cost of recoding come at a price as we fall back to $1$ write request per data bank in the underlying memory cycle. 
-%\end{remark}
-
-%Figure~\ref{fig:writeAlgoAccessPattern} describes the writes algorithm with an example.
-%The write is selected for a bank when the write queue is full. The scheduler picks up two 
-%elements from each bank for writes. It schedules the first element to be written to the data bank
-%and the second one to be written to the memory bank. The memory controller updates the code status map 
-%according to table~\ref{table:codestatusmap}. For elements stored to the data bank, i.e., the first element,
-%it updates it to {\bf 01} and for elements stored in parity bank to {\bf 10}.
 \ignore{writes are scheduled to address {\em a2} and {\em a9}. The write to {\em 
 	a2} goes to {\em a2}, however, the write to {\em a9} goes to the data 
 bank {\em a9 + b9}. This helps us do two writes in one cycle.  However, the 
@@ -209,34 +140,17 @@ data bank of {\em a9} still contains the stale value. The scheduler updates the
 %-------------------------
 \subsection{ReCoding unit}
 \label{sec:recoding}
-As described in Section~\ref{sec:writeCodingAlgo}, committing write requests to the memory banks destroys the coding scheme for the corresponding row. Note that this information is available in the code status table. In order to maintain the original (coded) storage so that it can be utilized to reduce the latency experienced by the read requests, the memory controller needs to restore the coding scheme with the updated values of data elements.
-%It then implies a requirement to the memory controller to restore the code back with the updated values. 
-The ReCoding unit is responsible for recoding the updated rows at a later time. This unit  comprises a queue which holds the row number of the updated code. Each row in the queue is associated with the cycle number or a counter which serves as a timing notion of how old is the request in the queue. The controller can be designed to recode a row within {\color{red}XYZZZZZ} number of cycle after its update. 
+After a write request has been served, the stale data in the parity or data banks must be replaced. The ReCoding Unit is responsible for updating the elements of data and parity banks after a write is served. The ReCoding Unit contains a queue which is updated every time a write request is served. We calll the elements on the ReCoding Unit queue “recoding requests”. Recoding requests indicate the data and parity banks which contain stale elements, and the bank the write was served to which resulted in the recoding request. The recoding requests also contain the cycle number the request was created so the ReCoding Unit may prioritize older requests. 
 
-The ReCoding unit restores the coding scheme by utilizing banks left idle by the read and write pattern builders. In the case of restoring data in a parity bank, the ReCoding unit downloads and stores from the data banks over one or more memory cycles and restores the parity code once all requisite data has been retrieved. For storing a write which has been stored in a parity bank, the ReCoding unit writes the new data to the parity bank and then begins to restore the parity code. If in the execution of the read and write pattern builders data which is useful to the ReCoding unit is accessed, the data is sent to the ReCoding unit.
+The ReCoding Unit downloads the necessary elements needed serve the recoding units from data and parity banks left idle by the read pattern builder and the write pattern builder. In the case of restoring data in a parity bank, the ReCoding unit downloads and stores from the data banks over one or more memory cycles and restores the parity code once all requisite data has been retrieved. For storing a write which has been stored in a parity bank, the ReCoding unit writes the new data to the data bank and then begins to restore the parity code. If during the execution of the read pattern builder or write pattern builder elements are downloaded which are useful for recoding, the element is sent to the ReCoding Unit.
 
 
 \subsection{Dynamic Coding}
 \label{sec:dynamicCoding}
-The {\em dynamic coding} block in the access scheduler is responsible for 
-maintaining codes for heavily accessed memory sub regions. This block primarily 
-helps in the reduction of code storage for unused memory. This algorithm finds 
-out the current heavily accessed region and indicates to the controller to code 
-that region. With this, we require only a fraction of the whole memory to be 
-coded.  
+To reduce memory overhead, the size of the parity banks is only a fraction of the size of the data banks. Ideally, the most heavily access portions of memory are the portions which are redundantly stored in the parity banks. The dynamic coding block in the access scheduler is responsible for maintaining codes for the most heavily accessed memory sub regions.
 
-The contention in memory accesses from various cores occurs mostly when the 
-access are to shared-memory, especially when they are localized to certain 
-memory regions. We explore the locality of the memory access over a period of 
-time to reduce the memory overhead for storing the codes. In a multi-core 
-system, when various cores try to work from a shared memory location, they tend 
-to generate accesses to a localized region of memory. This motivates the idea of 
-coding the localized region during the period of heavy access, and dynamically 
-changing the region whenever there is change in the locality of memory accesses.
-Figure~\ref{fig:dedup_whole} shows the access pattern for cores 0 to 7 running the dedup PARSEC benchmark.  
-The y-axis of the figure shows the address accessed by the coress over a 
-period of time. The x-axis denotes the time in nanoseconds. This plot shows that 
-most of the access from various cores are primarily located in the lower memory band. Greater than 95\% of all memory accesses are from this band ~\ref{fig:dedup_dense} magnifies this band and reveals that the lower band is composed of two sub-bands of roughly equal density.
+The contention in memory accesses from various cores occurs mostly when the access are to shared-memory, especially when they are localized to certain memory regions. We explore the locality of the memory access over a period of time to reduce the memory overhead for storing the codes. In a multi-core system, when various cores try to work from a shared memory location, they tend to generate accesses to a localized region of memory. This motivates the idea of coding the localized region during the period of heavy access, and dynamically changing the region whenever there is change in the locality of memory accesses. Figure 17 shows the access pattern for an 8-core simulated system running the dedup PARSEC benchmark. The y-axis of the figure shows the address accessed by the cores over a period of time. The x-axis denotes the time in nanoseconds. This plot shows that most of the access from various cores are primarily located in the lower memory band. Greater than 95% of all memory accesses are from this band 18 magnifies this band and reveals that the lower band is composed of two sub-bands of roughly equal density. 
+
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/dedup_whole.png}
