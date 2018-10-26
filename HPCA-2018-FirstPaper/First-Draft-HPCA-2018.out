@@ -19,15 +19,17 @@
 \BOOKMARK [2][-]{subsection.4.4}{Write pattern builder}{section.4}% 19
 \BOOKMARK [2][-]{subsection.4.5}{ReCoding unit}{section.4}% 20
 \BOOKMARK [2][-]{subsection.4.6}{Dynamic Coding}{section.4}% 21
-\BOOKMARK [2][-]{subsection.4.7}{Prefetching Codes}{section.4}% 22
-\BOOKMARK [1][-]{section.5}{Experimental Methodology}{}% 23
-\BOOKMARK [2][-]{subsection.5.1}{Memory Trace Generation}{section.5}% 24
-\BOOKMARK [2][-]{subsection.5.2}{PARSEC Trace Attributes}{section.5}% 25
-\BOOKMARK [2][-]{subsection.5.3}{Ramulator}{section.5}% 26
-\BOOKMARK [1][-]{section.6}{Simulation Results}{}% 27
-\BOOKMARK [2][-]{subsection.6.1}{PARSEC Results}{section.6}% 28
-\BOOKMARK [2][-]{subsection.6.2}{PARSEC Augmentation}{section.6}% 29
-\BOOKMARK [2][-]{subsection.6.3}{Augmented PARSEC Results}{section.6}% 30
-\BOOKMARK [2][-]{subsection.6.4}{Design Parameters}{section.6}% 31
-\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 32
-\BOOKMARK [1][-]{section.8}{References}{}% 33
+\BOOKMARK [3][-]{subsubsection.4.6.1}{Motivation}{subsection.4.6}% 22
+\BOOKMARK [3][-]{subsubsection.4.6.2}{Encoder Design}{subsection.4.6}% 23
+\BOOKMARK [2][-]{subsection.4.7}{Prefetching Codes}{section.4}% 24
+\BOOKMARK [1][-]{section.5}{Experimental Methodology}{}% 25
+\BOOKMARK [2][-]{subsection.5.1}{Memory Trace Generation}{section.5}% 26
+\BOOKMARK [2][-]{subsection.5.2}{PARSEC Trace Attributes}{section.5}% 27
+\BOOKMARK [2][-]{subsection.5.3}{Ramulator}{section.5}% 28
+\BOOKMARK [1][-]{section.6}{Simulation Results}{}% 29
+\BOOKMARK [2][-]{subsection.6.1}{PARSEC Results}{section.6}% 30
+\BOOKMARK [2][-]{subsection.6.2}{PARSEC Augmentation}{section.6}% 31
+\BOOKMARK [2][-]{subsection.6.3}{Augmented PARSEC Results}{section.6}% 32
+\BOOKMARK [2][-]{subsection.6.4}{Design Parameters}{section.6}% 33
+\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 34
+\BOOKMARK [1][-]{section.8}{References}{}% 35

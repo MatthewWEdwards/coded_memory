@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.10.13)  19 OCT 2018 16:30
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.10.13)  26 OCT 2018 16:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -541,12 +541,12 @@ File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 LaTeX Warning: No \author given.
 
 Excluding 'comment' comment. Excluding 'comment' comment. (./intro.tex
-<fig/cpuvsmemory.jpg, id=142, 638.385pt x 344.78813pt>
+<fig/cpuvsmemory.jpg, id=150, 638.385pt x 344.78813pt>
 File: fig/cpuvsmemory.jpg Graphic file (type jpg)
 <use fig/cpuvsmemory.jpg>
 Package pdftex.def Info: fig/cpuvsmemory.jpg  used on input line 8.
 (pdftex.def)             Requested size: 167.99927pt x 90.73183pt.
-<fig/multicore-sys.pdf, id=146, 720.40726pt x 580.90837pt>
+<fig/multicore-sys.pdf, id=154, 720.40726pt x 580.90837pt>
 File: fig/multicore-sys.pdf Graphic file (type pdf)
 <use fig/multicore-sys.pdf>
 Package pdftex.def Info: fig/multicore-sys.pdf  used on input line 26.
@@ -558,7 +558,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
  <./fig/cpuvsmemory.jpg>]
-<fig/example-xor.pdf, id=170, 454.62257pt x 561.27667pt>
+<fig/example-xor.pdf, id=178, 454.62257pt x 561.27667pt>
 File: fig/example-xor.pdf Graphic file (type pdf)
 <use fig/example-xor.pdf>
 Package pdftex.def Info: fig/example-xor.pdf  used on input line 36.
@@ -586,12 +586,12 @@ Overfull \hbox (10.28725pt too wide) in paragraph at lines 10--11
 \T1/aer/bx/n/10 multi-port RAMs and their em-u-la-tion us-ing single-
  []
 
-<fig/read-replication.pdf, id=295, 541.5657pt x 566.59224pt>
+<fig/read-replication.pdf, id=303, 541.5657pt x 566.59224pt>
 File: fig/read-replication.pdf Graphic file (type pdf)
 <use fig/read-replication.pdf>
 Package pdftex.def Info: fig/read-replication.pdf  used on input line 27.
 (pdftex.def)             Requested size: 102.00073pt x 106.71127pt.
-<fig/rw-replication.pdf, id=296, 990.96793pt x 738.54044pt>
+<fig/rw-replication.pdf, id=304, 990.96793pt x 738.54044pt>
 File: fig/rw-replication.pdf Graphic file (type pdf)
 <use fig/rw-replication.pdf>
 Package pdftex.def Info: fig/rw-replication.pdf  used on input line 36.
@@ -644,12 +644,12 @@ Overfull \hbox (8.08853pt too wide) in paragraph at lines 43--44
 []\T1/aer/m/it/10 Let's con-sider a setup with two data banks
  []
 
-<fig/example-inter-bank.pdf, id=427, 410.08739pt x 268.95341pt>
+<fig/example-inter-bank.pdf, id=435, 410.08739pt x 268.95341pt>
 File: fig/example-inter-bank.pdf Graphic file (type pdf)
 <use fig/example-inter-bank.pdf>
 Package pdftex.def Info: fig/example-inter-bank.pdf  used on input line 74.
 (pdftex.def)             Requested size: 109.43866pt x 71.77298pt.
-<fig/example-inter-bank-2.pdf, id=428, 418.74182pt x 264.2934pt>
+<fig/example-inter-bank-2.pdf, id=436, 418.74182pt x 264.2934pt>
 File: fig/example-inter-bank-2.pdf Graphic file (type pdf)
 <use fig/example-inter-bank-2.pdf>
 Package pdftex.def Info: fig/example-inter-bank-2.pdf  used on input line 80.
@@ -670,13 +670,13 @@ Underfull \hbox (badness 10000) in paragraph at lines 213--217
 
  []
 
-<fig/Code-Design-1.pdf, id=588, 1019.2555pt x 403.43013pt>
+<fig/Code-Design-1.pdf, id=597, 1019.2555pt x 403.43013pt>
 File: fig/Code-Design-1.pdf Graphic file (type pdf)
 <use fig/Code-Design-1.pdf>
 Package pdftex.def Info: fig/Code-Design-1.pdf  used on input line 222.
 (pdftex.def)             Requested size: 240.0pt x 94.99077pt.
 [8 <./fig/Code-Design-1.pdf>]
-<fig/Code-Design-2.pdf, id=897, 983.27771pt x 499.98636pt>
+<fig/Code-Design-2.pdf, id=905, 983.27771pt x 499.98636pt>
 File: fig/Code-Design-2.pdf Graphic file (type pdf)
 <use fig/Code-Design-2.pdf>
 Package pdftex.def Info: fig/Code-Design-2.pdf  used on input line 283.
@@ -711,96 +711,90 @@ Underfull \hbox (badness 10000) in paragraph at lines 292--293
 
  []
 
-<fig/Code-Design-3_9banks.pdf, id=900, 850.15291pt x 401.17508pt>
+<fig/Code-Design-3_9banks.pdf, id=908, 850.15291pt x 401.17508pt>
 File: fig/Code-Design-3_9banks.pdf Graphic file (type pdf)
 <use fig/Code-Design-3_9banks.pdf>
 Package pdftex.def Info: fig/Code-Design-3_9banks.pdf  used on input line 339.
 (pdftex.def)             Requested size: 240.0pt x 113.2526pt.
 [9 <./fig/Code-Design-2.pdf> <./fig/Code-Design-3_9banks.pdf>]
-<fig/Code-Design-3_8banks.pdf, id=1574, 781.61192pt x 397.43854pt>
+<fig/Code-Design-3_8banks.pdf, id=1583, 781.61192pt x 397.43854pt>
 File: fig/Code-Design-3_8banks.pdf Graphic file (type pdf)
 <use fig/Code-Design-3_8banks.pdf>
 Package pdftex.def Info: fig/Code-Design-3_8banks.pdf  used on input line 358.
 (pdftex.def)             Requested size: 240.0pt x 122.03424pt.
 
 Excluding 'comment' comment.) (./memControllerDesign.tex
-Overfull \hbox (2.5268pt too wide) in paragraph at lines 6--15
-\T1/aer/m/n/10 mem-ory con-troller of the pro-posed mem-ory sys-tem. This
- []
-
-<fig/controllerArchitecture.pdf, id=1576, 1011.78pt x 758.835pt>
+<fig/controllerArchitecture.pdf, id=1585, 1011.78pt x 758.835pt>
 File: fig/controllerArchitecture.pdf Graphic file (type pdf)
 <use fig/controllerArchitecture.pdf>
 Package pdftex.def Info: fig/controllerArchitecture.pdf  used on input line 25.
 
 (pdftex.def)             Requested size: 167.99927pt x 125.98973pt.
-[10 <./fig/Code-Design-3_8banks.pdf> <./fig/controllerArchitecture.pdf>]
-<fig/coded_access_scheduler.pdf, id=1926, 1011.78pt x 758.835pt>
+<fig/coded_access_scheduler.pdf, id=1586, 1011.78pt x 758.835pt>
 File: fig/coded_access_scheduler.pdf Graphic file (type pdf)
 <use fig/coded_access_scheduler.pdf>
-Package pdftex.def Info: fig/coded_access_scheduler.pdf  used on input line 46.
+Package pdftex.def Info: fig/coded_access_scheduler.pdf  used on input line 47.
 
 (pdftex.def)             Requested size: 167.99927pt x 125.98973pt.
-<fig/read_pattern_algo.png, id=1928, 1387.1825pt x 2350.7825pt>
+ [10 <./fig/Code-Design-3_8banks.pdf> <./fig/controllerArchitecture.pdf>]
+<fig/read_pattern_algo.png, id=1937, 1387.1825pt x 2350.7825pt>
 File: fig/read_pattern_algo.png Graphic file (type png)
 <use fig/read_pattern_algo.png>
-Package pdftex.def Info: fig/read_pattern_algo.png  used on input line 64.
+Package pdftex.def Info: fig/read_pattern_algo.png  used on input line 65.
 (pdftex.def)             Requested size: 230.40161pt x 390.44502pt.
-<fig/Read-Algo-Example.pdf, id=1930, 1024.67719pt x 506.8826pt>
+<fig/Read-Algo-Example.pdf, id=1939, 1024.67719pt x 506.8826pt>
 File: fig/Read-Algo-Example.pdf Graphic file (type pdf)
 <use fig/Read-Algo-Example.pdf>
-Package pdftex.def Info: fig/Read-Algo-Example.pdf  used on input line 73.
+Package pdftex.def Info: fig/Read-Algo-Example.pdf  used on input line 74.
 (pdftex.def)             Requested size: 230.40161pt x 113.97404pt.
 
-[11 <./fig/coded_access_scheduler.pdf> <./fig/read_pattern_algo.png>]
-Underfull \vbox (badness 6445) has occurred while \output is active []
-
-<fig/write_pattern_algo.png, id=2008, 573.14125pt x 715.67375pt>
-File: fig/write_pattern_algo.png Graphic file (type png)
-<use fig/write_pattern_algo.png>
-Package pdftex.def Info: fig/write_pattern_algo.png  used on input line 115.
-(pdftex.def)             Requested size: 240.0pt x 299.68546pt.
- [12 <./fig/Read-Algo-Example.pdf>]
-<fig/Write-Algo-Example.pdf, id=2196, 1027.84pt x 648.2365pt>
-File: fig/Write-Algo-Example.pdf Graphic file (type pdf)
-<use fig/Write-Algo-Example.pdf>
-Package pdftex.def Info: fig/Write-Algo-Example.pdf  used on input line 136.
-(pdftex.def)             Requested size: 240.0pt x 151.35635pt.
-
-Overfull \hbox (1.01726pt too wide) in paragraph at lines 145--146
-[]\T1/aer/m/n/10 The Re-Cod-ing Unit down-loads the nec-es-sary el-e-ments
- []
-
-<fig/dedup_whole.png, id=2197, 1339.1631pt x 716.1957pt>
-File: fig/dedup_whole.png Graphic file (type png)
-<use fig/dedup_whole.png>
-Package pdftex.def Info: fig/dedup_whole.png  used on input line 156.
-(pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-<fig/dedup_dense.png, id=2198, 1339.1631pt x 716.1957pt>
-File: fig/dedup_dense.png Graphic file (type png)
-<use fig/dedup_dense.png>
-Package pdftex.def Info: fig/dedup_dense.png  used on input line 162.
-(pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-
-Underfull \vbox (badness 2111) has occurred while \output is active []
-
- [13 <./fig/write_pattern_algo.png> <./fig/Write-Algo-Example.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [14 <./fig/dedup_whole.png> <./fig/dedup_dense.png>]
-<fig/bank_access1.jpg, id=2541, 2427.0675pt x 658.46pt>
+ [11 <./fig/coded_access_scheduler.pdf> <./fig/read_pattern_algo.png>]
+<fig/write_pattern_algo.png, id=2016, 573.14125pt x 715.67375pt>
+File: fig/write_pattern_algo.png Graphic file (type png)
+<use fig/write_pattern_algo.png>
+Package pdftex.def Info: fig/write_pattern_algo.png  used on input line 116.
+(pdftex.def)             Requested size: 240.0pt x 299.68546pt.
+ [12 <./fig/Read-Algo-Example.pdf> <./fig/write_pattern_algo.png>]
+Overfull \hbox (1.06602pt too wide) in paragraph at lines 124--125
+[]\T1/aer/m/n/10 We il-lus-trate the be-hav-ior of this write pat-tern builder
+ []
+
+<fig/Write-Algo-Example.pdf, id=2205, 1027.84pt x 648.2365pt>
+File: fig/Write-Algo-Example.pdf Graphic file (type pdf)
+<use fig/Write-Algo-Example.pdf>
+Package pdftex.def Info: fig/Write-Algo-Example.pdf  used on input line 137.
+(pdftex.def)             Requested size: 240.0pt x 151.35635pt.
+<fig/dedup_whole.png, id=2206, 1339.1631pt x 716.1957pt>
+File: fig/dedup_whole.png Graphic file (type png)
+<use fig/dedup_whole.png>
+Package pdftex.def Info: fig/dedup_whole.png  used on input line 154.
+(pdftex.def)             Requested size: 240.0pt x 128.35231pt.
+<fig/dedup_dense.png, id=2207, 1339.1631pt x 716.1957pt>
+File: fig/dedup_dense.png Graphic file (type png)
+<use fig/dedup_dense.png>
+Package pdftex.def Info: fig/dedup_dense.png  used on input line 160.
+(pdftex.def)             Requested size: 240.0pt x 128.35231pt.
+
+Overfull \hbox (4.9268pt too wide) in paragraph at lines 165--166
+\T1/aer/m/n/10 the mem-ory trace an 8-core sim-u-la-tion run-ning the dedup
+ []
+
+[13 <./fig/Write-Algo-Example.pdf> <./fig/dedup_whole.png> <./fig/dedup_dense.p
+ng>]
+<fig/bank_access1.jpg, id=2548, 2427.0675pt x 658.46pt>
 File: fig/bank_access1.jpg Graphic file (type jpg)
 <use fig/bank_access1.jpg>
-Package pdftex.def Info: fig/bank_access1.jpg  used on input line 256.
+Package pdftex.def Info: fig/bank_access1.jpg  used on input line 180.
 (pdftex.def)             Requested size: 120.0pt x 32.55318pt.
-<fig/queue_lookahead.jpg, id=2544, 1371.1225pt x 653.44125pt>
+<fig/queue_lookahead.jpg, id=2549, 1371.1225pt x 653.44125pt>
 File: fig/queue_lookahead.jpg Graphic file (type jpg)
 <use fig/queue_lookahead.jpg>
-Package pdftex.def Info: fig/queue_lookahead.jpg  used on input line 280.
+Package pdftex.def Info: fig/queue_lookahead.jpg  used on input line 191.
 (pdftex.def)             Requested size: 240.0pt x 114.37387pt.
-) (./experimental_methodology.tex
-[15 <./fig/bank_access1.jpg> <./fig/queue_lookahead.jpg>])
-(./simulation_results.tex [16]
+) (./experimental_methodology.tex [14 <./fig/bank_access1.jpg> <./fig/queue_loo
+kahead.jpg>]) (./simulation_results.tex
 <fig/dedup_benchmark_results.png, id=2564, 1339.1631pt x 716.1957pt>
 File: fig/dedup_benchmark_results.png Graphic file (type png)
 <use fig/dedup_benchmark_results.png>
@@ -812,45 +806,48 @@ File: fig/dedup_hundreth.png Graphic file (type png)
 <use fig/dedup_hundreth.png>
 Package pdftex.def Info: fig/dedup_hundreth.png  used on input line 18.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-<fig/vips_split.png, id=2573, 1339.1631pt x 716.1957pt>
+ [15]
+<fig/vips_split.png, id=2580, 1339.1631pt x 716.1957pt>
 File: fig/vips_split.png Graphic file (type png)
 <use fig/vips_split.png>
 Package pdftex.def Info: fig/vips_split.png  used on input line 30.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-<fig/vips_ramp.png, id=2574, 1339.1631pt x 716.1957pt>
+<fig/vips_ramp.png, id=2581, 1339.1631pt x 716.1957pt>
 File: fig/vips_ramp.png Graphic file (type png)
 <use fig/vips_ramp.png>
 Package pdftex.def Info: fig/vips_ramp.png  used on input line 37.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
- [17 <./fig/dedup_benchmark_results.png> <./fig/dedup_hundreth.png> <./fig/vips
+ [16 <./fig/dedup_benchmark_results.png> <./fig/dedup_hundreth.png> <./fig/vips
 _split.png> <./fig/vips_ramp.png>]
-<fig/vips_split_results.png, id=2596, 1339.1631pt x 716.1957pt>
+<fig/vips_split_results.png, id=2600, 1339.1631pt x 716.1957pt>
 File: fig/vips_split_results.png Graphic file (type png)
 <use fig/vips_split_results.png>
 Package pdftex.def Info: fig/vips_split_results.png  used on input line 51.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-<fig/vips_ramp_results.png, id=2599, 1339.1631pt x 716.1957pt>
+<fig/vips_ramp_results.png, id=2603, 1339.1631pt x 716.1957pt>
 File: fig/vips_ramp_results.png Graphic file (type png)
 <use fig/vips_ramp_results.png>
 Package pdftex.def Info: fig/vips_ramp_results.png  used on input line 57.
 (pdftex.def)             Requested size: 240.0pt x 128.35231pt.
-) [18 <./fig/vips_split_results.png> <./fig/vips_ramp_results.png>]
-(./First-Draft-HPCA-2018.bbl)
+) [17 <./fig/vips_split_results.png> <./fig/vips_ramp_results.png>]
+(./First-Draft-HPCA-2018.bbl [18])
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 220.
- [19]
+ [19
+
+]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 220.
  (./First-Draft-HPCA-2018.aux)
 Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 220.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 220.
 Package rerunfilecheck Info: File `First-Draft-HPCA-2018.out' has not changed.
-(rerunfilecheck)             Checksum: EDDC6274D155369773AB62F95F9BFAE6;2291.
+(rerunfilecheck)             Checksum: 835A546DD6012BEB6542A92E0585BC30;2435.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 220.
  ) 
 Here is how much of TeX's memory you used:
- 8982 strings out of 492982
- 133140 string characters out of 6134895
- 247722 words of memory out of 5000000
- 12213 multiletter control sequences out of 15000+600000
+ 8986 strings out of 492982
+ 133220 string characters out of 6134895
+ 246725 words of memory out of 5000000
+ 12215 multiletter control sequences out of 15000+600000
  67235 words of font info for 101 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  39i,12n,43p,2136b,481s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -872,10 +869,10 @@ ts/type1/public/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type
 1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1
 /urw/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/u
 tmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on First-Draft-HPCA-2018.pdf (19 pages, 3271786 bytes).
+Output written on First-Draft-HPCA-2018.pdf (19 pages, 3268829 bytes).
 PDF statistics:
- 2705 PDF objects out of 2984 (max. 8388607)
- 2305 compressed objects within 24 object streams
- 129 named destinations out of 1000 (max. 500000)
- 400 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2714 PDF objects out of 2984 (max. 8388607)
+ 2314 compressed objects within 24 object streams
+ 131 named destinations out of 1000 (max. 500000)
+ 416 words of extra memory for PDF output out of 10000 (max. 10000000)
 
