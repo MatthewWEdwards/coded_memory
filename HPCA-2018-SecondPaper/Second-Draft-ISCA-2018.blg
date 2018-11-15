@@ -1,5 +1,5 @@
-This is BibTeX, Version 0.99d (TeX Live 2015)
-Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: Second-Draft-ISCA-2018.aux
 The style file: ieeetr.bst
 Database file #1: tex_files/ref.bib
@@ -9,49 +9,52 @@ Warning--entry type for "Memoir_xor" isn't style-file defined
 --line 255 of file tex_files/ref.bib
 Warning--entry type for "Memoir_xor_virtual" isn't style-file defined
 --line 269 of file tex_files/ref.bib
+Repeated entry---line 452 of file tex_files/ref.bib
+ : @article{sathiamoorthy
+ :                       ,
+I'm skipping whatever remains of this entry
 Warning--empty booktitle in intel
 Warning--empty title in Azure12
-Warning--empty journal in mcf
-Warning--empty year in mcf
-You've used 44 entries,
+Warning--can't use both volume and number fields in sathiamoorthy
+You've used 42 entries,
             1876 wiz_defined-function locations,
-            754 strings with 10955 characters,
-and the built_in function-call counts, 12939 in all, are:
-= -- 1230
-> -- 565
+            744 strings with 10789 characters,
+and the built_in function-call counts, 12606 in all, are:
+= -- 1195
+> -- 557
 < -- 1
-+ -- 205
-- -- 161
-* -- 958
-:= -- 1787
-add.period$ -- 48
-call.type$ -- 44
-change.case$ -- 41
++ -- 201
+- -- 159
+* -- 935
+:= -- 1734
+add.period$ -- 47
+call.type$ -- 42
+change.case$ -- 39
 chr.to.int$ -- 0
-cite$ -- 48
-duplicate$ -- 640
-empty$ -- 1225
-format.name$ -- 161
-if$ -- 3136
+cite$ -- 45
+duplicate$ -- 623
+empty$ -- 1194
+format.name$ -- 159
+if$ -- 3059
 int.to.chr$ -- 0
-int.to.str$ -- 44
-missing$ -- 38
-newline$ -- 140
-num.names$ -- 44
-pop$ -- 199
+int.to.str$ -- 42
+missing$ -- 36
+newline$ -- 134
+num.names$ -- 42
+pop$ -- 195
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 474
+skip$ -- 464
 stack$ -- 0
-substring$ -- 895
-swap$ -- 261
+substring$ -- 876
+swap$ -- 257
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
-warning$ -- 4
-while$ -- 131
-width$ -- 46
-write$ -- 411
-(There were 7 warnings)
+warning$ -- 3
+while$ -- 126
+width$ -- 44
+write$ -- 395
+(There was 1 error message)

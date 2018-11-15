@@ -155,8 +155,8 @@ C.~Huang, H.~Simitci, Y.~Xu, A.~Ogus, B.~Calder, P.~Gopalan, J.~Li, and
 \bibitem{sathiamoorthy}
 M.~Sathiamoorthy, M.~Asteris, D.~Papailiopoulos, A.~G. Dimakis, R.~Vadali,
   S.~Chen, and D.~Borthakur, ``{XORing} elephants: Novel erasure codes for big
-  data,'' {\em Proc. of 39th International Conference on Very Large Data Bases
-  (VLDB)}, vol.~6, pp.~325--336, June 2013.
+  data,'' in {\em Proc. of 39th International Conference on Very Large Data
+  Bases (VLDB)}, vol.~6, pp.~325--336, June 2013.
 
 \bibitem{Hitchhiker}
 K.~Rashmi, N.~B. Shah, D.~Gu, H.~Kuang, D.~Borthakur, and K.~Ramchandran, ``A
@@ -188,13 +188,6 @@ H.~Luan, A.~Gatherer, S.~Vishwanath, C.~Hunger, and H.~Jain, ``Intelligent
 C.~Huang, H.~Simitci, Y.~Xu, A.~Ogus, B.~Calder, P.~Gopalan, J.~Li, and
   S.~Yekhanin, ``Erasure coding in windows azure storage,'' in {\em Proc. of
   USENIX Annual Technical Conference (USENIX ATC)}, pp.~15--26, 2012.
-
-\bibitem{SPEC2006}
-J.~Henning, ``{SPEC CPU2006} benchmark descriptions,'' {\em ACM SIGARCH
-  Computer Architecture News}, vol.~34, pp.~1--17, Sept 2006.
-
-\bibitem{mcf}
-S.~2006, ``429.mcf - spec cpu2006 benchmark description,''
 
 \bibitem{Kim2016}
 J.~Kim, S.~H. Pugsley, P.~V. Gratz, A.~L.~N. Reddy, C.~Wilkerson, and
