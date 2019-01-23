@@ -1,34 +1,34 @@
 \section{Experimental Methodology}
 \label{sec:experimentalmethodology}
 
-In this section, we discuss our method for evaluating the performance of the proposed memory systems. We utilize the PARSEC v2.1 and v3.0 benchmark suites with the gem5 simulator to generate memory traces. Next, we run the Ramulator DRAM simulator to to measure the performance of the proposed memory systems. We compare the baseline performance of the Ramulator simulators against a modified version of the Ramulator simulator which implements the proposed memory systems.
+In this section, we discuss our method for evaluating the performance of the proposed memory system. We utilize the PARSEC v2.1 and v3.0 benchmark suites with the gem5 simulator to generate memory traces. Next, we run the Ramulator DRAM simulator to measure the performance of the proposed memory system. We compare the baseline performance of the Ramulator simulators against a modified version of the Ramulator simulator which implements the proposed memory system.
 
 \subsection{Memory Trace Generation}
 
-We use the PARSEC benchmark suite to evaluate the performance of the proposed memory systems. The PARSEC benchmark suite was developed for Chip Multiprocessors and is composed of a diverse set of multithreaded applications~\cite{bienia09parsec2}. The benchmarks allow us to observe how the proposed memory systems perform in dense memory access scenarios. A number of input sets are provided alongside the PARSEC benchmarks. To run the PARSEC applications, we use the gem5 simulator~\cite{parsec_2_1_m5}.
+We use the PARSEC benchmark suite to evaluate the performance of the proposed memory system. The PARSEC benchmark suite was developed for chip multiprocessors and is composed of a diverse set of multithreaded applications~\cite{bienia09parsec2}. The benchmarks allow us to observe how the proposed memory system performs in dense memory access scenarios. A number of input sets are provided alongside the PARSEC benchmarks. To run the PARSEC applications, we use the gem5 simulator~\cite{parsec_2_1_m5}.
 
-The gem5 simulator allows us to select the number of processors and their attributes we use to generate the memory traces. For most traces, we used 8 processors for the PARSEC benchmarks we evaluated. We also used 16 and 32 processors to explore the effects of denser memory traces on the Ramulator simulation results. The PARSEC applications can be divided into multiple regions where the nature of the computation therein differs. The most computationally interesting region is the region where parallel processing takes place. We extract the region of the trace where the application was performing parallel processing, as it is this region where there is a high probability for bank conflicts to occur. Thus, our Ramulator simulations are run only on this parallel portion of the PARSEC benchmarks.
-
-\Matt{TODO: List the input sets used for each benchmark(?)}
-
-We convert the gem5 memory traces to the Ramulator CPU-trace format. The conversion process is simple as it only requires the reorganization of the memory addresses in the gem5 memory trace. It is important that we use the Ramulator CPU-trace format and not the DRAM-trace format because the CPU-trace format contains information necessary to simulate the processor subsystem within Ramulator, the subsystem wherein the memory controller lies.
+The gem5 simulator allows us to select the number of processors and their attributes we use to generate the memory traces. We used 8 processors for the PARSEC benchmarks we evaluated. The PARSEC applications can be divided into different regions based on the nature of regions' computation. The most computationally interesting region is the one which features parallel processing. We extract the parallel processing region because the parallel processing creates the greatest probability of bank conflicts. The Ramulator simulations are run only on this parallel processiong region of the PARSEC benchmarks.
 
 \subsection{PARSEC Trace Attributes}
 
-The most important attributes of the memory traces as it relates to the proposed memory systems is the density of the traces, the overlap of the memory accesses between the processors, and how stationary the heavily utilized regions of memory are. The PARSEC benchmarks are sufficiently dense as illustrated by Figure~\ref{fig:dedup_dense}. It is clear from this image that there is heavily memory utilization during this section of the Dedup benchmark. On average across all processors, there is an average of 1.11 nanoseconds between memory accesses per core. The equates to an average of 2.22 cycles between memory access requests per 2 Ghz processor. 
+The most important attributes of the memory traces as it relates to the proposed memory system is the density of the traces, the overlap of the memory accesses between the processors, and how stationary the heavily utilized regions of memory are. The PARSEC benchmarks are sufficiently dense as illustrated by Figure~\ref{fig:dedup_dense}. It is clear from this image that there is heavily memory utilization during this section of the Dedup benchmark. On average across all processors, there is an average of 1.11 nanoseconds between memory accesses per core. The equates to an average of 2.22 cycles between memory access requests per 2 Ghz processor. 
 
-The location of the most heavily used memory region is stationary with respect to time for all PARSEC benchmarks. Figure~\ref{fig:dedup_whole} shows the whole of a dedup memory trace. There are two major bands clear from this image, and the bands remain horizontal for the entirety of the plot indicating that these bands remain heavily accesses for duration of the trace. Figure~\ref{fig:dedup_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands which are also stationary with respect to time. The structure of the dedup the memory trace is representative for all the PARSEC benchmarks. It is also clear from this image that the memory regions utilized by all of the processors overlap sufficiently to create bank conflicts.
+The location of the most heavily used memory region is stationary with respect to time for all PARSEC benchmarks. Figure~\ref{fig:dedup_whole} shows the whole of a dedup memory trace. There are two major bands clearly visible in this image, and the bands stay in the same memory regions for the entirety of the trace. Figure~\ref{fig:dedup_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands which are also stationary with respect to time. The structure of the dedup the memory trace is representative for all the PARSEC benchmarks. It is also clear from this image that the memory regions utilized by all of the processors overlap sufficiently to create bank conflicts.
 
 \subsection{Ramulator}
 
-We use the Ramulator DRAM simulator to compare the number of CPU cycles required to execute the PARSEC memory traces. We use the vanilla Ramulator simulator to acquire the baseline number of CPU cycles. We extended the memory controller in Ramulator in order to simulate the proposed memory system, and we use the modified Ramulator to examine the improvements the memory system has over the baseline. We use a consistent Ramulator configuration file so that the improvements we observe over baseline are purely a result of the memory system resolving bank conflicts. We test across the amount of memory overhead $\alpha$ the memory system is permitted to use. 
-The following are the specifics of the Ramulator configuration file used to acquire the simulation results:
-\begin{itemize}
-\item Standard : HBM
-\item Channels: 8
-\item Ranks: 1
-\item Speed: 1 Gigabits per second
-\item Organization: 4 Gigabits
-\item CPU ticks: 32
-\item Memory ticks: 5
-\end{itemize}
+We use the Ramulator DRAM simulator to compare the number of CPU cycles required to execute the PARSEC memory traces. We use the vanilla Ramulator simulator to acquire the baseline number of CPU cycles. We extended the memory controller in Ramulator in order to simulate the proposed memory system, and we use the modified Ramulator to calculate the improvement the proposed memory system has over the baseline. We use a consistent Ramulator configuration file so that the improvements we observe over baseline are purely a result of the memory system resolving bank conflicts. We test across the memory overhead $\alpha$.
+
+%
+%the memory system is permitted to use. 
+%The following are the specifics of the Ramulator configuration file used to acquire the simulation results:
+%\begin{itemize}
+%\item Standard : HBM
+%\item Channels: 8
+%\item Ranks: 1
+%\item Speed: 1 Gigabits per second
+%\item Organization: 4 Gigabits
+%\item CPU ticks: 32
+%\item Memory ticks: 5
+%\end{itemize}
+%}
