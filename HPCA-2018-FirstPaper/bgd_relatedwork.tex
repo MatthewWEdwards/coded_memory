@@ -5,12 +5,11 @@
 \subsection{Emulating multi-port memories}
 \label{sec:emulation}
 
-The multi-port memories are essential to provide seamless memory accesses in a multi-core setup as these memories can support simultaneous accesses to data elements (which are potentially stored on the same memory bank) by multiple cores. However, designing a true multi-port comes at a large cost. Besides complex circuit implementation, the area requirements for multi-port bit-cells is significantly higher than that for single-port bit-cells~\cite{Suzuki,WLCH14}. This motivates the exploration of algorithmic and system level designs to emulate multi-port memories using simple and area efficient single-ported memory banks~\cite{ACP88, EMY91, RG91,Memoir_xor, Memoir_xor_virtual}.
+The multi-port memories are essential to provide seamless memory accesses in a multi-core setup as these memories can support simultaneous accesses to data elements (which are potentially stored on the same memory bank) by multiple cores. However, designing a true multi-port comes at a large cost. Besides complex circuit implementation for I/O, the area requirements for multi-port bit-cells is significantly higher than that for single-port bit-cells~\cite{Suzuki,WLCH14}. This motivates the exploration of algorithmic and system level designs to emulate multi-port memories using simple and area efficient single-ported memory banks~\cite{ACP88, EMY91, RG91,Memoir_xor, Memoir_xor_virtual}. Attempts have been made to emulate multi-port memory by \cite{CCES93}, however they use replication based design that makes the resulting architecture very large in memory. \par
 
-\Ankit{This patent by  Chappell, Chappell, Ebcioglu and Schuster\cite{CCES93} arguing against both multi-port RAMs and their emulation using single-port RAMs. But the emulation is replication based so we can make a case here for coding based emulation.....}
+%\Ankit{This patent by  Chappell, Chappell, Ebcioglu and Schuster\cite{CCES93} arguing against both multi-port RAMs and their emulation using single-port RAMs. But the emulation is replication based so we can make a case here for coding based emulation.....}
 
-{\color{red} In the interest of space constraints, we do not present an extensive account of these designs with all possible request patterns. Since these designs are simple enough, we invite the readers to verify that these designs can indeed handle all possible access patterns.}
-
+In the interest of space constraints, we do not present an extensive account of these designs with all possible request patterns. Since these designs are simple enough, we invite the readers to verify that these designs can indeed handle all possible access patterns.
 
 \subsubsection{Supporting only read requests} 
 \label{sec:read_only}
