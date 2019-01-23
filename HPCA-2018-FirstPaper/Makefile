@@ -1,11 +1,21 @@
-RM     := /bin/rm -rf
+LATEX = pdflatex
 
-all: 
-	latex main ; bibtex main; latex main; latex main; dvips  -G0 -o paper.ps -e 0 main; ps2pdf paper.ps &
+TEX = ${wildcard *.tex}
 
-nobib: 
-	latex main ; latex main; latex main; dvips  -G0 -o paper.ps -e 0 main; pst2pdf14 paper.ps
+BIB = ${wildcard *.bib} ${wildcard *.bst}
 
+VISIOPDF = $(wildcard visio/*.pdf)
+
+PAPERNAME = First-Draft-HPCA-2018
+
+all : ${PAPERNAME}.pdf
+
+${PAPERNAME}.pdf: $(TEX) $(BIB) $(VISIOPDF)
+	$(LATEX) ${PAPERNAME}
+	bibtex ${PAPERNAME}
+	$(LATEX) ${PAPERNAME}
+	$(LATEX) ${PAPERNAME}
+#open ${PAPERNAME}.pdf &
+   
 clean: 
-	$(RM) *.dvi paper.ps *.log *.aux *.pdf *.blg *.bbl *~* main.out
-
+	rm -f *.log ${PAPERNAME}.ps ${PAPERNAME}.pdf ${PAPERNAME}.dvi ${PAPERNAME}.bbl ${PAPERNAME}.blg ${PAPERNAME}.log ${PAPERNAME}.aux ${PAPERNAME}.out
