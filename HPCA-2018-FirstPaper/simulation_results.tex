@@ -59,42 +59,4 @@ Figure~\ref{fig:vips_ramp_result} shows the results of the ramp augmentation pic
 		\label{fig:vips_ramp_result}
 \end{figure}
 
-\subsection{Design Parameters}
-\Matt{This section is old and needs to be updated to reflect our shift in focus away from LTE/UMTS}
-In this section, we discuss various parameters that we consider 
-%in this phase of the project 
-to design and simulate the efficient code storage in this project. \\
-\textit{Memory overhead}: 
-%The gains of multiple accesses to a memory bank every cycle comes with an 
-%associated cost. 
-The crucial cost in coded memory system is to store the compressed redundancy or 
-the codes. The extra memory space used to store these codes should limit to 
-15$\%$ of the overall memory.\\
-\textit{Memory size}: The memory size and the parity storage size decide the 
-code function to be used to essentially compress the redundant data. This design 
-considers a portion of memory to be coded. \\ \textit{Memory Banks}: The memory 
-banks essentially are the units which store the data. We consider the code 
-design for 8 memory banks. We consider the memory banks addressed with Least 
-Significant Bits (LSBs) of the address. The last 3 bits of the address decide 
-which bank, the memory address belongs to and the rest of the MSBs decide the 
-row location within the bank.\\ \textit{Cache line size}: The memory accesses 
-are bundled in a burst as a cache line is evicted and is requested to be 
-replaced by the cores. The cache controller thus requests a cache line which is 
-a starting address and the length of the cache line. In this design, we consider 
-cache line size of 128 bytes and 256 bytes. However, each core can potentially 
-have a different cache line size and the concept of coding could be extended for 
-various sizes.\\ \textit{Element size}:  Each memory location in a memory bank 
-stores 256 bit of data. This essentially relates to decoding/understanding the 
-address access request to the memory bank. The cores request memories to be read 
-or written for multiple elements. For example, a core with 128 bytes of cache 
-line would request 4 elements of read/write for each cache line. The shared 
-traces have two different request patterns, for 128 bytes and for 256 bytes. \\
-\textit{Number of Cores}: This parameter refers number of cores making access to 
-the memory controller. This parameter is not used in the design of the coding 
-scheme. However, we validate the design using the 6 core access trace shared 
-with us for LTE and UMTS. \\
-\textit{Access rate}: This is the average rate at which the memory controller 
-executes the reads/writes to the memory banks. In this design, we consider 1.54 
-ns as the access rate. This would mean that the clock rate to memory would be at 
-650MHz. This parameter is required to simulate the performance for the shared 
-traces.  
+
