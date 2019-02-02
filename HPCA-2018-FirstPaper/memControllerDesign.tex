@@ -13,20 +13,20 @@ In this section, we discuss the architecture of the memory controller for the pr
 %and follow it by discussing the potential benefits of prefetching the codes.\\
 
 \subsection{Memory Controller Stages}
-A general memory controller consists of three stages of processing illustrated in Figure~\ref{fig:pseudo-code}. The first stage, the {\em core arbiter}, receives memory access request from the master cores. The core arbiter then routes the requests to the proper {\em bank queue}. The bank queues are the second stage of processing, and they are responsible for storing and tracking memory requests. A memory request seeking memory located in bank $N$ will be sent to the $N$th bank queue. The {\em access scheduler} is the final stage of processing. It is responsible for scheduling the requests in the bank queues. Each memory cycle, the access scheduler generates an access pattern based on the requests present in the bank queues. The access pattern is a description of the reads or writes the memory controller will perform on the memory banks. Next, we discuss all of these three units and their functions in a greater detail.
+A general memory controller consists of three stages of processing illustrated in Figure~\ref{fig:multicore_arch}. The first stage, the {\em core arbiter}, receives memory access request from the master cores. The core arbiter then routes the requests to the proper {\em bank queue}. The bank queues are the second stage of processing, and they are responsible for storing and tracking memory requests. A memory request seeking memory located in bank $N$ will be sent to the $N$th bank queue. The {\em access scheduler} is the final stage of processing. It is responsible for scheduling the requests in the bank queues. Each memory cycle, the access scheduler generates an access pattern based on the requests present in the bank queues. The access pattern is a description of the reads or writes the memory controller will perform on the memory banks. Next, we discuss all of these three units and their functions in a greater detail.
 %first level is {\em Core Arbiter }, the unit responsible for handling requests 
 %from cores.  The second level is {\em Bank Arbiter} responsible for arbitrating 
 %requests to banks.  The third level is {\em Access Scheduler} which schedules 
 %most efficient access for each cycle.\\
-%%-----------------------
-\begin{figure}[htbp]
-\centering
-	\includegraphics[width=0.7\linewidth]{fig/controllerArchitecture.pdf}
-\caption{
-{Architecture of Memory Controller} }
-\label{fig:pseudo-code}
-\end{figure}
-%-------------------------
+% %%-----------------------
+% \begin{figure}[htbp]
+% \centering
+% 	\includegraphics[width=0.7\linewidth]{fig/controllerArchitecture.pdf}
+% \caption{
+% {Architecture of Memory Controller} }
+% \label{fig:pseudo-code}
+% \end{figure}
+% %-------------------------
 \begin{itemize}
 \item \textbf{Core arbiter:~}Every clock cycle, the core arbiter receives up to one request from each core which it stores in an internal queue. The core arbiter attempts to push these request to the appropriate bank queue. If in attempting to push a request the core arbiter detects that the destination bank queue is full, the controller signals that the core is busy which stalls the core. The core arbiter is also responsible for arbitration among the access requests. It arranges the requests stored in its internal queue using a two-step priority order mechanism. It arranges the request in order of QoS priority, and it arranges requests with the same QoS priority using round-robin scheduling.
 
