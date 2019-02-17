@@ -306,7 +306,9 @@ The two code designs discussed so far have locality $2$, i.e., we need to access
 The storage overhead of this design is $9\alpha L$ which corresponds to the rate of $\frac{1}{1 + \alpha}$. We note that this design possesses higher logical complexity because of increased locality. 
 
 This design helps us support $4$ simultaneous read access per bank per memory clock cycle. As an example, the requests for the rows $\{a(1), a(2), a(3), a(4)\}$ can be satisfied as follows. The request for $a(1)$ can be served bu the data bank $\mathbf{a}$. The request for the row $\mathbf{a}(2)$ can be supported by using the data banks $\mathbf{b}$ and $\mathbf{c}$ along with the parity bank storing $a(2) + b(2) + c(2)$. Similarly, the data banks $\mathbf{d}$ and $\mathbf{g}$ along with parity bank storing $a(3) + d(3) + g(3)$ allows us to access $a(3)$. Lastly, we can serve the request for the row $a(4)$ by using the data banks $\mathbf{e}$ and $\mathbf{z}$ with the parity element $a(4) + e(4) + z(4)$.
+\noindent \textbf{Best case analysis:~} Following the analysis similar to design I and II, the best case number of reads per cycle will be equal to sum of data bank and parity bank (18 reads per cycle in case of design III). 
 
+\noindent \textbf{Worst case analysis:~} Similar to design I and design II, the number of reads per cycle is equal to the number of data banks (9 in case of design III). 
 %The memory overhead here is less (just $\alpha$) compared to the previous designs. However, it possesses higher logical complexity because of increased locality. Example cases for this design are described below :
 %\begin{itemize}
 %
