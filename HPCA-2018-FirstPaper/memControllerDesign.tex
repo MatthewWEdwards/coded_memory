@@ -178,4 +178,4 @@ Every $T$ ticks, the {\em dynamic coding} unit chooses the $\frac{\alpha}{r} - 1
 \label{sec:prefetching}
 Dynamic coding works best when the most heavily accessed regions of memory do not change over time. Though dynamic coding can still be effective when the memory access trend is not static, the proposed memory system can benefit from a system which anticipates sequential memory accesses. 
 The prefetcher attempts to detect sequential memory accesses and exploit idle memory banks to potentially server future memory requests. The prefetcher analyzes the pattern of memory accesses over a fixed number of memory cycles and detects sequential memory accesses. The prefetcher prioritizes long sequential memory accesses as motivation for performing an anticipatory read. Because of the speculative nature of the prefetcher, it is given the lowest priority of all the components in the access scheduler, and it will only schedule a memory access to a memory bank if all the other units do not do so first. 
-}
+} \Ethan{More details here}

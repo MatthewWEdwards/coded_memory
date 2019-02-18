@@ -9,7 +9,7 @@
 \BOOKMARK [2][-]{subsection.3.1}{Coding for memory banks}{section.3}% 9
 \BOOKMARK [3][-]{subsubsection.3.1.1}{Degraded reads and their locality}{subsection.3.1}% 10
 \BOOKMARK [2][-]{subsection.3.2}{Codes to emulate multi-port memory}{section.3}% 11
-\BOOKMARK [3][-]{subsubsection.3.2.1}{Code design I}{subsection.3.2}% 12
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Code Design I}{subsection.3.2}% 12
 \BOOKMARK [3][-]{subsubsection.3.2.2}{Code Design II}{subsection.3.2}% 13
 \BOOKMARK [3][-]{subsubsection.3.2.3}{Code Design III}{subsection.3.2}% 14
 \BOOKMARK [1][-]{section.4}{Memory Controller Design}{}% 15
