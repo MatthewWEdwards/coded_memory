@@ -1,8 +1,8 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
 \BOOKMARK [1][-]{section.2}{Background and Related Work}{}% 2
 \BOOKMARK [2][-]{subsection.2.1}{Emulating multi-port memories}{section.2}% 3
-\BOOKMARK [3][-]{subsubsection.2.1.1}{Supporting only read requests}{subsection.2.1}% 4
-\BOOKMARK [3][-]{subsubsection.2.1.2}{Supporting both read and write requests}{subsection.2.1}% 5
+\BOOKMARK [3][-]{subsubsection.2.1.1}{Read-only Support}{subsection.2.1}% 4
+\BOOKMARK [3][-]{subsubsection.2.1.2}{Read and Write Support}{subsection.2.1}% 5
 \BOOKMARK [2][-]{subsection.2.2}{Storage-efficient emulation of multi-port memories}{section.2}% 6
 \BOOKMARK [2][-]{subsection.2.3}{Related work}{section.2}% 7
 \BOOKMARK [1][-]{section.3}{Codes to Improve Accesses}{}% 8
@@ -30,6 +30,5 @@
 \BOOKMARK [2][-]{subsection.6.1}{PARSEC Results}{section.6}% 30
 \BOOKMARK [2][-]{subsection.6.2}{PARSEC Augmentation}{section.6}% 31
 \BOOKMARK [2][-]{subsection.6.3}{Augmented PARSEC Results}{section.6}% 32
-\BOOKMARK [2][-]{subsection.6.4}{Design Parameters}{section.6}% 33
-\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 34
-\BOOKMARK [1][-]{section.8}{References}{}% 35
+\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 33
+\BOOKMARK [1][-]{section.8}{References}{}% 34

@@ -25,17 +25,17 @@
 \citation{comparchbook}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}}
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The gap in performance, measured as the difference in the time between processor memory requests (for a single processor or core) and the latency of a DRAM access, is plotted over a $30$ year span\nobreakspace  {}\cite  {comparchbook}.\relax }}{1}{figure.caption.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \it  {The gap in performance, measured as the difference in the time between processor memory requests (for a single processor or core) and the latency of a DRAM access, is plotted over a $30$ year span\nobreakspace  {}\cite  {comparchbook}.}\relax }}{1}{figure.caption.2}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:cpuvsmemory}{{1}{1}{The gap in performance, measured as the difference in the time between processor memory requests (for a single processor or core) and the latency of a DRAM access, is plotted over a $30$ year span~\cite {comparchbook}.\relax }{figure.caption.2}{}}
+\newlabel{fig:cpuvsmemory}{{1}{1}{\it {The gap in performance, measured as the difference in the time between processor memory requests (for a single processor or core) and the latency of a DRAM access, is plotted over a $30$ year span~\cite {comparchbook}.}\relax }{figure.caption.2}{}}
 \citation{dimakis}
 \citation{Gopalan12}
 \citation{batchcodes}
 \citation{RPDV16}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces General multi-core architecture with a shared memory.\relax }}{2}{figure.caption.3}}
-\newlabel{fig:multicore_arch}{{2}{2}{General multi-core architecture with a shared memory.\relax }{figure.caption.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Enabling multiple read accesses to a bank by coding. Given two read requests $\{a(i), a(j)\}$ directed to Bank $1$, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank $1$ itself, and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively. Another case where two read request corresponding to two different banks, e.g., $\{a(i), b(j)\}$, can be simultaneously served from their respective banks without utilizing Bank $3$.\relax }}{2}{figure.caption.4}}
-\newlabel{fig:example_xor}{{3}{2}{Enabling multiple read accesses to a bank by coding. Given two read requests $\{a(i), a(j)\}$ directed to Bank $1$, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank $1$ itself, and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively. Another case where two read request corresponding to two different banks, e.g., $\{a(i), b(j)\}$, can be simultaneously served from their respective banks without utilizing Bank $3$.\relax }{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \it  {General multi-core architecture with a shared memory. $N$ processor cores share a memory consisting of $M$ banks.}\relax }}{2}{figure.caption.3}}
+\newlabel{fig:multicore_arch}{{2}{2}{\it {General multi-core architecture with a shared memory. $N$ processor cores share a memory consisting of $M$ banks.}\relax }{figure.caption.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \it  {Enabling multiple read accesses to a bank by coding. Given two read requests $\{a(i), a(j)\}$ directed to Bank $1$, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank $1$ itself, and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively. Another case where two read request corresponding to two different banks, e.g., $\{a(i), b(j)\}$, can be simultaneously served from their respective banks without utilizing Bank $3$.}\relax }}{2}{figure.caption.4}}
+\newlabel{fig:example_xor}{{3}{2}{\it {Enabling multiple read accesses to a bank by coding. Given two read requests $\{a(i), a(j)\}$ directed to Bank $1$, we can deal with bank conflict in the following manner: 1) First request for $a(i)$ can be directly served by Bank $1$ itself, and 2) The read request for $a(j)$ can be served by downloading $b(j)$ and $a(j) + b(j)$ from Bank 2 and Bank 3, respectively. Another case where two read request corresponding to two different banks, e.g., $\{a(i), b(j)\}$, can be simultaneously served from their respective banks without utilizing Bank $3$.}\relax }{figure.caption.4}{}}
 \citation{Ramulator}
 \citation{Suzuki}
 \citation{WLCH14}
@@ -51,18 +51,16 @@
 \newlabel{sec:bg}{{2}{3}{Background and Related Work}{section.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Emulating multi-port memories}{3}{subsection.2.1}}
 \newlabel{sec:emulation}{{2.1}{3}{Emulating multi-port memories}{subsection.2.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Supporting only read requests}{3}{subsubsection.2.1.1}}
-\newlabel{sec:read_only}{{2.1.1}{3}{Supporting only read requests}{subsubsection.2.1.1}{}}
-\newlabel{rem:read_only}{{1}{3}{Supporting only read requests}{remark.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Supporting both read and write requests}{3}{subsubsection.2.1.2}}
-\newlabel{sec:rw}{{2.1.2}{3}{Supporting both read and write requests}{subsubsection.2.1.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces $2$-replication based design to support multiple $2$ read requests in the same memory clock cycle. The two banks' worth of data $\mathbf  {a} = [a(1),\ldots  , a(L)]$ and $\mathbf  {b} = [b(1),\ldots  , b(L)]$, all the data elements are stored on two distinct memory banks. Note that any $2$ read requests to distinct memory banks. For example, the figure considers the scenario with $2$ read requests for elements $\{a(i), a(j)\}$. Since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. It's straightforward to verify that this memory design avoids bank conflicts for any other set of $2$ read requests.\relax }}{4}{figure.caption.5}}
-\newlabel{fig:read_replication}{{4}{4}{$2$-replication based design to support multiple $2$ read requests in the same memory clock cycle. The two banks' worth of data $\mathbf {a} = [a(1),\ldots , a(L)]$ and $\mathbf {b} = [b(1),\ldots , b(L)]$, all the data elements are stored on two distinct memory banks. Note that any $2$ read requests to distinct memory banks. For example, the figure considers the scenario with $2$ read requests for elements $\{a(i), a(j)\}$. Since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. It's straightforward to verify that this memory design avoids bank conflicts for any other set of $2$ read requests.\relax }{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Read-only Support}{3}{subsubsection.2.1.1}}
+\newlabel{sec:read_only}{{2.1.1}{3}{Read-only Support}{subsubsection.2.1.1}{}}
+\newlabel{rem:read_only}{{1}{3}{Read-only Support}{remark.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces $2$-replication based design to support multiple $2$ read requests in the same memory clock cycle. The two banks' worth of data $\mathbf  {a} = [a(1),\ldots  , a(L)]$ and $\mathbf  {b} = [b(1),\ldots  , b(L)]$, all the data elements are stored on two distinct memory banks. Note that any $2$ read requests to distinct memory banks. For example, the figure considers the scenario with $2$ read requests for elements $\{a(i), a(j)\}$. Since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. It's straightforward to verify that this memory design avoids bank conflicts for any other set of $2$ read requests.\relax }}{3}{figure.caption.5}}
+\newlabel{fig:read_replication}{{4}{3}{$2$-replication based design to support multiple $2$ read requests in the same memory clock cycle. The two banks' worth of data $\mathbf {a} = [a(1),\ldots , a(L)]$ and $\mathbf {b} = [b(1),\ldots , b(L)]$, all the data elements are stored on two distinct memory banks. Note that any $2$ read requests to distinct memory banks. For example, the figure considers the scenario with $2$ read requests for elements $\{a(i), a(j)\}$. Since both $a(i)$ and $a(j)$ are stored on $2$ banks, one of those banks can be used to serve each request without causing any bank conflicts. It's straightforward to verify that this memory design avoids bank conflicts for any other set of $2$ read requests.\relax }{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Read and Write Support}{3}{subsubsection.2.1.2}}
+\newlabel{sec:rw}{{2.1.2}{3}{Read and Write Support}{subsubsection.2.1.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces $4$-replication based design to support $r = 2$ read requests and $w = 1$ write request in one memory clock cycle. Both collections of information elements $\mathbf  {a} = [a(1),\ldots  , a(L)]$ and $\mathbf  {b} = [b(1),\ldots  , b(L)]$ are replicated on $r\cdot (w + 1) = 4$ different single-port memory banks. These banks are then partitioned into $r = 2$ disjoint groups. We utilize each group to serve one read request. In a given memory clock cycle, we focus on the specific access pattern with the read requests for $\{a(i), a(j)\}$ and the write request for $\{a(k)\}$. Assuming that Bank $1$ (from Group $1$) and Bank $5$ (from Group $2$) have the updated versions of the data elements $a(i)$ and $a(j)$, respectively, we serve the read requests for $a(i)$ and $a(j)$ from Bank $1$ and Bank $5$, respectively. As for the write request for the data element $a(k)$, we need to perform this write request in at least one memory bank in each of the two groups. This will enable both groups to continue serving any possible set of $r = 2$ read requests during future accesses. Since we have one memory bank storing $a(k)$ in each of the groups that is not busy serving write request, we write the updated $a(k)$ in these non-busy banks (Bank $2$ and Bank $3$ in this case). During the writing process, we also need to modify the pointer storage accordingly to keep track of the banks in each group that are storing the most updated values of different data elements.\relax }}{4}{figure.caption.6}}
 \newlabel{fig:rw_replication}{{5}{4}{$4$-replication based design to support $r = 2$ read requests and $w = 1$ write request in one memory clock cycle. Both collections of information elements $\mathbf {a} = [a(1),\ldots , a(L)]$ and $\mathbf {b} = [b(1),\ldots , b(L)]$ are replicated on $r\cdot (w + 1) = 4$ different single-port memory banks. These banks are then partitioned into $r = 2$ disjoint groups. We utilize each group to serve one read request. In a given memory clock cycle, we focus on the specific access pattern with the read requests for $\{a(i), a(j)\}$ and the write request for $\{a(k)\}$. Assuming that Bank $1$ (from Group $1$) and Bank $5$ (from Group $2$) have the updated versions of the data elements $a(i)$ and $a(j)$, respectively, we serve the read requests for $a(i)$ and $a(j)$ from Bank $1$ and Bank $5$, respectively. As for the write request for the data element $a(k)$, we need to perform this write request in at least one memory bank in each of the two groups. This will enable both groups to continue serving any possible set of $r = 2$ read requests during future accesses. Since we have one memory bank storing $a(k)$ in each of the groups that is not busy serving write request, we write the updated $a(k)$ in these non-busy banks (Bank $2$ and Bank $3$ in this case). During the writing process, we also need to modify the pointer storage accordingly to keep track of the banks in each group that are storing the most updated values of different data elements.\relax }{figure.caption.6}{}}
-\newlabel{rem:rw}{{2}{5}{Supporting both read and write requests}{remark.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Storage-efficient emulation of multi-port memories}{5}{subsection.2.2}}
-\newlabel{sec:efficient_emulation}{{2.2}{5}{Storage-efficient emulation of multi-port memories}{subsection.2.2}{}}
+\newlabel{rem:rw}{{2}{4}{Read and Write Support}{remark.2}{}}
 \citation{MacSlo}
 \citation{Cover}
 \citation{Azure}
@@ -73,6 +71,9 @@
 \citation{RSDG16}
 \citation{Wang2017}
 \citation{batchcodes}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Storage-efficient emulation of multi-port memories}{5}{subsection.2.2}}
+\newlabel{sec:efficient_emulation}{{2.2}{5}{Storage-efficient emulation of multi-port memories}{subsection.2.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Related work}{5}{subsection.2.3}}
 \citation{ASV10}
 \citation{MCW14}
 \citation{Kim2016}
@@ -90,11 +91,11 @@
 \citation{Memoir_xor_virtual}
 \citation{RG91}
 \citation{EMY91}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Related work}{6}{subsection.2.3}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Codes to Improve Accesses}{6}{section.3}}
 \newlabel{sec:code_design}{{3}{6}{Codes to Improve Accesses}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Coding for memory banks}{6}{subsection.3.1}}
 \newlabel{sec:coding_mb}{{3.1}{6}{Coding for memory banks}{subsection.3.1}{}}
+\citation{batchcodes}
 \newlabel{fig:example1_case1}{{6a}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
 \newlabel{sub@fig:example1_case1}{{a}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
 \newlabel{fig:example1_case2}{{6b}{7}{{\color {red}Parity.}\relax }{figure.caption.7}{}}
@@ -103,13 +104,12 @@
 \newlabel{fig:example1}{{6}{7}{Design.\relax }{figure.caption.7}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Degraded reads and their locality}{7}{subsubsection.3.1.1}}
 \newlabel{sec:degraded}{{3.1.1}{7}{Degraded reads and their locality}{subsubsection.3.1.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comparison of the code designs with respect to the performance parameters and associated cost\relax }}{7}{table.caption.8}}
+\newlabel{table:codedesigncomparison}{{1}{7}{Comparison of the code designs with respect to the performance parameters and associated cost\relax }{table.caption.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Codes to emulate multi-port memory}{7}{subsection.3.2}}
 \newlabel{sec:designs}{{3.2}{7}{Codes to emulate multi-port memory}{subsection.3.2}{}}
-\citation{batchcodes}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comparison of the code designs with respect to the performance parameters and associated cost\relax }}{8}{table.caption.8}}
-\newlabel{table:codedesigncomparison}{{1}{8}{Comparison of the code designs with respect to the performance parameters and associated cost\relax }{table.caption.8}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Code design I}{8}{subsubsection.3.2.1}}
-\newlabel{sec:design1}{{3.2.1}{8}{Code design I}{subsubsection.3.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Code design I}{7}{subsubsection.3.2.1}}
+\newlabel{sec:design1}{{3.2.1}{7}{Code design I}{subsubsection.3.2.1}{}}
 \newlabel{rem:design1}{{4}{8}{Code design I}{remark.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Code Design I\relax }}{8}{figure.caption.9}}
 \newlabel{fig:design1}{{7}{8}{Code Design I\relax }{figure.caption.9}{}}
@@ -120,71 +120,64 @@
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Code Design III}{9}{subsubsection.3.2.3}}
 \@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Code Design III\relax }}{9}{figure.caption.11}}
 \newlabel{fig:design3}{{9}{9}{Code Design III\relax }{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Memory Controller Design}{9}{section.4}}
+\newlabel{sec:memcontrol}{{4}{9}{Memory Controller Design}{section.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Code Design III with 8 data banks\relax }}{10}{figure.caption.12}}
 \newlabel{fig:design3_8}{{10}{10}{Code Design III with 8 data banks\relax }{figure.caption.12}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Memory Controller Design}{10}{section.4}}
-\newlabel{sec:memcontrol}{{4}{10}{Memory Controller Design}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Memory Controller Stages}{10}{subsection.4.1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces  {Architecture of Memory Controller} \relax }}{10}{figure.caption.13}}
-\newlabel{fig:pseudo-code}{{11}{10}{{Architecture of Memory Controller} \relax }{figure.caption.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces  {Access scheduler for coded memory} \relax }}{11}{figure.caption.14}}
-\newlabel{fig:coded_access_scheduler}{{12}{11}{{Access scheduler for coded memory} \relax }{figure.caption.14}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Code Status Table}{11}{subsection.4.2}}
-\newlabel{sec:codeStatusTable}{{4.2}{11}{Code Status Table}{subsection.4.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces {Description of the algorithm to build a read request pattern to be served in a given memory cycle.}\relax }}{11}{figure.caption.15}}
-\newlabel{fig:readAlgo}{{13}{11}{{Description of the algorithm to build a read request pattern to be served in a given memory cycle.}\relax }{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces  {Access scheduler for coded memory} \relax }}{10}{figure.caption.13}}
+\newlabel{fig:coded_access_scheduler}{{11}{10}{{Access scheduler for coded memory} \relax }{figure.caption.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Code Status Table}{10}{subsection.4.2}}
+\newlabel{sec:codeStatusTable}{{4.2}{10}{Code Status Table}{subsection.4.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Read pattern builder}{11}{subsection.4.3}}
 \newlabel{sec:readCodingAlgo}{{4.3}{11}{Read pattern builder}{subsection.4.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces {Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strikethrough elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}\relax }}{12}{figure.caption.16}}
-\newlabel{fig:readAlgoAccessPattern}{{14}{12}{{Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strikethrough elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}\relax }{figure.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces {Description of the algorithm to build a read request pattern to be served in a given memory cycle.}\relax }}{11}{figure.caption.14}}
+\newlabel{fig:readAlgo}{{12}{11}{{Description of the algorithm to build a read request pattern to be served in a given memory cycle.}\relax }{figure.caption.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces {Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strikethrough elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}\relax }}{12}{figure.caption.15}}
+\newlabel{fig:readAlgoAccessPattern}{{13}{12}{{Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strikethrough elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}\relax }{figure.caption.15}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Write pattern builder}{12}{subsection.4.4}}
 \newlabel{sec:writeCodingAlgo}{{4.4}{12}{Write pattern builder}{subsection.4.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces { Flowchart of write pattern builder}\relax }}{12}{figure.caption.17}}
-\newlabel{fig:writeFlow}{{15}{12}{{ Flowchart of write pattern builder}\relax }{figure.caption.17}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Figure describing write algorithm access pattern\relax }}{13}{figure.caption.18}}
-\newlabel{fig:writeAlgoAccessPattern}{{16}{13}{Figure describing write algorithm access pattern\relax }{figure.caption.18}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}ReCoding unit}{13}{subsection.4.5}}
-\newlabel{sec:recoding}{{4.5}{13}{ReCoding unit}{subsection.4.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces { Flowchart of write pattern builder}\relax }}{12}{figure.caption.16}}
+\newlabel{fig:writeFlow}{{14}{12}{{ Flowchart of write pattern builder}\relax }{figure.caption.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}ReCoding unit}{12}{subsection.4.5}}
+\newlabel{sec:recoding}{{4.5}{12}{ReCoding unit}{subsection.4.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Figure describing write algorithm access pattern\relax }}{13}{figure.caption.17}}
+\newlabel{fig:writeAlgoAccessPattern}{{15}{13}{Figure describing write algorithm access pattern\relax }{figure.caption.17}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Dynamic Coding}{13}{subsection.4.6}}
 \newlabel{sec:dynamicCoding}{{4.6}{13}{Dynamic Coding}{subsection.4.6}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.6.1}Motivation}{13}{subsubsection.4.6.1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\relax }}{13}{figure.caption.19}}
-\newlabel{fig:dedup_whole}{{17}{13}{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\relax }{figure.caption.19}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\relax }}{13}{figure.caption.20}}
-\newlabel{fig:dedup_dense}{{18}{13}{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\relax }{figure.caption.20}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\relax }}{13}{figure.caption.18}}
+\newlabel{fig:dedup_whole}{{16}{13}{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\relax }{figure.caption.18}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\relax }}{13}{figure.caption.19}}
+\newlabel{fig:dedup_dense}{{17}{13}{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\relax }{figure.caption.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.6.2}Encoder Design}{13}{subsubsection.4.6.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Prefetching Codes}{13}{subsection.4.7}}
+\newlabel{sec:prefetching}{{4.7}{13}{Prefetching Codes}{subsection.4.7}{}}
 \citation{bienia09parsec2}
 \citation{parsec_2_1_m5}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.6.2}Encoder Design}{14}{subsubsection.4.6.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Prefetching Codes}{14}{subsection.4.7}}
-\newlabel{sec:prefetching}{{4.7}{14}{Prefetching Codes}{subsection.4.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces  \relax }}{14}{figure.caption.21}}
-\newlabel{fig:bank_access1}{{19}{14}{\relax }{figure.caption.21}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces  \relax }}{14}{figure.caption.22}}
-\newlabel{fig:queue_lookahead}{{20}{14}{\relax }{figure.caption.22}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Experimental Methodology}{14}{section.5}}
 \newlabel{sec:experimentalmethodology}{{5}{14}{Experimental Methodology}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Memory Trace Generation}{14}{subsection.5.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}PARSEC Trace Attributes}{15}{subsection.5.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Ramulator}{15}{subsection.5.3}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Simulation Results}{15}{section.6}}
-\newlabel{sec:simulation}{{6}{15}{Simulation Results}{section.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}PARSEC Results}{15}{subsection.6.1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces The simulation results for the dedup PARSEC benchmark. The line plot represents the number of CPU cycles needed and the bar plot represents the number of tiems the dynamic coding unit chooses to encode a new memory region. The results from the other PARSEC benchmarks are very similar to those seen here.\relax }}{16}{figure.caption.23}}
-\newlabel{fig:dedup_results}{{21}{16}{The simulation results for the dedup PARSEC benchmark. The line plot represents the number of CPU cycles needed and the bar plot represents the number of tiems the dynamic coding unit chooses to encode a new memory region. The results from the other PARSEC benchmarks are very similar to those seen here.\relax }{figure.caption.23}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces The simulation results for the same trace simulated in Figure\nobreakspace  {}\ref  {fig:dedup_results} but with a memory partition coefficient $r = .01$\relax }}{16}{figure.caption.24}}
-\newlabel{fig:dedup_hundreth}{{22}{16}{The simulation results for the same trace simulated in Figure~\ref {fig:dedup_results} but with a memory partition coefficient $r = .01$\relax }{figure.caption.24}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}PARSEC Augmentation}{16}{subsection.6.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces The vips benchmark after the major memory access bands were split into a greater number of bands\relax }}{16}{figure.caption.25}}
-\newlabel{fig:vips_split}{{23}{16}{The vips benchmark after the major memory access bands were split into a greater number of bands\relax }{figure.caption.25}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {24}{\ignorespaces The vips benchmark after a ramp was added to the major memory bands\relax }}{16}{figure.caption.26}}
-\newlabel{fig:vips_ramp}{{24}{16}{The vips benchmark after a ramp was added to the major memory bands\relax }{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Augmented PARSEC Results}{16}{subsection.6.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {25}{\ignorespaces The simulation results of the augmented vips trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_split}\relax }}{17}{figure.caption.27}}
-\newlabel{fig:vips_split_result}{{25}{17}{The simulation results of the augmented vips trace pictured in Figure~\ref {fig:vips_split}\relax }{figure.caption.27}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {26}{\ignorespaces The simulation results of the augmented vips trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_ramp}\relax }}{17}{figure.caption.28}}
-\newlabel{fig:vips_ramp_result}{{26}{17}{The simulation results of the augmented vips trace pictured in Figure~\ref {fig:vips_ramp}\relax }{figure.caption.28}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Design Parameters}{17}{subsection.6.4}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Acknowledgements}{17}{section.7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}PARSEC Trace Attributes}{14}{subsection.5.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Ramulator}{14}{subsection.5.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Simulation Results}{14}{section.6}}
+\newlabel{sec:simulation}{{6}{14}{Simulation Results}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}PARSEC Results}{14}{subsection.6.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces The simulation results for the dedup PARSEC benchmark. The line plot represents the number of CPU cycles needed and the bar plot represents the number of tiems the dynamic coding unit chooses to encode a new memory region. The results from the other PARSEC benchmarks are very similar to those seen here.\relax }}{15}{figure.caption.20}}
+\newlabel{fig:dedup_results}{{18}{15}{The simulation results for the dedup PARSEC benchmark. The line plot represents the number of CPU cycles needed and the bar plot represents the number of tiems the dynamic coding unit chooses to encode a new memory region. The results from the other PARSEC benchmarks are very similar to those seen here.\relax }{figure.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}PARSEC Augmentation}{15}{subsection.6.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces The simulation results for the same trace simulated in Figure\nobreakspace  {}\ref  {fig:dedup_results} but with a memory partition coefficient $r = .01$\relax }}{15}{figure.caption.21}}
+\newlabel{fig:dedup_hundreth}{{19}{15}{The simulation results for the same trace simulated in Figure~\ref {fig:dedup_results} but with a memory partition coefficient $r = .01$\relax }{figure.caption.21}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces The vips benchmark after the major memory access bands were split into a greater number of bands\relax }}{15}{figure.caption.22}}
+\newlabel{fig:vips_split}{{20}{15}{The vips benchmark after the major memory access bands were split into a greater number of bands\relax }{figure.caption.22}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Augmented PARSEC Results}{15}{subsection.6.3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces The vips benchmark after a ramp was added to the major memory bands\relax }}{16}{figure.caption.23}}
+\newlabel{fig:vips_ramp}{{21}{16}{The vips benchmark after a ramp was added to the major memory bands\relax }{figure.caption.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces The simulation results of the augmented vips trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_split}\relax }}{16}{figure.caption.24}}
+\newlabel{fig:vips_split_result}{{22}{16}{The simulation results of the augmented vips trace pictured in Figure~\ref {fig:vips_split}\relax }{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Acknowledgements}{16}{section.7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces The simulation results of the augmented vips trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_ramp}\relax }}{16}{figure.caption.25}}
+\newlabel{fig:vips_ramp_result}{{23}{16}{The simulation results of the augmented vips trace pictured in Figure~\ref {fig:vips_ramp}\relax }{figure.caption.25}{}}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{Wulf1995}{1}
@@ -206,7 +199,6 @@
 \bibcite{Memoir_xor}{17}
 \bibcite{Memoir_xor_virtual}{18}
 \bibcite{CCES93}{19}
-\@writefile{toc}{\contentsline {section}{\numberline {8}References}{18}{section.8}}
 \bibcite{MacSlo}{20}
 \bibcite{Cover}{21}
 \bibcite{Azure}{22}
@@ -223,3 +215,4 @@
 \bibcite{MN16a}{33}
 \bibcite{bienia09parsec2}{34}
 \bibcite{parsec_2_1_m5}{35}
+\@writefile{toc}{\contentsline {section}{\numberline {8}References}{17}{section.8}}

@@ -22,6 +22,7 @@
 \usepackage{graphics}
 \usepackage{amsmath}
 \usepackage{comment}
+\usepackage{nicefrac}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}{Proposition}[section]
@@ -45,6 +46,7 @@
 \newcommand*\cn{{\color{red}{\textbf{[Citation Needed]}}}}
 \newcommand*\Ankit[1]{{\color{red}{\textbf{[ANKIT:~#1]}}}}
 \newcommand*\Matt[1]{{\color{red}{\textbf{[MATT:~#1]}}}}
+\newcommand*\Ethan[1]{{\color{red}{\textbf{[Ethan:~#1]}}}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \fancypagestyle{firstpage}{
@@ -74,7 +76,7 @@
 \begin{abstract}
 Many performance critical systems today must rely on performance enhancements, such as multi-port memories, to keep up with the increasing demand of memory-access capacity. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability in practice. This paper explores a coding theoretic framework to address this problem. In particular, this paper introduces a framework to encode data across multiple single-port memory banks in order to {\em algorithmically} realize the functionality of multi-port memory.
 
-This paper proposes three code designs with significant less storage overhead as compared to the existing replication based emulations of multi-port memories. To achieve optimal performance, we also demonstrate a memory controller design that utilizes redundancy across coded memory banks to most efficiently schedule read and write requests sent across multiple cores. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding}, and 2) {\em Prefetching}. We then show significant performance improvements in critical word read and write latency in the proposed coded-memory design when compared to a traditional uncoded-memory design.
+This paper proposes three code designs with significant less storage overhead compared to the existing replication based emulations of multi-port memories. To further improve performance, we also demonstrate a memory controller design that utilizes redundancy across coded memory banks to more efficiently schedule read and write requests sent across multiple cores. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding}, and 2) {\em Prefetching}. We then show significant performance improvements in critical word read and write latency in the proposed coded-memory design when compared to a traditional uncoded-memory design. \Ethan{real-life, PARSEC, or both?}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Old abstract (ver2)
 %%%%%%%%%%%%%%%%%%%%%
