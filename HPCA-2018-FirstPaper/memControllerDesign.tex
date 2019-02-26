@@ -1,4 +1,3 @@
-
 \section{Memory Controller Design}
 \label{sec:memcontrol}
 %\Matt{BLUE: I would not mind removing this text. RED: I will likely remove this text}
@@ -84,7 +83,7 @@ We assume that the elements of the code status table are accessible at a very fa
 
 The access scheduler uses the read pattern builder algorithm to determine which requests to serve using parity and which to use data banks. The read pattern builder selects which memory requests to serve and determines how requests served by parity banks will be decoded. The algorithm is designed to serve many read requests in a single memory cycle. Figure~\ref{fig:readAlgo} shows our implementation of the read pattern builder.
 
-Figure~\ref{fig:readAlgoAccessPattern} shows an example read pattern constructed by our algorithm. First, $a(1)$ is marked to be read from data bank $\mathbf{a}$. Then the algorithm looks through banks $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ for requests for rows $b(1)$, $c(1)$, or $d(1)$ because these symbols can be decoded from a parity bank using the $a(1)$ symbol. In this scenario all three are present in the bank queues and are served using parity banks. Symbols equal to  $a(1) + b(1)$, $a(1) + c(1)$, and $a(1) + d(1)$ are all downloaded from parity banks and decoded with $a(1)$. Next, $b(2$) is read from a data bank. Similar to before, $c(2)$ and $d(2)$ are served by downloading $b(2) + c(2)$ and $b(2) + d(2)$ symbols from the parity banks. Again as before, $c(3)$ is read from data bank and $d(3)$ is decoded using $c(3)$ and $c(3) + d(3)$. Finally, $d(4)$ is read from a data bank. {\color{blue} In this scenario, Only the top loop of the read pattern builder as pictured in Figure~\ref{fig:readAlgo} schedules reads, but there are scenarios where the bottom loop is useful.} \Ethan{either construct an example which illustrates everything or don't draw attention to the fact that it doesn't illustrate the bottom loop} \Matt{I have an optimal algorithm for scheduling read requests. Should I include it in this section?} \Ethan{what's different about the optimal algorithm, optimal in what sense, and why aren't we using that one instead?!}
+Figure~\ref{fig:readAlgoAccessPattern} shows an example read pattern constructed by our algorithm. First, $a(1)$ is marked to be read from data bank $\mathbf{a}$. Then the algorithm looks through banks $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ for requests for rows $b(1)$, $c(1)$, or $d(1)$ because these symbols can be decoded from a parity bank using the $a(1)$ symbol. In this scenario all three are present in the bank queues and are served using parity banks. Symbols equal to  $a(1) + b(1)$, $a(1) + c(1)$, and $a(1) + d(1)$ are all downloaded from parity banks and decoded with $a(1)$. Next, $b(2$) is read from a data bank. Similar to before, $c(2)$ and $d(2)$ are served by downloading $b(2) + c(2)$ and $b(2) + d(2)$ symbols from the parity banks. Again as before, $c(3)$ is read from data bank and $d(3)$ is decoded using $c(3)$ and $c(3) + d(3)$. Finally, $d(4)$ is read from a data bank.
 
 \begin{remark}
 By increasing the number of read requests per cycle, we increase the risk of having out-of-order execution of memory access requests on the same core. We assume that the code arbiter only admits requests into the bank queues if they can be immediately served without introducing harmful out-of-order execution.
@@ -122,7 +121,7 @@ Parity banks allow the memory controller to serve additional write requests per 
 %-------------------------
 
 
-Figure~\ref{fig:writeAlgoAccessPattern} shows an example write pattern produced by our algorithm. Parity banks increase the maximum number of write requests from $4$ to $10$. Note that an element which is addressed to row $n$ in a data bank can only be written to the corresponding row $n$ in the parity banks. In this scenario, the write queues for every data bank are full. The controller takes $2$ write requests from each queue and schedules one to the queue's target data bank and the other to a parity bank. The controller also updates the code status table. \Matt{The figure figure here contains an error - 10 write requests should be served} \Ethan{still error?}
+Figure~\ref{fig:writeAlgoAccessPattern} shows an example write pattern produced by our algorithm. Parity banks increase the maximum number of write requests from $4$ to $10$. Note that an element which is addressed to row $n$ in a data bank can only be written to the corresponding row $n$ in the parity banks. In this scenario, the write queues for every data bank are full. The controller takes $2$ write requests from each queue and schedules one to the queue's target data bank and the other to a parity bank. The controller also updates the code status table.
 
 {\color{red}
 Figure~\ref{fig:writeAlgoAccessPattern} also demonstrates how the code status table changes to reflect the freshness of the elements in the data and parity banks. Here, the 00 status indicates that all elements are updated. The 01 status indicates that the data banks contain fresh elements and the elements in the parity banks must be recoded. The 10 status indicates that the parity banks contain fresh elements, and that both data banks and parity banks must be updated.
@@ -131,8 +130,8 @@ Figure~\ref{fig:writeAlgoAccessPattern} also demonstrates how the code status ta
 %-----------------------
 \begin{figure}[t!]
 \centering
-         \includegraphics[width=\linewidth]{fig/Write-Algo-Example.pdf}
-	\caption{Figure describing write algorithm access pattern}
+         \includegraphics[width=\linewidth]{fig/Write-Algo-Example.png}
+	\caption{The behavior of the write pattern builder on a 4-bank memory system}
 	\label{fig:writeAlgoAccessPattern}
 \end{figure}
 %-------------------------
@@ -149,7 +148,7 @@ To reduce memory overhead $\alpha$, parity banks are designed to be smaller than
 %
 The {\em dynamic coding} block partitions each memory bank into $\lceil\frac{1}{r}\rceil$ regions. The block can select up to $\frac{\alpha}{r} - 1$ regions to be encoded in the parity banks. A single region is reserved to allow encoding of a new region.
 
-Every $T$ cycles, the dynamic coding unit chooses the $\frac{\alpha}{r} - 1$ regions with the greatest number of memory accesses. The dynamic coding unit will then encode these regions in the parity banks. If all the selected regions are already encoded, the unit does nothing. Otherwise, the unit begins encoding the most accessed region. Once the dynamic coding unit is finished encoding a new region, the region becomes available for use by the rest of the memory controller. If the memory ceiling $\alpha - r$ is reached when a new memory region is encoded, the unit evicts the least frequently used encoded region. \Ethan{why $\alpha - r$?}
+Every $T$ cycles, the dynamic coding unit chooses the $\frac{\alpha}{r} - 1$ regions with the greatest number of memory accesses. The dynamic coding unit will then encode these regions in the parity banks. If all the selected regions are already encoded, the unit does nothing. Otherwise, the unit begins encoding the most accessed region. Once the dynamic coding unit is finished encoding a new region, the region becomes available for use by the rest of the memory controller. A memory region of length $r$ is reserved by the dynamic coding unit for constructing new encoded regions, and a memory region of length $\alpha - r$ is reserved for active encoded regions. If the memory ceiling $\alpha - r$ is reached when a new memory region is encoded, the unit evicts the least frequently used encoded region.
 
 \subsection{Prefetching Codes}
 \label{sec:prefetching}
