@@ -1,25 +1,13 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This is the template for submission to HPCA 2018
-% The cls file is a modified from  'sig-alternate.cls'
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass[sigplan,10pt,review,anonymous]{acmart}
 \settopmatter{printfolios=true,printccs=false,printacmref=false}
-%\setlength{\paperheight}{11in}
-%\setlength{\paperwidth}{8.5in}
 
 \newcommand{\ignore}[1]{}
-%\usepackage[pass]{geometry}
-%\usepackage{fancyhdr}
-%\usepackage[normalem]{ulem}
 %\usepackage[hyphens]{url}
 \usepackage{hyperref}
 \usepackage{array}
 \usepackage{color}
-%\usepackage{enumitem}
-%\usepackage{caption}
 \usepackage{subcaption}
-%\usepackage{subfloat}
 \usepackage{graphics}
 \usepackage{amsmath, amssymb}
 \usepackage{comment}
@@ -76,21 +64,19 @@
 %% Some recommended packages.
 \usepackage{booktabs}   %% For formal tables:
                         %% http://ctan.org/pkg/booktabs
-%\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
-%                        %% http://ctan.org/pkg/subcaption
 
 \begin{document}
 
 %%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
 %\title{Dynamic Coding for Improved performance of Memories }
-\title[short]{Achieving Multi-Port Memory Performance on Single-Port Memory with Coding Techniques}         %% [Short Title] is optional;
+\title[Memory Coding Techniques]{Achieving Multi-Port Memory Performance on Single-Port Memory Coding Techniques}         %% [Short Title] is optional;
                                         %% when present, will be used in
                                         %% header instead of Full Title.
-\titlenote{with title note}             %% \titlenote is optional;
+%\titlenote{with title note}             %% \titlenote is optional;
                                         %% can be repeated if necessary;
                                         %% contents suppressed with 'anonymous'
-\subtitle{Subtitle}                     %% \subtitle is optional
-\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+%\subtitle{Subtitle}                     %% \subtitle is optional
+%\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
                                         %% can be repeated if necessary;
                                         %% contents suppressed with 'anonymous'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,38 +148,6 @@
 Many performance critical systems today must rely on performance enhancements, such as multi-port memories, to keep up with the increasing demand of memory-access capacity. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability in practice. This paper explores a coding theoretic framework to address this problem. In particular, this paper introduces a framework to encode data across multiple single-port memory banks in order to {\em algorithmically} realize the functionality of multi-port memory.
 
 This paper proposes three code designs with significant less storage overhead compared to the existing replication based emulations of multi-port memories. To further improve performance, we also demonstrate a memory controller design that utilizes redundancy across coded memory banks to more efficiently schedule read and write requests sent across multiple cores. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding}, and 2) {\em Prefetching}. We then show significant performance improvements in critical word read and write latency in the proposed coded-memory design when compared to a traditional uncoded-memory design. \Ethan{real-life, PARSEC, or both?}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Old abstract (ver2)
-%%%%%%%%%%%%%%%%%%%%%
-%\begin{comment}
-%Many performance focussed systems need to rely on enhancements like multi-port memories to keep up with the increasing demand of access capacity, especially in a multi-core setup. However, the large area footprints and complexity of the existing designs of multi-port memories limits their applicability in practice. This paper explores a coding theoretic framework to address this problem in multi-port memory designs. 
-%In particular, this paper encodes the information across multiple single-port memory banks in order to {\em algorithmically} realize the functionality of a multi-port memory. 
-%
-%This paper focuses on three specific code designs which have significantly less storage overhead as compared to the existing replication based emulations of multi-port memories. The paper also proposes novel memory controller designs that can utilize the redundancy among the memory banks to schedule/arbitrate the both read and write requests originating from different cores accessing the memory. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding} and 2) {\em Prefetching}. This paper then performs extensive simulations to demonstrate the performance improvements attained by the proposed memory designs as compared to uncoded memory designs. These results show significant improvement in the critical word read and write latency with coded memory.
-%\end{comment}
-%%%%%%%%%%%%%%%%%%%%%
-% End of old abstract (ver2)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Old abstract
-%%%%%%%%%%%%%%%%%%%%%
-%\begin{comment}
-%Designing memory units to keep up with the access requests from multiple cores is a major challenge for computer architects, {\color{red} especially in the face of growing computer sizes, increasing level of integration, and evident heterogeneity among various system components.} This forces many performance focussed systems to rely on enhancements like multi-port memories to meet the increasing demand of access capacity. However, the existing designs of multi-port memories incur large costs in terms of area, complexity, and {\color{red} need to redesign other components of the system.}
-%
-%This paper explores a coding theoretic framework to address this problem in multi-port memory designs. %and enable retrieval mechanisms for fast information access. %This paper aims to enable retrieval mechanisms for fast information access while efficiently utilizing the storage space. 
-%%This is made possible by carefully designing low complexity encoding/decoding schemes to store information in memory banks in a redundant manner. These schemes are motivated by the coding techniques that are recently developed in the context of cloud storage systems. 
-%%Memory systems work hard to keep up with access requests from cores. Growing computer sizes, heterogenous systems and increasing level of integration has increased more. Performance focussed systems use enhancements like multi-port memories to increase the access capacity. However, they come with a cost in terms of area, complexity and cost of redesign and rebuilding a system. In this paper, we explore a mathematical solution to the problem where we explore an efficient memory storage and reterival mechanism for efficent access. 
-%In particular, this paper employs {\em codes with availability}, i.e., the codes with multiple disjoint ways to access a particular information block, to encode the information across memory banks to {\em algorithmically} realize the functionality of a multi-port memory. These designs have significantly less storage requirements as compared to existing replication based design. Specifically, the paper focuses on two designs corresponding to different underlying codes. The proposed memory designs are also accompanied with memory controllers that can utilize the redundancy among stored data to schedule/arbitrate the both read and write requests originating from different cores accessing the memory.  
-%
-%Guided by real-life traces {\color{red}appearing in base station operations in cellular networks}, the paper then explores two potential directions to improve the efficiency of the coding based memory design in specific applications: 1) {\em Dynamic coding} and 2) {\em Prefetching}. %In particular, guided by some real-life traces {\color{red}{\bf [CONFIRM THIS?]} appearing in the context of base station operations in a cellular network.} 
-%These traces exhibit access patterns that are almost concentrated on small memory regions during different time windows. The dynamic coding approach exploits this by encoding only small portions of the information based on continuous detection of such regions in order to enable further savings of utilized storage space. Next, the prefetching based on pending access requests at memory controller is  explored to create the opportunities to serve as many requests as possible in a given time slot. %The design of such prefacing schemes crucially depends on the underlying coding scheme. 
-%This paper then analyze the performance improvements attained by the proposed memory designs as compared to uncoded memory designs. These results show significant improvement in critical word read and write latency with coded memory. %{\color{blue} Furthermore, the paper also provides intuitions derived from this analysis which can help the system designers increase the efficiency of coding based memory implementations.}
-%\end{comment}
-%%%%%%%%%%%%%%%%%%%%%
-% End of old abstract
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{abstract}
 
 %% 2012 ACM Computing Classification System (CSS) concepts
@@ -348,42 +302,9 @@ This document is derived from previous conferences, in particular HPCA 2017.  We
 \newpage 
 %%%%%%%%% -- APPENDIX? -- %%%%%%%%
 \appendix
-\section{Code Design}
+\input{app_code_design}
 
-Following are the objectives used in code design:
-\begin{itemize}
-\item Read access : 4 per bank in one cycle
-\item Write access : 2 per bank in one cycle
-\item Shared Memory size 8 kB - 256 kB
-\item Number of Banks : 8
-\item Memory overhead : 15$ \% $
-\item Parity banks : 5 or 6 shallow banks for code storage
-\end{itemize}
+\input{app_motivation}
 
-
-\section{Motivation for Dynamic Coding}\label{sec:parsec_motivation}
-%\subsubsection{Motivation}
-\Ethan{move to the appendix, section 2, or cut altogether} Bank conflicts are most likely to occur when regions of shared memory are localized to certain memory regions. Multi-core systems often generate memory access requests to overlapping memory regions. By dynamically coding certain memory locales, the proposed memory system aim to resolve the bank conflicts which occur during periods of heavy memory access in multi-core systems.
-
-\begin{figure}[htbp]
-		\includegraphics[width=\linewidth]{fig/dedup_whole.png}
-		\caption{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.}
-		\label{fig:dedup_whole}
-\end{figure}
-
-\begin{figure}[htbp]
-		\includegraphics[width=\linewidth]{fig/dedup_dense.png}
-		\caption{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses}
-		\label{fig:dedup_dense}
-\end{figure}
-
-An examination of the memory trace from one of the PARSEC benchmarks illustrates a scenario where dynamic coding works well. Figure~\ref{fig:dedup_whole} shows the memory trace of a simulation of an 8-core system running the dedup PARSEC benchmark. The y-axis shows the address accessed by the cores. The x-axis shows the access time in nanoseconds. This plot shows that most of the accesses from various cores are primarily located in the lower memory band. Greater than 95\% of all memory accesses are in this band. Figure~\ref{fig:dedup_dense} magnifies this band and reveals that the lower band is composed of two sub-bands of roughly equal density. In a scenario where the dynamic coder can choose to encode two memory blocks it would  would detect that nearly all memory access are localized to the primary memory bands, so only those regions would be encoded.
-
-
-Figure~\ref{fig:dedup_dense} shows that the Dedup benchmark contains very dense memory utilization. Across all processors, there is an average of $1.11$ ns between accesses per core. This implies an average of $2.22$ cycles between memory access requests per $2$ Ghz processor. Crucially, the most heavily used memory regions are stationary with respect to time for all PARSEC benchmarks. 
-
-Figure~\ref{fig:dedup_whole} shows an entire Dedup memory trace. There are two major bands clearly visible in this image, and the bands stay in the same memory regions for the entirety of the trace. Figure~\ref{fig:dedup_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands which are also stationary with respect to time. The structure of the dedup the memory trace is representative for all the PARSEC benchmarks. It is also clear from this image that the memory regions utilized by all of the processors overlap sufficiently to create bank conflicts.
-
-\Ethan{capitalize Dedup? change the font to \texttt{dedup}??}
 
 \end{document}
