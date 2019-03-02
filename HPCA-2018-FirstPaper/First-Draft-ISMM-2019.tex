@@ -1,0 +1,389 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is the template for submission to HPCA 2018
+% The cls file is a modified from  'sig-alternate.cls'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[sigplan,10pt,review,anonymous]{acmart}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%\setlength{\paperheight}{11in}
+%\setlength{\paperwidth}{8.5in}
+
+\newcommand{\ignore}[1]{}
+%\usepackage[pass]{geometry}
+%\usepackage{fancyhdr}
+%\usepackage[normalem]{ulem}
+%\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{color}
+%\usepackage{enumitem}
+%\usepackage{caption}
+\usepackage{subcaption}
+%\usepackage{subfloat}
+\usepackage{graphics}
+\usepackage{amsmath, amssymb}
+\usepackage{comment}
+\usepackage{nicefrac}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{claim}{Claim}[section]
+\newtheorem{definition}{Definition}
+
+%\newtheorem{definition}{Definition}%[section]
+\newtheorem{example}{Example}%[section]
+\newtheorem{conjecture}{Conjecture}%[section]
+\newtheorem{construction}{Construction}%[section]
+\newtheorem{remark}{Remark}%[section]
+
+%\newtheorem{remark}{Remark}%[section]
+\newtheorem{case}{Case}%[section]
+\newtheorem{assumption}{Assumption}
+
+\newcommand*\cn{{\color{red}{\textbf{[Citation Needed]}}}}
+\newcommand*\Ankit[1]{{\color{red}{\textbf{[ANKIT:~#1]}}}}
+\newcommand*\Matt[1]{{\color{red}{\textbf{[MATT:~#1]}}}}
+\newcommand*\Ethan[1]{{\color{red}{\textbf{[Ethan:~#1]}}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Conference information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+\acmConference[PL'18]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2018}{New York, NY, USA}
+\acmYear{2018}
+\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+\citestyle{acmnumeric}     %% For numeric citations
+
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+%\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+%                        %% http://ctan.org/pkg/subcaption
+
+\begin{document}
+
+%%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
+%\title{Dynamic Coding for Improved performance of Memories }
+\title[short]{Achieving Multi-Port Memory Performance on Single-Port Memory with Coding Techniques}         %% [Short Title] is optional;
+                                        %% when present, will be used in
+                                        %% header instead of Full Title.
+\titlenote{with title note}             %% \titlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+\subtitle{Subtitle}                     %% \subtitle is optional
+\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% Author information
+%% Contents and number of authors suppressed with 'anonymous'.
+%% Each author should be introduced by \author, followed by
+%% \authornote (optional), \orcid (optional), \affiliation, and
+%% \email.
+%% An author may have multiple affiliations and/or emails; repeat the
+%% appropriate command.
+%% Many elements are not rendered, but should be provided for metadata
+%% extraction tools.
+
+%% Author with single affiliation.
+\author{First1 Last1}
+\authornote{with author1 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  \position{Position1}
+  \department{Department1}              %% \department is recommended
+  \institution{Institution1}            %% \institution is required
+  \streetaddress{Street1 Address1}
+  \city{City1}
+  \state{State1}
+  \postcode{Post-Code1}
+  \country{Country1}                    %% \country is recommended
+}
+\email{first1.last1@inst1.edu}          %% \email is recommended
+
+%% Author with two affiliations and emails.
+\author{First2 Last2}
+\authornote{with author2 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  \position{Position2a}
+  \department{Department2a}             %% \department is recommended
+  \institution{Institution2a}           %% \institution is required
+  \streetaddress{Street2a Address2a}
+  \city{City2a}
+  \state{State2a}
+  \postcode{Post-Code2a}
+  \country{Country2a}                   %% \country is recommended
+}
+\email{first2.last2@inst2a.com}         %% \email is recommended
+\affiliation{
+  \position{Position2b}
+  \department{Department2b}             %% \department is recommended
+  \institution{Institution2b}           %% \institution is required
+  \streetaddress{Street3b Address2b}
+  \city{City2b}
+  \state{State2b}
+  \postcode{Post-Code2b}
+  \country{Country2b}                   %% \country is recommended
+}
+\email{first2.last2@inst2b.org}         %% \email is recommended
+
+
+
+%%%%%% -- PAPER CONTENT STARTS-- %%%%%%%%
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+
+\begin{abstract}
+Many performance critical systems today must rely on performance enhancements, such as multi-port memories, to keep up with the increasing demand of memory-access capacity. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability in practice. This paper explores a coding theoretic framework to address this problem. In particular, this paper introduces a framework to encode data across multiple single-port memory banks in order to {\em algorithmically} realize the functionality of multi-port memory.
+
+This paper proposes three code designs with significant less storage overhead compared to the existing replication based emulations of multi-port memories. To further improve performance, we also demonstrate a memory controller design that utilizes redundancy across coded memory banks to more efficiently schedule read and write requests sent across multiple cores. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding}, and 2) {\em Prefetching}. We then show significant performance improvements in critical word read and write latency in the proposed coded-memory design when compared to a traditional uncoded-memory design. \Ethan{real-life, PARSEC, or both?}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Old abstract (ver2)
+%%%%%%%%%%%%%%%%%%%%%
+%\begin{comment}
+%Many performance focussed systems need to rely on enhancements like multi-port memories to keep up with the increasing demand of access capacity, especially in a multi-core setup. However, the large area footprints and complexity of the existing designs of multi-port memories limits their applicability in practice. This paper explores a coding theoretic framework to address this problem in multi-port memory designs. 
+%In particular, this paper encodes the information across multiple single-port memory banks in order to {\em algorithmically} realize the functionality of a multi-port memory. 
+%
+%This paper focuses on three specific code designs which have significantly less storage overhead as compared to the existing replication based emulations of multi-port memories. The paper also proposes novel memory controller designs that can utilize the redundancy among the memory banks to schedule/arbitrate the both read and write requests originating from different cores accessing the memory. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding} and 2) {\em Prefetching}. This paper then performs extensive simulations to demonstrate the performance improvements attained by the proposed memory designs as compared to uncoded memory designs. These results show significant improvement in the critical word read and write latency with coded memory.
+%\end{comment}
+%%%%%%%%%%%%%%%%%%%%%
+% End of old abstract (ver2)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Old abstract
+%%%%%%%%%%%%%%%%%%%%%
+%\begin{comment}
+%Designing memory units to keep up with the access requests from multiple cores is a major challenge for computer architects, {\color{red} especially in the face of growing computer sizes, increasing level of integration, and evident heterogeneity among various system components.} This forces many performance focussed systems to rely on enhancements like multi-port memories to meet the increasing demand of access capacity. However, the existing designs of multi-port memories incur large costs in terms of area, complexity, and {\color{red} need to redesign other components of the system.}
+%
+%This paper explores a coding theoretic framework to address this problem in multi-port memory designs. %and enable retrieval mechanisms for fast information access. %This paper aims to enable retrieval mechanisms for fast information access while efficiently utilizing the storage space. 
+%%This is made possible by carefully designing low complexity encoding/decoding schemes to store information in memory banks in a redundant manner. These schemes are motivated by the coding techniques that are recently developed in the context of cloud storage systems. 
+%%Memory systems work hard to keep up with access requests from cores. Growing computer sizes, heterogenous systems and increasing level of integration has increased more. Performance focussed systems use enhancements like multi-port memories to increase the access capacity. However, they come with a cost in terms of area, complexity and cost of redesign and rebuilding a system. In this paper, we explore a mathematical solution to the problem where we explore an efficient memory storage and reterival mechanism for efficent access. 
+%In particular, this paper employs {\em codes with availability}, i.e., the codes with multiple disjoint ways to access a particular information block, to encode the information across memory banks to {\em algorithmically} realize the functionality of a multi-port memory. These designs have significantly less storage requirements as compared to existing replication based design. Specifically, the paper focuses on two designs corresponding to different underlying codes. The proposed memory designs are also accompanied with memory controllers that can utilize the redundancy among stored data to schedule/arbitrate the both read and write requests originating from different cores accessing the memory.  
+%
+%Guided by real-life traces {\color{red}appearing in base station operations in cellular networks}, the paper then explores two potential directions to improve the efficiency of the coding based memory design in specific applications: 1) {\em Dynamic coding} and 2) {\em Prefetching}. %In particular, guided by some real-life traces {\color{red}{\bf [CONFIRM THIS?]} appearing in the context of base station operations in a cellular network.} 
+%These traces exhibit access patterns that are almost concentrated on small memory regions during different time windows. The dynamic coding approach exploits this by encoding only small portions of the information based on continuous detection of such regions in order to enable further savings of utilized storage space. Next, the prefetching based on pending access requests at memory controller is  explored to create the opportunities to serve as many requests as possible in a given time slot. %The design of such prefacing schemes crucially depends on the underlying coding scheme. 
+%This paper then analyze the performance improvements attained by the proposed memory designs as compared to uncoded memory designs. These results show significant improvement in critical word read and write latency with coded memory. %{\color{blue} Furthermore, the paper also provides intuitions derived from this analysis which can help the system designers increase the efficiency of coding based memory implementations.}
+%\end{comment}
+%%%%%%%%%%%%%%%%%%%%%
+% End of old abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{abstract}
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003456.10003457.10003521.10003525</concept_id>
+<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~General programming languages}
+\ccsdesc[300]{Social and professional topics~History of programming languages}
+%% End of generated code
+
+
+%% Keywords
+%% comma separated list
+\keywords{keyword1, keyword2, keyword3}  %% \keywords are mandatory in final camera-ready submission
+
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{intro}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Background and Related Work
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{bgd_relatedwork}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code design
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{code_design}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Memory controller design
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{memControllerDesign}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experimental Methodology
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{experimental_methodology}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Results
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{simulation_results}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Acknowledgements
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Acknowledgements}
+This document is derived from previous conferences, in particular HPCA 2017.  We thank Daniel A. Jimenez,  Elvira Teran for their inputs.
+
+
+%% Acknowledgments
+\begin{acks}                            %% acks environment is optional
+                                        %% contents suppressed with 'anonymous'
+  %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
+  %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
+  %% acknowledge financial support and will be used by metadata
+  %% extraction tools.
+  This material is based upon work supported by the
+  \grantsponsor{GS100000001}{National Science
+    Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
+  No.~\grantnum{GS100000001}{nnnnnnn} and Grant
+  No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
+  conclusions or recommendations expressed in this material are those
+  of the author and do not necessarily reflect the views of the
+  National Science Foundation.
+\end{acks}
+
+
+
+%{\color{red}\textbf{Coding over small number of banks:~}In order to save storage space allocated to different pointers.....This is something which does not arise in many classical scenarios where coding is employed. For example, in communications, it is preferable to encode over long messages as apart from computational complexity as in most cases there is no additional penalty (proportional to the code length) in terms of pointers required to deal with write requests.}
+
+%In this part, we attempt to design efficient codes based on the memory traces 
+%shared by Huawei.  The goal of this design was to simulate the efficiency of 
+%coding and compare the results to the baseline implementation of not coding.  
+%During this design phase, we explored various code functions that could be used 
+%to create the codes on the stored data. We decide upon using the XOR function to 
+%store the data in the parity banks because of its low complexity overhead and 
+%for preserving the linearity of codes. Linear codes offer the widest range of 
+%functionality because any order of the codes may be used to either encode or 
+%decode. This lack of dependency allows our design to use the parity banks in the 
+%most flexible way possible. We also explore the potential benefits of using 
+%different weights to the memory elements for the XOR function. For examples, the 
+%memory elements $a_0$ and $b_0$ could be stored as $\alpha a_0 + \beta b_0$ for 
+%integer values of $\alpha$ and $\beta$ which belong to any Galois Field. The 
+%least complex design for the decoder would be for taking $\alpha$ = 1 and 
+%$\beta$ = 1 . Another design consideration explored is the compression factor to 
+%generate the codes.  The codes can be generated by using xor on 2 or more memory 
+%elements. For example, suppose there are four banks A, B , C and D. Each of the 
+%banks hold $a_0$ to $a_n$, $b_0$ to $b_n$ , $c_0$ to $c_n$ and $d_0$ to $d_n$ 
+%elements respectively. The possible codes for these memories could be:
+%\begin{equation}
+%a_i + b_i, b_i + c_i, c_i + d_i \text{ and } c_i + a_i  \text{ for i = 0 to n }
+%\end{equation}
+%This scheme uses the combination of 2 memory elements to generate the codes.  
+%Although this requires 100$\%$ extra memory overhead, it enables 100$\%$ extra 
+%memory accesses per cycle, i.e., 4 extra accesses in this case.
+%Another design could be to compress the codes by combining all 4 memory elements 
+%to generate the codes:
+%\begin{equation}
+%a_i + b_i + c_i + d_i \text{ for i = 0 to n }
+%\end{equation}
+%This design gives one extra access per cycle at the cost of 25$\%$ memory 
+%overhead. However, the decoder here needs to know 3 elements to be able to 
+%decode the 4th element. So although we are able to compress more data into a 
+%single memory location, it comes with the cost of additional memory logic.  The 
+%scheme described above "codes" the memory banks using elements from different 
+%banks. We call this type of coding as Interbank Coding. We also explore the 
+%orthogonal way of coding, i.e. intra-bank coding where we use the memory 
+%elements from the same bank to generate codes.
+%\\
+
+%%%%%%% -- PAPER CONTENT ENDS -- %%%%%%%%
+
+\newpage
+
+%%%%%%%%% -- BIB STYLE AND FILE -- %%%%%%%%
+%\bibliographystyle{ieeetr}
+%\bibliographystyle{IEEEtran}
+\bibliography{references}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage 
+%%%%%%%%% -- APPENDIX? -- %%%%%%%%
+\appendix
+\section{Code Design}
+
+Following are the objectives used in code design:
+\begin{itemize}
+\item Read access : 4 per bank in one cycle
+\item Write access : 2 per bank in one cycle
+\item Shared Memory size 8 kB - 256 kB
+\item Number of Banks : 8
+\item Memory overhead : 15$ \% $
+\item Parity banks : 5 or 6 shallow banks for code storage
+\end{itemize}
+
+
+\section{Motivation for Dynamic Coding}\label{sec:parsec_motivation}
+%\subsubsection{Motivation}
+\Ethan{move to the appendix, section 2, or cut altogether} Bank conflicts are most likely to occur when regions of shared memory are localized to certain memory regions. Multi-core systems often generate memory access requests to overlapping memory regions. By dynamically coding certain memory locales, the proposed memory system aim to resolve the bank conflicts which occur during periods of heavy memory access in multi-core systems.
+
+\begin{figure}[htbp]
+		\includegraphics[width=\linewidth]{fig/dedup_whole.png}
+		\caption{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.}
+		\label{fig:dedup_whole}
+\end{figure}
+
+\begin{figure}[htbp]
+		\includegraphics[width=\linewidth]{fig/dedup_dense.png}
+		\caption{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses}
+		\label{fig:dedup_dense}
+\end{figure}
+
+An examination of the memory trace from one of the PARSEC benchmarks illustrates a scenario where dynamic coding works well. Figure~\ref{fig:dedup_whole} shows the memory trace of a simulation of an 8-core system running the dedup PARSEC benchmark. The y-axis shows the address accessed by the cores. The x-axis shows the access time in nanoseconds. This plot shows that most of the accesses from various cores are primarily located in the lower memory band. Greater than 95\% of all memory accesses are in this band. Figure~\ref{fig:dedup_dense} magnifies this band and reveals that the lower band is composed of two sub-bands of roughly equal density. In a scenario where the dynamic coder can choose to encode two memory blocks it would  would detect that nearly all memory access are localized to the primary memory bands, so only those regions would be encoded.
+
+
+Figure~\ref{fig:dedup_dense} shows that the Dedup benchmark contains very dense memory utilization. Across all processors, there is an average of $1.11$ ns between accesses per core. This implies an average of $2.22$ cycles between memory access requests per $2$ Ghz processor. Crucially, the most heavily used memory regions are stationary with respect to time for all PARSEC benchmarks. 
+
+Figure~\ref{fig:dedup_whole} shows an entire Dedup memory trace. There are two major bands clearly visible in this image, and the bands stay in the same memory regions for the entirety of the trace. Figure~\ref{fig:dedup_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands which are also stationary with respect to time. The structure of the dedup the memory trace is representative for all the PARSEC benchmarks. It is also clear from this image that the memory regions utilized by all of the processors overlap sufficiently to create bank conflicts.
+
+\Ethan{capitalize Dedup? change the font to \texttt{dedup}??}
+
+\end{document}
