@@ -14,7 +14,6 @@ The gem5 simulator~\cite{parsec_2_1_m5} allows us to select the processor config
 
 Many attributes affect the performance of our proposed memory system, most importantly the density of traces, the overlap of memory accesses among processors, and the stationarity of heavily utilized memory regions. Appendix~\ref{sec:parsec_motivation} shows example PARSEC traces with favorable attributes, \textit{i.e.} they are likely to result in many preventable bank conflicts.
 
-\Ethan{move Augmented PARSEC here}
 We augment the PARSEC benchmarks in two ways to test our system in additional scenarios, shown in Figures~\ref{fig:vips_split} and~\ref{fig:vips_ramp}, respectively. First we split the given memory bands to simulate an increased number of bands in the system. Next, we introduce dynamic memory access patterns by adding a linear ramp to the previously static address locations. 
 
 \begin{figure}[htbp]

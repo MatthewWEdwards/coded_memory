@@ -145,9 +145,9 @@
 %% before \maketitle command
 
 \begin{abstract}
-Many performance critical systems today must rely on performance enhancements, such as multi-port memories, to keep up with the increasing demand of memory-access capacity. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability in practice. This paper explores a coding theoretic framework to address this problem. In particular, this paper introduces a framework to encode data across multiple single-port memory banks in order to {\em algorithmically} realize the functionality of multi-port memory.
+Many performance critical systems today rely on multi-port memories to keep up with the increasing memory-access demands. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability. This paper explores a theoretic coding framework to address this problem. In particular, this paper introduces a framework for encoding data across multiple single-port memory banks in order to {\em algorithmically} emulate the functionality of multi-port memory.
 
-This paper proposes three code designs with significant less storage overhead compared to the existing replication based emulations of multi-port memories. To further improve performance, we also demonstrate a memory controller design that utilizes redundancy across coded memory banks to more efficiently schedule read and write requests sent across multiple cores. Furthermore, guided by real-life traces, the paper explores two potential directions to improve the efficiency of the coding based memory design: 1) {\em Dynamic coding}, and 2) {\em Prefetching}. We then show significant performance improvements in critical word read and write latency in the proposed coded-memory design when compared to a traditional uncoded-memory design. \Ethan{real-life, PARSEC, or both?}
+We proposes three code designs with significantly lower storage overhead compared to the existing replication-based emulations of multi-port memories. We also demonstrate a memory controller design that utilizes redundancy across coded memory banks to more efficiently schedule read and write requests sent by multiple cores. Furthermore we explore the usefulness of {\em Dynamic coding} to reduce memory overhead. We then show significant performance improvements in critical word read and write latency in the proposed coded-memory design when compared to a traditional uncoded-memory design. \Matt{Do we still need keywords in ISMM format?} 
 \end{abstract}
 
 %% 2012 ACM Computing Classification System (CSS) concepts
@@ -174,7 +174,7 @@ This paper proposes three code designs with significant less storage overhead co
 
 %% Keywords
 %% comma separated list
-\keywords{keyword1, keyword2, keyword3}  %% \keywords are mandatory in final camera-ready submission
+\keywords{keyword1, keyword2, keyword3}%% \keywords are mandatory in final camera-ready submission
 
 
 %% \maketitle
