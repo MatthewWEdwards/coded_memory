@@ -193,7 +193,7 @@ In the rest of this section, we present three code designs and discuss the numbe
 
 This code design is motivated from the concept of batch codes~\cite{batchcodes} which enables parallel access to the content stored in a large scale distributed storage system.
 %The coding scheme is illustrated in Figure~\ref{fig:design1}. 
-The code design involves $8$ data banks $\{\mathbf{a}, \mathbf{b},\ldots, \mathbf{h}\}$ each of size $L$ and $12$ shallow banks each of size $L' = \alpha L$. We partition the $8$ data banks into two  groups of $4$ banks. The underlying coding scheme produces shallow parity banks by separately encoding data banks from the two groups. Figure~\ref{fig:design1} shows the resulting memory banks. The storage overhead of this design is $12\alpha L$ which amounts to the rate of the coding scheme being $$\frac{8L}{8L + 12\alpha L} = \frac{2}{2 + 3\alpha}.$$
+The code design involves $8$ data banks $\{\mathbf{a}, \mathbf{b},\ldots, \mathbf{h}\}$ each of size $L$ and $12$ shallow banks each of size $L' = \alpha L$. We partition the $8$ data banks into two  groups of $4$ banks. The underlying coding scheme produces shallow parity banks by separately encoding data banks from the two groups. Figure~\ref{fig:design1} shows the resulting memory banks. The storage overhead of this design is $12\alpha L$ which amounts to the rate\footnote{The information rate is a standard measure of redundancy of a coding scheme ranging from $0$ to $1$, where $1$ corresponds to the most efficient utilization of storage space.} of the coding scheme being $$\frac{8L}{8L + 12\alpha L} = \frac{2}{2 + 3\alpha}.$$
 
 
 We now analyze the number of simultaneous read requests that can be supported by this code design. \\
