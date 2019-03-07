@@ -32,10 +32,10 @@ describe each of the three code designs explored in this project.
 \subsection{Coding for memory banks}
 \label{sec:coding_mb}
 
-A coding scheme defines how memory is encoded to yield redundant storage The memory structures which store the original memory elements are known as {\em data banks}. The elements of the data banks go through an {\em encoding process} which generate a number of {\em parity banks}.  The parity banks contain elements constructed from elements drawn from two or more data banks. A linear encoding process such as XOR may be used to minimize computational complexity. The following example further clarifies these concepts and provides some necessary notation.
+A coding scheme defines how memory is encoded to yield redundant storage. The memory structures which store the original memory elements are known as {\em data banks}. The elements of the data banks go through an {\em encoding process} which generate a number of {\em parity banks}.  The parity banks contain elements constructed from elements drawn from two or more data banks. A linear encoding process such as XOR may be used to minimize computational complexity. The following example further clarifies these concepts and provides some necessary notation.
 
 \begin{example}
-Consider a setup with two data banks $\mathbf{a}$ and $\mathbf{b}$. We assume that each of banks store $L \cdot W$ binary data elements\footnote{It is possible to work with data elements over larger alphabets/finite fields. However, assuming data elements to be binary suffices for us as we only work with coding schemes defined over binary field in this paper.} which are arranged in an $L \times W$ array. In particular, for $i \in [L] \triangleq \{1,\ldots, L\}$, $a(i)$ and $b(i)$ denote the $i$-th row of the bank $\mathbf{a}$ and bank $\mathbf{b}$, respectively. Moreover, for $i \in [L]$ and $j \in [W] \triangleq \{1,\ldots, W\}$, we use $a_{i, j}$ and $b_{i, j}$ to denote the $j$-th element in the rows $a(i)$ and $b(i)$, respectively. Therefore, for $i \in [L]$, we have 
+Consider a setup with two data banks $\mathbf{a}$ and $\mathbf{b}$. We assume that each of banks store $L \cdot W$ binary data elements\footnote{It is possible to work with data elements over larger alphabets/finite fields. However, assuming data elements to be binary suffices for this paper as only work with coding schemes defined over binary field.} which are arranged in an $L \times W$ array. In particular, for $i \in [L] \triangleq \{1,\ldots, L\}$, $a(i)$ and $b(i)$ denote the $i$-th row of the bank $\mathbf{a}$ and bank $\mathbf{b}$, respectively. Moreover, for $i \in [L]$ and $j \in [W] \triangleq \{1,\ldots, W\}$, we use $a_{i, j}$ and $b_{i, j}$ to denote the $j$-th element in the rows $a(i)$ and $b(i)$, respectively. Therefore, for $i \in [L]$, we have 
 \begin{align}
 a(i) = \big(a_{i,1}, a_{i,2},\ldots, a_{i, W}\big) \in \{0, 1\}^W\nonumber \\
 b(i) = \big(b_{i,1}, b_{i,2},\ldots, b_{i, W}\big) \in \{0, 1\}^W. \nonumber
@@ -47,7 +47,7 @@ p(i) &= \big(p_{i, 1},\ldots, p_{i,W}\big) = a(i) + b(i) \nonumber \\
 \end{align}
 \end{example}
 \begin{remark}
-Figure~\ref{fig:example1} illustrates this coding scheme. Since the parity bank is based on those rows of the data banks that are indexed by the set $[L'] \subseteq [L]$, we also use the following concise notation to represent the encoding of the parity bank. 
+Figure~\ref{fig:example1} illustrates this coding scheme. Because the parity bank is based on those rows of the data banks that are indexed by the set $[L'] \subseteq [L]$, we use the following concise notation to represent the encoding of the parity bank. 
 $$
 \mathbf{p} = \mathbf{a}([L']) +  \mathbf{b}([L']).
 $$
@@ -91,13 +91,13 @@ p(l) = a(i_l) + b(i_l)~\text{for}~l \in [L'].
 
 \begin{remark}
 \label{rem:design1}
-Note that the size of shallow banks is a design choice which is controlled by the parameter $0 < \alpha \leq 1$. A small value of $\alpha$ corresponds to small storage overhead. The choice of a small $\alpha$ comes at the cost limiting multiple memory access to certain memory ranges. In Section~\ref{sec:dynamicCoding} we discuss techniques for choosing which regions of memory to encode. In scenarios where many memory accesses are localized to small regions of memory, shallow banks can support many parallel memory accesses for little storage overhead. For applications where memory access patterns are less concentrated, the robustness of the parity banks allows one to employ a design with $\alpha = 1$.
+Note that the size of shallow banks is a design choice which is controlled by the parameter $0 < \alpha \leq 1$. A small value of $\alpha$ corresponds to small storage overhead. The choice of a small $\alpha$ comes at the cost of limiting parity memory accesses to certain memory ranges. In Section~\ref{sec:dynamicCoding} we discuss techniques for choosing which regions of memory to encode. In scenarios where many memory accesses are localized to small regions of memory, shallow banks can support many parallel memory accesses for little storage overhead. For applications where memory access patterns are less concentrated, the robustness of the parity banks allows one to employ a design with $\alpha = 1$.
 \end{remark}
 
 \subsubsection{Degraded reads and their locality}
 \label{sec:degraded}
 
-The redundant data generated by a coding scheme mitigates bank conflicts by supporting multiple {\bf read} accesses to the original data elements. Consider the coding scheme illustrated in Figure~\ref{fig:example1} with a parity bank $\mathbf{p} = \mathbf{a}([L']) + \mathbf{b}([L'])$. In an uncoded memory system simultaneous read requests for bank $\mathbf{a}$, $a(1)$ and $a(5)$ results in a bank conflict. The introduction of $\mathbf{p}$ allows both read requests to be served. First, $a(1)$ is served directly from bank  $\mathbf{a}$. Next, $b(5)$ and $p(5)$ are downloaded. $a(5) = b(5) + p(5)$, so a(5) is recovered by means of the memory in the parity bank. A read request which is served with the help of parity banks is termed as {\em degraded read}. Each degraded read has a parameter {\em locality} associated with it which corresponds to the total number of banks used to serve it. In this case, the degraded read for $a(1)$ using $\mathbf{b}$ and $\mathbf{p}$ has locality $2$.
+The redundant data generated by a coding scheme mitigates bank conflicts by supporting multiple {\bf read} accesses to the original data elements. Consider the coding scheme illustrated in Figure~\ref{fig:example1} with a parity bank $\mathbf{p} = \mathbf{a}([L']) + \mathbf{b}([L'])$. In an uncoded memory system simultaneous read requests for bank $\mathbf{a}$, such as $a(1)$ and $a(5)$, result in a bank conflict. The introduction of $\mathbf{p}$ allows both read requests to be served. First, $a(1)$ is served directly from bank  $\mathbf{a}$. Next, $b(5)$ and $p(5)$ are downloaded. $a(5) = b(5) + p(5)$, so a(5) is recovered by means of the memory in the parity bank. A read request which is served with the help of parity banks is termed as {\em degraded read}. Each degraded read has a parameter {\em locality} associated with it which corresponds to the total number of banks used to serve it. In this case, the degraded read for $a(1)$ using $\mathbf{b}$ and $\mathbf{p}$ has locality $2$.
 
 %In order to further illustrate the notion of locality, let's consider a setup where we generate a parity bank $\mathbf{p}$ by combining three data banks $\mathbf{a}$, $\mathbf{b}$, and $\mathbf{c}$ as $\mathbf{p} = \mathbf{a} + \mathbf{b} + \mathbf{c}$. Now, a degraded read for $a(1)$ using the parity bank as $$a(1) = b(1) + c(1) + p(1) = b(1) + c(1) + \big(a(1) + b(1) + c(1)\big)$$
 %has locality $3$ as the degraded read is served using three memory banks.
@@ -191,9 +191,9 @@ In the rest of this section, we present three code designs and discuss the numbe
 \subsubsection{Code Design I}
 \label{sec:design1}
 
-This code design is motivated from the concept of batch codes~\cite{batchcodes} which enables parallel access to the content stored in a large scale distributed storage system.
+This code design is motivated from the concept of batch codes~\cite{batchcodes} which enable parallel access to the content stored in a large scale distributed storage system.
 %The coding scheme is illustrated in Figure~\ref{fig:design1}. 
-The code design involves $8$ data banks $\{\mathbf{a}, \mathbf{b},\ldots, \mathbf{h}\}$ each of size $L$ and $12$ shallow banks each of size $L' = \alpha L$. We partition the $8$ data banks into two  groups of $4$ banks. The underlying coding scheme produces shallow parity banks by separately encoding data banks from the two groups. Figure~\ref{fig:design1} shows the resulting memory banks. The storage overhead of this design is $12\alpha L$ which amounts to the rate\footnote{The information rate is a standard measure of redundancy of a coding scheme ranging from $0$ to $1$, where $1$ corresponds to the most efficient utilization of storage space.} of the coding scheme being $$\frac{8L}{8L + 12\alpha L} = \frac{2}{2 + 3\alpha}.$$
+The code design involves $8$ data banks $\{\mathbf{a}, \mathbf{b},\ldots, \mathbf{h}\}$ each of size $L$ and $12$ shallow banks each of size $L' = \alpha L$. We partition the $8$ data banks into two  groups of $4$ banks. The underlying coding scheme produces shallow parity banks by separately encoding data banks from the two groups. Figure~\ref{fig:design1} shows the resulting memory banks. The storage overhead of this design is $12\alpha L$ which amounts to the rate\footnote{The information rate is a standard measure of redundancy of a coding scheme ranging from $0$ to $1$, where $1$ corresponds to the most efficient utilization of storage space.} of the coding scheme is $$\frac{8L}{8L + 12\alpha L} = \frac{2}{2 + 3\alpha}.$$
 
 
 We now analyze the number of simultaneous read requests that can be supported by this code design. \\
@@ -235,13 +235,12 @@ The requests for $\{a(2),c(2),d(2)\}$ can be served by downloading $b(2)$ from t
 \end{figure}
 %------------------------------
 }
-\noindent \textbf{Worst case analysis}: The code design under consideration (cf.~Figure~\ref{fig:design1}) falls off to $4$ access in 
-a single memory clock cycle when there are non-sequential and non-consecutive access to the memory 
-banks. For example, when we receive read requests for  
+\noindent \textbf{Worst case analysis}: This code design  (cf.~Figure~\ref{fig:design1}) may fail to utilize any parity banks depending on the requests waiting to be served. The worst case scenario for this code design occurs when there are non-sequential and non-consecutive access to the memory 
+banks. Take for example a scenario where we only consider the first four banks of the code design. The following read requests are waiting to be served:  
 \begin{align*}
 \{a(1), a(2), b(8), b(9), c(10),c(11), d(14), d(15)\}. 
 \end{align*}
-Since parity elements combining the data elements from these requested rows are not present in the parity banks, the underlying coding scheme does not provide any benefits. However, we still benefit from the prefetching mechanism discussed in Section~\ref{sec:prefetching}. The worst case number of reads per cycle is equal to the number of data banks. 
+Because none of the requests share the same row index, we are unable to utilize the parity banks. However, we still benefit from the prefetching mechanism discussed in Section~\ref{sec:prefetching}. The worst case number of reads per cycle is equal to the number of data banks. 
 %In Figure~\ref{fig:result_design1} , we explore the worst case scenario when 
 %the accesses are random. The results show that the queue build up for reads and 
 %writes does fall back to no-coding scenario. This asserts that the worst case 
@@ -289,7 +288,8 @@ For a specific choice of $\alpha$, the storage overhead of this design is $20\al
 \noindent \textbf{Best case analysis:~} This code design achieves the best access performance when sequential accesses to the data banks are issued. In particular, this design can support up to $9$ read requests in a single memory clock cycle. Consider the scenario where we receive read requests for the following rows of the data banks. 
 $$
 \big\{a(1),b(1),c(1),d(1),a(2),b(2),c(2),d(2),a(3),b(3),c(3)\big\}
-$$ Here, we can serve the requests for the rows $\{a(1), b(1), c(1), d(1)\}$ using the data bank $\mathbf{a}$ with the parity banks storing the parity elements $\{a(1) + b(1),b(1)+c(1),c(1)+d(1)\}$. Similarly, we can serve the requests for the rows $\{a(2),b(2),d(2)\}$ using the data bank $\mathbf{b}$ with the parity banks storing the parity elements $\{a(2)+d(2), b(2)+d(2)\}$. Lastly, the request for the rows $c(2)$ and $d(3)$ is served using the data banks $\mathbf{c}$ and $\mathbf{d}$.\\
+$$ Here, we can serve 
+$\{a(1), b(1), c(1), d(1)\}$ using the data bank $\mathbf{a}$ with the parity banks storing the parity elements $\{a(1) + b(1),b(1)+c(1),c(1)+d(1)\}$. Similarly, we can serve the requests for the rows $\{a(2),b(2),d(2)\}$ using the data bank $\mathbf{b}$ with the parity banks storing the parity elements $\{a(2)+d(2), b(2)+d(2)\}$. Lastly, the request for the rows $c(2)$ and $d(3)$ is served using the data banks $\mathbf{c}$ and $\mathbf{d}$.\\
 
 
 \noindent \textbf{Worst case analysis:~}The code scheme can enable $5$ simultaneous accesses in a single memory clock cycle in the
@@ -310,7 +310,8 @@ The next code design we discuss has locality 3, so each degraded read requires t
 %controller to "know" two out of three data elements to decode the third. 
 The storage overhead of this design is $9\alpha L$ which corresponds to the rate of $\frac{1}{1 + \alpha}$. We note that this design possesses higher logical complexity as a result of its increased locality. 
 
-This design supports $4$ simultaneous read access per bank per memory clock cycle as demonstrated by the following example. Suppose there are requests for rows $\{a(1), a(2), a(3), a(4)\}$. $a(1)$ can be served directly from $\mathbf{a}$. $a(2)$ is served by means of a parity read and reads to banks $\mathbf{b}$ and $\mathbf{c}$, $a(3)$ is served by means of a parity read and reads to banks $\mathbf{d}$ and $\mathbf{g}$, and $a(4)$ is served by means of a parity read and reads to banks $\mathbf{e}$ and $\mathbf{z}$
+This design supports $4$ simultaneous read access per bank per memory clock cycle as demonstrated by the following example. Suppose there are requests for rows $\{a(1), a(2), a(3), a(4)\}$. $a(1)$ can be served directly from $\mathbf{a}$. $a(2)$ is served by means of a parity read and reads to banks $\mathbf{b}$ and $\mathbf{c}$, $a(3)$ is served by means of a parity read and reads to banks $\mathbf{d}$ and $\mathbf{g}$, and $a(4)$ is served by means of a parity read and reads to banks $\mathbf{e}$ and $\mathbf{z}$.
+
 \noindent \textbf{Best case analysis:~} Following the analysis similar to design I and II, the best case number of reads per cycle will be equal to sum of data bank and parity bank.
 
 \noindent \textbf{Worst case analysis:~} Similar to design I and design II, the number of reads per cycle is equal to the number of data banks. 
@@ -346,7 +347,7 @@ This design supports $4$ simultaneous read access per bank per memory clock cycl
 %---------------------------------------
 
 \begin{remark}
-Note that the coding scheme in Figure~\ref{fig:design3} describes a system with $9$ data banks. However, we have set out to construct a memory system with $8$ data banks. It is straightforward to modify this code design to work with $8$ data banks $\{\mathbf{a}, \mathbf{b},\ldots, \mathbf{h}\}$ as shown in ~\ref{fig:design3_8}.
+Note that the coding scheme in Figure~\ref{fig:design3} describes a system with $9$ data banks. However, we have set out to construct a memory system with $8$ data banks. It is straightforward to modify this code design to work with $8$ data banks $\{\mathbf{a}, \mathbf{b},\ldots, \mathbf{h}\}$ as shown in Figure~\ref{fig:design3_8}.
 %Since most systems are implemented with number of banks as $2^n$ for some n. We present an 
 %example of the code with 8 data banks in figure~\ref{fig:design3_8}. For using 8 data banks, 
 %we drop the bank I. We also ignore the data from Bank I for constructing parity. So, three of 

@@ -62,7 +62,7 @@ We assume that the elements of the code status table are accessible at a very fa
 %-----------------------
 \begin{figure}[t!]
 	%\includegraphics[width=0.9\linewidth]{fig/Read-algo.pdf}
-	\includegraphics[width=0.6\linewidth]{fig/read_pattern_algo.png}
+	\includegraphics[width=0.96\linewidth]{fig/read_pattern_algo.png}
 	\caption{{Description of the algorithm to build a read request pattern to be served in a given memory cycle.}}
 	\label{fig:readAlgo}
 \end{figure}
@@ -81,7 +81,7 @@ We assume that the elements of the code status table are accessible at a very fa
 \label{sec:readCodingAlgo}
 
 
-The access scheduler uses the read pattern builder algorithm to determine which requests to serve using parity and which to use data banks. The read pattern builder selects which memory requests to serve and determines how requests served by parity banks will be decoded. The algorithm is designed to serve many read requests in a single memory cycle. Figure~\ref{fig:readAlgo} shows our implementation of the read pattern builder.
+The access scheduler uses the read pattern builder algorithm to determine which requests to serve using parity banks and which to use data banks. The read pattern builder selects which memory requests to serve and determines how requests served by parity banks will be decoded. The algorithm is designed to serve many read requests in a single memory cycle. Figure~\ref{fig:readAlgo} shows our implementation of the read pattern builder.
 
 Figure~\ref{fig:readAlgoAccessPattern} shows an example read pattern constructed by our algorithm. First, $a(1)$ is marked to be read from data bank $\mathbf{a}$. Then the algorithm looks through banks $\mathbf{b}$, $\mathbf{c}$, and $\mathbf{d}$ for requests for rows $b(1)$, $c(1)$, or $d(1)$ because these symbols can be decoded from a parity bank using the $a(1)$ symbol. In this scenario all three are present in the bank queues and are served using parity banks. Symbols equal to  $a(1) + b(1)$, $a(1) + c(1)$, and $a(1) + d(1)$ are all downloaded from parity banks and decoded with $a(1)$. Next, $b(2$) is read from a data bank. Similar to before, $c(2)$ and $d(2)$ are served by downloading $b(2) + c(2)$ and $b(2) + d(2)$ symbols from the parity banks. Again as before, $c(3)$ is read from data bank and $d(3)$ is decoded using $c(3)$ and $c(3) + d(3)$. Finally, $d(4)$ is read from a data bank.
 
@@ -94,7 +94,7 @@ By increasing the number of read requests per cycle, we increase the risk of hav
 %-----------------------
 \begin{figure}[htbp]
 \centering
-	\includegraphics[width=0.6\linewidth]{fig/writealgo.pdf}
+	\includegraphics[width=0.96\linewidth]{fig/writealgo.pdf}
 	\caption{{\bf Flowchart of Write Algorithm}}
 	\label{fig:writeAlgo}
 \end{figure}
@@ -137,7 +137,7 @@ Figure~\ref{fig:writeAlgoAccessPattern} also demonstrates how the code status ta
 %-------------------------
 \subsection{ReCoding unit}
 \label{sec:recoding}
-After a write request has been served, the stale data in the parity (or data) banks must be replaced. The \textit{ReCoding Unit} accomplishes this with a queue of {\em recoding requests}. Every time a write is served, recoding requests are pushed on to the queue indicating which data and parity banks contain stale elements, as well as the bank which generated the recoding request. Requests also contain the current cycle number so that the ReCoding Unit may prioritize older requests. Appendix
+After a write request has been served, the stale data in the parity (or data) banks must be replaced. The \textit{ReCoding Unit} accomplishes this with a queue of {\em recoding requests}. Every time a write is served, recoding requests are pushed on to the queue indicating which data and parity banks contain stale elements, as well as the bank which generated the recoding request. Requests also contain the current cycle number so that the ReCoding Unit may prioritize older requests.
 
 \subsection{Dynamic Coding}
 \label{sec:dynamicCoding}
