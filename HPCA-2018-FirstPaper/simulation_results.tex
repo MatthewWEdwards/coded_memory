@@ -11,7 +11,7 @@ The proposed memory system performs consistently across the PARSEC benchmarks, a
 %The lines on this figure and others show the number of CPU cycles needed for the Ramulator simulation to finish executing. 
 We also see that the number of memory region switches performed by the dynamic encoder. When $\alpha = 1$, the number of switches is always zero as expected because the dynamic encoder never needs to switch regions. The performance remains consistent for $\alpha > 0.1$. With this amount of overhead, the memory system finds and encodes the two heavily accessed memory bands in each of the PARSEC benchmarks. This is because $\lfloor\frac{\alpha}{r}\rfloor = 2$, which means we can select $2$ regions to encode. 
 %The number of coded region switches is evidence that at $\alpha = .05$ more memory is needed to see maximum benefits from the memory system. 
-When $\alpha = 0.05$, the number of coded region switches is very high because the memory system vacillates between the two most heavily accessed bands. When $\alpha = .1$, both of them can be encoded. We see a small numbers of switches when $\alpha \geq 0.25$ because the memory system is encoding less heavily accesses memory bands with little impact on number of CPU cycles.
+When $\alpha = 0.05$, the number of coded region switches is very high because the memory system vacillates between the two most heavily accessed bands. When $\alpha = .1$, both of them can be encoded. We see a small numbers of switches when $\alpha \geq 0.25$ because the memory system is encoding less heavily accessed memory bands with little impact on number of CPU cycles.
 
 
 The heavily accessed memory bands are narrow, which suggests that decreasing the memory bank partition will result in similar performance improvements with a lower $\alpha$. Figure~\ref{fig:dedup_hundreth} shows that indeed $\alpha$ can be reduced by a factor of $5$ by also decreasing $r$ from $0.05$ to $0.01$.
@@ -43,19 +43,19 @@ Figure~\ref{fig:vips_ramp_result} shows the results of the ramp augmentation. He
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/dedup_hundreth.png}
-		\caption{\it{The simulation results for the same trace simulated in Figure~\ref{fig:dedup_results} but with a memory partition coefficient $r = .01$}}
+		\caption{\it{The simulation results for the same trace simulated in Figure~\ref{fig:dedup_results} but with a memory partition coefficient $r = .01$.}}
 		\label{fig:dedup_hundreth}
 \end{figure}
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/vips_split_results.png}
-		\caption{\it{The simulation results of the augmented vips trace pictured in Figure~\ref{fig:vips_split}}}
+		\caption{\it{The simulation results of the augmented vips trace pictured in Figure~\ref{fig:vips_split}.}}
 		\label{fig:vips_split_result}
 \end{figure}
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/vips_ramp_results.png}
-		\caption{\it{The simulation results of the augmented vips trace pictured in Figure~\ref{fig:vips_ramp}}}
+		\caption{\it{The simulation results of the augmented vips trace pictured in Figure~\ref{fig:vips_ramp}.}}
 		\label{fig:vips_ramp_result}
 \end{figure}
 

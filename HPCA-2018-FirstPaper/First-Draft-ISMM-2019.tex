@@ -69,7 +69,7 @@
 
 %%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
 %\title{Dynamic Coding for Improved performance of Memories }
-\title[Memory Coding Techniques]{Achieving Multi-Port Memory Performance on Single-Port Memory Coding Techniques}         %% [Short Title] is optional;
+\title[Memory Coding Techniques]{Achieving Multi-Port Memory Performance with Single-Port Memory Coding Techniques}         %% [Short Title] is optional;
                                         %% when present, will be used in
                                         %% header instead of Full Title.
 %\titlenote{with title note}             %% \titlenote is optional;
@@ -145,9 +145,9 @@
 %% before \maketitle command
 
 \begin{abstract}
-Many performance critical systems today rely on multi-port memories to keep up with increasing memory access demands. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability. This paper explores a theoretic coding framework to address this problem. In particular, this paper introduces a framework for encoding data across multiple single-port memory banks in order to {\em algorithmically} emulate the functionality of multi-port memory systems.
+Many performance critical systems today rely on multi-port memories to keep up with increasing memory access demands. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability. This paper explores a coding theoretic framework to address this problem. In particular, this paper introduces a framework for encoding data across multiple single-port memory banks in order to {\em algorithmically} emulate the functionality of multi-port memory systems.
 
-We propose three code designs with significantly lower storage overhead compared to existing replication-based emulations of multi-port memories. We also demonstrate a memory controller design that utilizes redundancy across coded memory banks to schedule read and write requests. Furthermore, we explore how {\em dynamic coding} can be used to reduce memory overhead. We then show the performance improvements the code designs yield when compared to a traditional uncoded-memory design.
+We propose three code schemes with significantly lower storage overhead compared to existing replication-based emulations of multi-port memories. We also demonstrate a memory controller design that utilizes redundancy across coded memory banks to schedule read and write requests. Furthermore, we explore how {\em dynamic coding} can be used to reduce memory overhead. We then show the performance improvements the code schemes yield when compared to a traditional uncoded-memory design.
 \end{abstract}
 
 %% 2012 ACM Computing Classification System (CSS) concepts
@@ -218,30 +218,6 @@ We propose three code designs with significantly lower storage overhead compared
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Acknowledgements
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Acknowledgements}
-This document is derived from previous conferences, in particular HPCA 2017.  We thank Daniel A. Jimenez,  Elvira Teran for their inputs.
-
-
-%% Acknowledgments
-\begin{acks}                            %% acks environment is optional
-                                        %% contents suppressed with 'anonymous'
-  %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
-  %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
-  %% acknowledge financial support and will be used by metadata
-  %% extraction tools.
-  This material is based upon work supported by the
-  \grantsponsor{GS100000001}{National Science
-    Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
-  No.~\grantnum{GS100000001}{nnnnnnn} and Grant
-  No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
-  conclusions or recommendations expressed in this material are those
-  of the author and do not necessarily reflect the views of the
-  National Science Foundation.
-\end{acks}
 
 
 
@@ -293,7 +269,7 @@ This document is derived from previous conferences, in particular HPCA 2017.  We
 
 %%%%%%%%% -- BIB STYLE AND FILE -- %%%%%%%%
 %\bibliographystyle{ieeetr}
-%\bibliographystyle{IEEEtran}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
