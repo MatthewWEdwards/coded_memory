@@ -27,7 +27,7 @@ The architecture of the memory controller is focused on exploiting redundant sto
 % %-------------------------
 The following three stages are illustrated in Figure~\ref{fig:multicore_arch}:
 \begin{itemize}
-\item \textbf{Core arbiter:~}Every clock cycle, the \textit{core arbiter} receives up to one request from each core which it stores in an internal queue. The core arbiter attempts to push these request to the appropriate bank queue. If it detects that the destination bank queue is full, the controller signals that the core is busy which stalls the core. The core arbiter also arranges the requests stored in its internal queue using a two-step priority order mechanism: first by Quality of Service (QoS) and then breaking ties with round-robin scheduling.
+\item \textbf{Core arbiter:~}Every clock cycle, the \textit{core arbiter} receives up to one request from each core which it stores in an internal queue. The core arbiter attempts to push these requests to the appropriate bank queue. If it detects that the destination bank queue is full, the controller signals that the core is busy which stalls the core. The core arbiter also arranges the requests stored in its internal queue using a two-step priority order mechanism: first by Quality of Service (QoS) and then breaking ties with round-robin scheduling.
 
 \item \textbf{Bank queues:~}Each data bank has a corresponding \textit{read queue} and \textit{write queue}.  The core arbiter sends memory requests to the bank queues until the queues are full. In our simulations, we use a bank queue depth of 10. There is also an additional queue which holds special requests such as memory refresh requests.
 
