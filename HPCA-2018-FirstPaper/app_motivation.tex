@@ -1,16 +1,16 @@
 \section{Motivation for Dynamic Coding}\label{sec:parsec_motivation}
 %\subsubsection{Motivation}
-\Ethan{move to the appendix, section 2, or cut altogether} Bank conflicts are most likely to occur when regions of shared memory are localized to certain memory regions. Multi-core systems often generate memory access requests to overlapping memory regions. By dynamically coding certain memory locales, the proposed memory system aim to resolve the bank conflicts which occur during periods of heavy memory access in multi-core systems.
+Bank conflicts are most likely to occur when regions of shared memory are localized to certain memory regions. Multi-core systems often generate memory access requests to overlapping memory regions. By dynamically coding certain memory locales, the proposed memory system aim to resolve the bank conflicts which occur during periods of heavy memory access in multi-core systems.
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/dedup_whole.png}
-		\caption{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.}
+		\caption{\it{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.}}
 		\label{fig:dedup_whole}
 \end{figure}
 
 \begin{figure}[htbp]
 		\includegraphics[width=\linewidth]{fig/dedup_dense.png}
-		\caption{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses}
+		\caption{\it{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses}}
 		\label{fig:dedup_dense}
 \end{figure}
 
@@ -21,4 +21,3 @@ Figure~\ref{fig:dedup_dense} shows that the dedup benchmark contains very dense 
 
 Figure~\ref{fig:dedup_whole} shows an entire dedup memory trace. There are two major bands clearly visible in this image, and the bands stay in the same memory regions for the entirety of the trace. Figure~\ref{fig:dedup_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands which are also stationary with respect to time. The structure of the dedup the memory trace is representative for all the PARSEC benchmarks. It is also clear from this image that the memory regions utilized by all of the processors overlap sufficiently to create bank conflicts.
 
-\Ethan{change the font to \texttt{dedup}?}

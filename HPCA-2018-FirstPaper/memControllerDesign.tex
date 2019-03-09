@@ -42,7 +42,7 @@ We note that the core arbiter and bank queues should not differ much from those 
 \centering
 \includegraphics[width=0.7\linewidth]{fig/coded_access_scheduler.pdf}
 \caption{
-{Access scheduler for coded memory} }
+{\it{The access scheduler} }}
 \label{fig:coded_access_scheduler}
 \end{figure}
 %-------------------------
@@ -63,7 +63,7 @@ We assume that the elements of the code status table are accessible at a very fa
 \begin{figure}[t!]
 	%\includegraphics[width=0.9\linewidth]{fig/Read-algo.pdf}
 	\includegraphics[width=0.96\linewidth]{fig/read_pattern_algo.png}
-	\caption{{Description of the algorithm to build a read request pattern to be served in a given memory cycle.}}
+	\caption{{\it{Description of the algorithm to build a read request pattern to be served in a given memory cycle.}}}
 	\label{fig:readAlgo}
 \end{figure}
 %-------------------------
@@ -72,7 +72,7 @@ We assume that the elements of the code status table are accessible at a very fa
 	\centering
 	%\includegraphics[width=0.7\linewidth]{fig/readAlgoAccessPattern.pdf}
 	\includegraphics[width=0.96\linewidth]{fig/Read-Algo-Example.pdf}
-	\caption{{Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strike-through elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}}
+	\caption{{\it{Illustration of the algorithm to build a read request pattern to be served in a given memory cycle. All the read requests associated with the strike-through elements are scheduled to be served in a given memory cycle. The figure also shows the elements downloaded from all the memory banks in order to serve these read requests.}}}
 	\label{fig:readAlgoAccessPattern}
 \end{figure}
 %------------------------
@@ -115,7 +115,7 @@ Parity banks allow the memory controller to serve additional write requests per 
 \begin{figure}[htbp]
 \centering
 	\includegraphics[width=0.96\linewidth]{fig/write_pattern_algo.png}
-	\caption{{ Flowchart of write pattern builder}}
+	\caption{\it{Flowchart of write pattern builder}}
 	\label{fig:writeFlow}
 \end{figure}
 %-------------------------
@@ -123,15 +123,14 @@ Parity banks allow the memory controller to serve additional write requests per 
 
 Figure~\ref{fig:writeAlgoAccessPattern} shows an example write pattern produced by our algorithm. Parity banks increase the maximum number of write requests from $4$ to $10$. Note that an element which is addressed to row $n$ in a data bank can only be written to the corresponding row $n$ in the parity banks. In this scenario, the write queues for every data bank are full. The controller takes $2$ write requests from each queue and schedules one to the queue's target data bank and the other to a parity bank. The controller also updates the code status table.
 
-{\color{red}
 Figure~\ref{fig:writeAlgoAccessPattern} also demonstrates how the code status table changes to reflect the freshness of the elements in the data and parity banks. Here, the 00 status indicates that all elements are updated. The 01 status indicates that the data banks contain fresh elements and the elements in the parity banks must be recoded. The 10 status indicates that the parity banks contain fresh elements, and that both data banks and parity banks must be updated.
-}
+
 
 %-----------------------
 \begin{figure}[t!]
 \centering
          \includegraphics[width=\linewidth]{fig/Write-Algo-Example.png}
-	\caption{The behavior of the write pattern builder on a 4-bank memory system}
+	\caption{\it{The behavior of the write pattern builder on a 4-bank memory system}}
 	\label{fig:writeAlgoAccessPattern}
 \end{figure}
 %-------------------------
@@ -153,4 +152,3 @@ Every $T$ cycles, the dynamic coding unit chooses the $\frac{\alpha}{r} - 1$ reg
 \subsection{Prefetching Codes}
 \label{sec:prefetching}
 Dynamic coding works best when the most heavily accessed regions of memory vary little to none over time. When the memory access trend is not static, the proposed memory system can benefit from anticipating structured (\textit{e.g.} sequential) memory accesses. Therefore, our design includes a prefetcher which detects sequential memory accesses and exploits idle memory banks to potentially serve future memory requests. The prefetcher prioritizes long sequential memory accesses as motivation for performing an anticipatory read. Because of the speculative nature of the prefetcher, it is given the lowest priority of all the components in the access scheduler. It only schedules a memory access if all the other units have not done so first. 
-\Ethan{More details here?}

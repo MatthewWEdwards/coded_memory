@@ -79,14 +79,14 @@ p(l) = a(i_l) + b(i_l)~\text{for}~l \in [L'].
 \begin{figure}[t!]
 \centering
   \includegraphics[width=0.45\linewidth]{fig/example-inter-bank.pdf} 
-\caption{Notation of example parity design. {\color{red}ok?}}
+\caption{\it{Notation of example parity design.}}
 \label{fig:example1}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \begin{remark}
-{\color{red} Note that we allow for the data banks and parity banks to have different sizes, \textit{i.e.} $L \neq L'$. This freedom in memory design can be utilized to reduce the storage overhead of parity banks based on the underlying application. The case when the size of a parity bank is smaller than a data bank, \textit{i.e.} $L' < L$, we say that the parity bank is a {\em shallow bank}. We note that it is reasonable to assume the existence of shallow banks, especially in proprietary designs of integrated memories in a system on a chip (SoC).}
+Note that we allow for the data banks and parity banks to have different sizes, \textit{i.e.} $L \neq L'$. This freedom in memory design can be utilized to reduce the storage overhead of parity banks based on the underlying application. The case when the size of a parity bank is smaller than a data bank, \textit{i.e.} $L' < L$, we say that the parity bank is a {\em shallow bank}. We note that it is reasonable to assume the existence of shallow banks, especially in proprietary designs of integrated memories in a system on a chip (SoC).
 \end{remark}
 
 \begin{remark}
@@ -164,7 +164,7 @@ In the rest of this section, we present three code designs and discuss the numbe
 {\small III }& {\small$4$}  & {\small$3$} & {\small$1/2$} & {\small $\alpha$} & {\small Medium} \\ 
 \hline                                   
   \end{tabular}
-	\caption{Comparison of the code designs with respect to the performance parameters and associated cost. $\alpha$ is the fraction of storage overhead in comparison to the data bank. $\alpha = 1$ when size of parity bank is equal to size of data bank.}
+	\caption{\it{Comparison of the code designs with respect to the performance parameters and associated cost. $\alpha$ is the fraction of storage overhead in comparison to the data bank. $\alpha = 1$ when size of parity bank is equal to size of data bank.}}
 	\label{table:codedesigncomparison}
 \end{table}
 \end{comment}
@@ -179,7 +179,7 @@ In the rest of this section, we present three code designs and discuss the numbe
     \hline
     {\scriptsize I} & {\scriptsize$4$} & {\scriptsize$2$} & {\scriptsize $\nicefrac{2}{5}$} & {\scriptsize $1.5\alpha$} & {\scriptsize Low} \\ \hline
 %{\scriptsize II} & {\scriptsize$5$}  & {\scriptsize$2$} & {\scriptsize ${2}/{5}$} & {\scriptsize $2.5\alpha$} & {\scriptsize Medium} \\ \hline
-{\scriptsize II} & {\scriptsize$5$}  & {\scriptsize$2$} & {\scriptsize $\nicefrac{2}{7}${\color{red}?}} & {\scriptsize $2.5\alpha$} & {\scriptsize Medium} \\ \hline
+{\scriptsize II} & {\scriptsize$5$}  & {\scriptsize$2$} & {\scriptsize $\nicefrac{2}{7}$ & {\scriptsize $2.5\alpha$} & {\scriptsize Medium} \\ \hline
 {\scriptsize III }& {\scriptsize$4$}  & {\scriptsize$3$} & {\scriptsize$\nicefrac{1}{2}$} & {\scriptsize $\alpha$} & {\scriptsize Medium} \\ 
 \hline                                   
   \end{tabular}
@@ -212,13 +212,13 @@ Consider the scenario when we receive accesses to the following $10$ rows:
 \begin{align*}
 &\left\{a(1),b(1),c(1),d(1),a(2),b(2),c(2),d(2),c(3),d(3)\right\} .
 \end{align*}
-Note that we can serve the read requests for the rows $\{a(1),b(1),c(1),d(1)\}$ using the data bank $\mathbf{a}$ and the three parity banks storing $\{a(1)+b(1), b(1)+c(1),c(1)+d(1)\}$. The requests for $\{a(2),c(2),d(2)\}$ can be served by downloading $b(2)$ from the data bank $\mathbf{b}$ and $\{a(2)+d(2), b(2)+d(2),a(2)+c(2)\}$ from the respective parity banks storing these. Lastly, in the same memory clock cycle, we can serve the requests for $\{c(3), d(3)\}$ using the data banks $\mathbf{c}$ and $\mathbf{d}$.\\
+Note that we can serve the read requests for the rows \\ $\{a(1),b(1),c(1),d(1)\}$ using the data bank $\mathbf{a}$ and the three parity banks storing $\{a(1)+b(1), b(1)+c(1),c(1)+d(1)\}$. The requests for $\{a(2),c(2),d(2)\}$ can be served by downloading $b(2)$ from the data bank $\mathbf{b}$ and $\{a(2)+d(2), b(2)+d(2),a(2)+c(2)\}$ from the respective parity banks storing these. Lastly, in the same memory clock cycle, we can serve the requests for $\{c(3), d(3)\}$ using the data banks $\mathbf{c}$ and $\mathbf{d}$.\\
 %------------------------------
 \begin{figure}[ht!]
 \centering
 	%\includegraphics[width=0.8\linewidth]{fig/designI.pdf}
 	\includegraphics[width=1\linewidth]{fig/Code-Design-1.pdf}
-	\caption{Code Design I}
+	\caption{\it{Code Design I}}
 	\label{fig:design1}
 %\caption{Code Designs}
 \end{figure} 
@@ -278,7 +278,7 @@ For a specific choice of $\alpha$, the storage overhead of this design is $20\al
 %\begin{minipage}[!t]{\linewidth}
 	%\includegraphics[width=1\linewidth]{fig/designII.pdf}
 	\includegraphics[width=1\linewidth]{fig/Code-Design-2.pdf}
-	\caption{Code Design II}
+	\caption{\it{Code Design II}}
 	\label{fig:design2}
 %\end{minipage}
 \end{figure}
@@ -338,7 +338,7 @@ This design supports $4$ simultaneous read access per bank per memory clock cycl
 	\centering
 	\begin{minipage}[!t]{\linewidth}
 		\includegraphics[width=\linewidth]{fig/Code-Design-3_9banks.pdf}
-		\caption{Code Design III}
+		\caption{\it{Code Design III}}
 		\label{fig:design3}
 	\end{minipage}
 \end{figure}
@@ -357,7 +357,7 @@ Note that the coding scheme in Figure~\ref{fig:design3} describes a system with 
 \centering
 	\begin{minipage}[!t]{\linewidth}
 		\includegraphics[width=\linewidth]{fig/Code-Design-3_8banks.pdf}
-		\caption{Code Design III with 8 data banks}
+		\caption{\it{Code Design III with 8 data banks}}
 		\label{fig:design3_8}
 	\end{minipage}
 \end{figure}
