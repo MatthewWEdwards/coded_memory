@@ -84,6 +84,8 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}High Bandwidth Memory}{4}{subsection.2.4}}
 \newlabel{sec:hbm}{{2.4}{4}{High Bandwidth Memory}{subsection.2.4}{}}
 \citation{HMC_slides}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Block diagram description of new memory system architectures with distributed memory controllers. This architecture includes a control logic closer to the data bank. This control logic is capable of certain fixed computation that can be exploited to reduce the access bandwidth between the bank and the main controller.\relax }}{5}{figure.caption.6}}
+\newlabel{fig:HBM}{{5}{5}{Block diagram description of new memory system architectures with distributed memory controllers. This architecture includes a control logic closer to the data bank. This control logic is capable of certain fixed computation that can be exploited to reduce the access bandwidth between the bank and the main controller.\relax }{figure.caption.6}{}}
 \citation{khan}
 \citation{dimakis}
 \citation{Azure12}
@@ -104,84 +106,84 @@
 \citation{Memoir_xor_virtual}
 \citation{EMY91}
 \citation{EMY91}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Block diagram description of new memory system architectures with distributed memory controllers. This architecture includes a control logic closer to the data bank. This control logic is capable of certain fixed computation that can be exploited to reduce the access bandwidth between the bank and the main controller.\relax }}{5}{figure.caption.6}}
-\newlabel{fig:HBM}{{5}{5}{Block diagram description of new memory system architectures with distributed memory controllers. This architecture includes a control logic closer to the data bank. This control logic is capable of certain fixed computation that can be exploited to reduce the access bandwidth between the bank and the main controller.\relax }{figure.caption.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Related Work}{5}{subsection.2.5}}
-\newlabel{sec:related}{{2.5}{5}{Related Work}{subsection.2.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}CODED MEMORY SYSTEM}{5}{section.3}}
-\newlabel{sec:codingArchitecture}{{3}{5}{CODED MEMORY SYSTEM}{section.3}{}}
 \citation{huang}
 \citation{sathiamoorthy}
 \citation{shanmugam}
 \citation{sathiamoorthy}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Data storage layout for coded memory system\relax }}{6}{figure.caption.7}}
-\newlabel{fig:memsys}{{6}{6}{Data storage layout for coded memory system\relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Related Work}{6}{subsection.2.5}}
+\newlabel{sec:related}{{2.5}{6}{Related Work}{subsection.2.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}CODED MEMORY SYSTEM}{6}{section.3}}
+\newlabel{sec:codingArchitecture}{{3}{6}{CODED MEMORY SYSTEM}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Coded Multi-bank Storage Space}{6}{subsection.3.1}}
 \newlabel{sec:codedBanks}{{3.1}{6}{Coded Multi-bank Storage Space}{subsection.3.1}{}}
-\newlabel{rem:degraded}{{3}{6}{Coded Multi-bank Storage Space}{remark.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Data storage layout for coded memory system\relax }}{7}{figure.caption.7}}
+\newlabel{fig:memsys}{{6}{7}{Data storage layout for coded memory system\relax }{figure.caption.7}{}}
+\newlabel{rem:degraded}{{3}{7}{Coded Multi-bank Storage Space}{remark.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Memory Controller Design}{7}{subsection.3.2}}
 \newlabel{sec:controller}{{3.2}{7}{Memory Controller Design}{subsection.3.2}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Reorder buffer}{7}{subsubsection.3.2.1}}
 \newlabel{sec:reorder}{{3.2.1}{7}{Reorder buffer}{subsubsection.3.2.1}{}}
-\newlabel{rem:priority}{{5}{7}{Reorder buffer}{remark.5}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Read algorithm}{7}{subsubsection.3.2.2}}
-\newlabel{sec:read}{{3.2.2}{7}{Read algorithm}{subsubsection.3.2.2}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Example of a single entry \texttt  {0x2} in the reorder buffer across time during a Read-Write-Read request pattern. At t=$1$, there is a read from $B0$--$B1$, followed by a read at $t=2$ from $B0$--$B7$ which includes both data and parity banks. A write request to $B0$ occurs from $t=3$ to $t=6$, during which $DB_0$ is updated, $D_{\rm  valid}$ is set to $1$, bits for parities banks, i.e., $PB_0$--$PB_7$, are updated, $P_{\rm  valid}$ is set to $1$, and $Done$ is set to $1$. Since data banks are valid after $t=4$, a read from $B{4} $--$B6$ is served using only data banks at $t=5$, which sets the $R/W$ bit to $R$. A read from $B0 $--$B7$ occurs at $t=7$, which does not change the state of the reorder buffer.\relax }}{8}{table.caption.8}}
 \newlabel{fig:rob}{{1}{8}{Example of a single entry \texttt {0x2} in the reorder buffer across time during a Read-Write-Read request pattern. At t=$1$, there is a read from $B0$--$B1$, followed by a read at $t=2$ from $B0$--$B7$ which includes both data and parity banks. A write request to $B0$ occurs from $t=3$ to $t=6$, during which $DB_0$ is updated, $D_{\rm valid}$ is set to $1$, bits for parities banks, i.e., $PB_0$--$PB_7$, are updated, $P_{\rm valid}$ is set to $1$, and $Done$ is set to $1$. Since data banks are valid after $t=4$, a read from $B{4} $--$B6$ is served using only data banks at $t=5$, which sets the $R/W$ bit to $R$. A read from $B0 $--$B7$ occurs at $t=7$, which does not change the state of the reorder buffer.\relax }{table.caption.8}{}}
+\newlabel{rem:priority}{{5}{8}{Reorder buffer}{remark.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Read algorithm}{8}{subsubsection.3.2.2}}
+\newlabel{sec:read}{{3.2.2}{8}{Read algorithm}{subsubsection.3.2.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Description of the read algorithm.\relax }}{8}{figure.caption.9}}
 \newlabel{fig:read}{{7}{8}{Description of the read algorithm.\relax }{figure.caption.9}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Write algorithm}{8}{subsubsection.3.2.3}}
-\newlabel{sec:write}{{3.2.3}{8}{Write algorithm}{subsubsection.3.2.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Description of the write algorithm.\relax }}{8}{figure.caption.10}}
-\newlabel{fig:write}{{8}{8}{Description of the write algorithm.\relax }{figure.caption.10}{}}
 \citation{Ramulator}
 \citation{bienia09parsec2}
 \citation{parsec_2_1_m5}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Write algorithm}{9}{subsubsection.3.2.3}}
+\newlabel{sec:write}{{3.2.3}{9}{Write algorithm}{subsubsection.3.2.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Description of the write algorithm.\relax }}{9}{figure.caption.10}}
+\newlabel{fig:write}{{8}{9}{Description of the write algorithm.\relax }{figure.caption.10}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}Writeback algorithm}{9}{subsubsection.3.2.4}}
 \newlabel{sec:writeback}{{3.2.4}{9}{Writeback algorithm}{subsubsection.3.2.4}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{9}{section.4}}
 \newlabel{sec:experiments}{{4}{9}{Experiments}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}HBM Implementation}{9}{subsection.4.1}}
-\newlabel{rem:address}{{6}{9}{HBM Implementation}{remark.6}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary table of design parameters.\relax }}{9}{table.caption.11}}
-\newlabel{tab:design_params}{{2}{9}{Summary table of design parameters.\relax }{table.caption.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Address mapping for channels.\relax }}{9}{figure.caption.12}}
-\newlabel{fig:mapping}{{9}{9}{Address mapping for channels.\relax }{figure.caption.12}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Single-core CPU Simulation.\relax }}{9}{figure.caption.13}}
-\newlabel{fig:single-core-cpu}{{10}{9}{Single-core CPU Simulation.\relax }{figure.caption.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Multi-core CPU Simulation.\relax }}{9}{figure.caption.14}}
-\newlabel{fig:multi-core-cpu}{{11}{9}{Multi-core CPU Simulation.\relax }{figure.caption.14}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Memory Trace Generation}{9}{subsection.4.2}}
 \citation{Ramulator}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.{\color  {red}{\textbf  {[MATT:\nobreakspace  {}TODO: Replace with an equivalent image that doesn't appear in Paper 1]}}}\relax }}{10}{figure.caption.15}}
-\newlabel{fig:dedup_whole}{{12}{10}{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\Matt {TODO: Replace with an equivalent image that doesn't appear in Paper 1}\relax }{figure.caption.15}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary table of design parameters.\relax }}{10}{table.caption.11}}
+\newlabel{tab:design_params}{{2}{10}{Summary table of design parameters.\relax }{table.caption.11}{}}
+\newlabel{rem:address}{{6}{10}{HBM Implementation}{remark.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Address mapping for channels.\relax }}{10}{figure.caption.12}}
+\newlabel{fig:mapping}{{9}{10}{Address mapping for channels.\relax }{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Single-core CPU Simulation.\relax }}{10}{figure.caption.13}}
+\newlabel{fig:single-core-cpu}{{10}{10}{Single-core CPU Simulation.\relax }{figure.caption.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Multi-core CPU Simulation.\relax }}{10}{figure.caption.14}}
+\newlabel{fig:multi-core-cpu}{{11}{10}{Multi-core CPU Simulation.\relax }{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Memory Trace Generation}{10}{subsection.4.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\relax }}{10}{figure.caption.15}}
+\newlabel{fig:dedup_whole}{{12}{10}{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\relax }{figure.caption.15}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Ramulator}{10}{subsection.4.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses{\color  {red}{\textbf  {[MATT:\nobreakspace  {}TODO: Replace with an equivalent image that doesn't appear in Paper 1]}}}\relax }}{10}{figure.caption.16}}
-\newlabel{fig:dedup_dense}{{13}{10}{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\Matt {TODO: Replace with an equivalent image that doesn't appear in Paper 1}\relax }{figure.caption.16}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces The vip benchmark, changed such that the memory access addresses were assigned to a greater number of memory bands{\color  {red}{\textbf  {[MATT:\nobreakspace  {}TODO: Replace with an equivalent image that doesn't appear in Paper 1]}}}\relax }}{10}{figure.caption.17}}
-\newlabel{fig:vips_split}{{14}{10}{The vip benchmark, changed such that the memory access addresses were assigned to a greater number of memory bands\Matt {TODO: Replace with an equivalent image that doesn't appear in Paper 1}\relax }{figure.caption.17}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces The vip benchmark, changed such that the memory access addresses gradually increase over time{\color  {red}{\textbf  {[MATT:\nobreakspace  {}TODO: Replace with an equivalent image that doesn't appear in Paper 1]}}}\relax }}{10}{figure.caption.18}}
-\newlabel{fig:vips_ramp}{{15}{10}{The vip benchmark, changed such that the memory access addresses gradually increase over time\Matt {TODO: Replace with an equivalent image that doesn't appear in Paper 1}\relax }{figure.caption.18}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Alternative Parity Schemes}{10}{subsection.4.4}}
-\citation{Kim2016}
-\citation{Kadjo2014}
-\citation{Shevgoor2015}
-\citation{JL2013}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Dynamic Coding}{11}{subsection.4.5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\relax }}{11}{figure.caption.16}}
+\newlabel{fig:dedup_dense}{{13}{11}{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\relax }{figure.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces The vip benchmark, changed such that the memory access addresses were assigned to a greater number of memory bands\relax }}{11}{figure.caption.17}}
+\newlabel{fig:vips_split}{{14}{11}{The vip benchmark, changed such that the memory access addresses were assigned to a greater number of memory bands\relax }{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces The vip benchmark, changed such that the memory access addresses gradually increase over time\relax }}{11}{figure.caption.18}}
+\newlabel{fig:vips_ramp}{{15}{11}{The vip benchmark, changed such that the memory access addresses gradually increase over time\relax }{figure.caption.18}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Results}{11}{section.5}}
 \newlabel{sec:results}{{5}{11}{Results}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Cycle Simulation Results}{11}{subsection.5.1}}
 \newlabel{sec:results}{{5.1}{11}{Cycle Simulation Results}{subsection.5.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Augmented PARSEC Results}{11}{subsection.5.2}}
 \newlabel{sec:aug_results}{{5.2}{11}{Augmented PARSEC Results}{subsection.5.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces The results of running the 8-core Canneal memory trace through Ramulator\relax }}{11}{figure.caption.19}}
-\newlabel{fig:canneal_results}{{16}{11}{The results of running the 8-core Canneal memory trace through Ramulator\relax }{figure.caption.19}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces The performance of the proposed coded system on the trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_split}\relax }}{11}{figure.caption.20}}
-\newlabel{fig:vips_split_results}{{17}{11}{The performance of the proposed coded system on the trace pictured in Figure~\ref {fig:vips_split}\relax }{figure.caption.20}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{11}{section.6}}
-\newlabel{sec:conclusion}{{6}{11}{Conclusion}{section.6}{}}
+\citation{Kim2016}
+\citation{Kadjo2014}
+\citation{Shevgoor2015}
+\citation{JL2013}
 \bibstyle{ieeetr}
 \bibdata{tex_files/ref}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces The results of running the 8-core Canneal memory trace through Ramulator\relax }}{12}{figure.caption.19}}
+\newlabel{fig:canneal_results}{{16}{12}{The results of running the 8-core Canneal memory trace through Ramulator\relax }{figure.caption.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces The performance of the proposed coded system on the trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_split}\relax }}{12}{figure.caption.20}}
+\newlabel{fig:vips_split_results}{{17}{12}{The performance of the proposed coded system on the trace pictured in Figure~\ref {fig:vips_split}\relax }{figure.caption.20}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces The performance of the proposed coded system on the trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_ramp}\relax }}{12}{figure.caption.21}}
+\newlabel{fig:vips_ramp_results}{{18}{12}{The performance of the proposed coded system on the trace pictured in Figure~\ref {fig:vips_ramp}\relax }{figure.caption.21}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{12}{section.6}}
+\newlabel{sec:conclusion}{{6}{12}{Conclusion}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}HBM details: removed from background sections}{12}{section.7}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Acknowledgements}{12}{section.8}}
 \bibcite{Moore}{1}
 \bibcite{hennesey}{2}
 \bibcite{Wulf1995}{3}
@@ -205,9 +207,6 @@
 \bibcite{Memoir_xor}{21}
 \bibcite{Memoir_xor_virtual}{22}
 \bibcite{Weatherspoon:2002}{23}
-\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces The performance of the proposed coded system on the trace pictured in Figure\nobreakspace  {}\ref  {fig:vips_ramp}{\color  {red}{\textbf  {[MATT:\nobreakspace  {}TODO: This image should be replaced with one for a simulation that uses a large dynamic coding region]}}}\relax }}{12}{figure.caption.21}}
-\newlabel{fig:vips_ramp_results}{{18}{12}{The performance of the proposed coded system on the trace pictured in Figure~\ref {fig:vips_ramp}\Matt {TODO: This image should be replaced with one for a simulation that uses a large dynamic coding region}\relax }{figure.caption.21}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}References}{12}{section.7}}
 \bibcite{batchcodes}{24}
 \bibcite{RSDG16}{25}
 \bibcite{WKCB17}{26}
@@ -227,5 +226,6 @@
 \bibcite{parsec_2_1_m5}{40}
 \bibcite{Kim2016}{41}
 \bibcite{Kadjo2014}{42}
+\@writefile{toc}{\contentsline {section}{\numberline {9}References}{13}{section.9}}
 \bibcite{Shevgoor2015}{43}
 \bibcite{JL2013}{44}

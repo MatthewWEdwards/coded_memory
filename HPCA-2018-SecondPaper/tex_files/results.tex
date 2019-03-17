@@ -17,28 +17,10 @@ We simulated four different parity architectures. First, we simulate parity bank
 \end{figure}
 		
 
-\subsection{PARSEC Augmentation}
-\label{sec:aug}
-Because the structure of the PARSEC benchmark traces is similar across the benchmarks, we chose to augment the traces in order to analyze how the proposed coded system behaves in more memory access scenarios. We augment the trace by splitting the traces into a greater number of bands, and we also introduce a ramp to the memory trace. The augmentations we implement are visualized in Figure~\ref{fig:vips_split} and Figure~\ref{fig:vips_ramp}
-
-\begin{figure}[h!]
-		\includegraphics[width=\linewidth]{figures/vips_split.png}
-		\caption{The vip benchmark, changed such that the memory access addresses were assigned to a greater number of memory bands}
-		\label{fig:vips_split}
-\end{figure}
-
-\begin{figure}[h!]
-		\includegraphics[width=\linewidth]{figures/vips_ramp.png}
-		\caption{The vip benchmark, changed such that the memory access addresses gradually increase over time}
-		\label{fig:vips_ramp}
-\end{figure}
-
-We augmented the vips benchmark in one scenario to have 20 dense bands, a 10-fold increase over the 2 dense bands in the original vips benchmark. Note that the overall density of the trace is preserved. No memory access were added or removed, the addresses of the memory accesses were merely changed We also augmented the vips benchmark to gradually ramp over the length of the trace. Note that in Figure~\ref{fig:vips_ramp} it is clear that there is no overlap between the memory access addresses at the start of the trace and at the end.
-
 \subsection{Augmented PARSEC Results}
 \label{sec:aug_results}
 
-The augmentations on the PARSEC traces significantly impacts how the proposed coded system performs. Figure~\ref{fig:vips_split_results} shows the simulation results for the vips benchmark with the increased number of bands. The figure shows that the proposed coded system is able to achieve improvements similar to those picture in Figure~\ref{fig:canneal_results}, however a larger reorder buffer length is needed to achieve these results. Figure~\ref{fig:vips_ramp} shows the simulation results for the vips benchmark with the ramped memory accesses. Again, we see that the a larger reorder buffer length is needed to maximize the performance of the system. Additionally, we see that the system fails to perform to the level we see in Figure~\ref{fig:canneal_results}.
+The augmentations on the PARSEC traces significantly impacts how the proposed coded system performs. Figure~\ref{fig:vips_split_results} shows the simulation results for the vips benchmark with the increased number of bands. The figure shows that the proposed coded system is able to achieve improvements similar to those picture in Figure~\ref{fig:canneal_results}, however a larger reorder buffer length is needed to achieve these results. Figure~\ref{fig:vips_ramp} shows the simulation results for the vips benchmark with the ramped memory accesses. Again, we see that the a larger reorder buffer length is needed to maximize the performance of the system. We also observe that here, for small reorder buffer sizes, the proposed memory system performs worse than baseline. The reason for this is that the amount of memory used for dynamic coding is too small for the ramp memory augmentation. Increasing the memory allocated to dynamic coding results in improved performance, as seen in Figure \#\# \Matt{TODO}.
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_split_results.png}
@@ -49,6 +31,6 @@ The augmentations on the PARSEC traces significantly impacts how the proposed co
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_ramp_results.png}
-		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:vips_ramp}}
+		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:vips_ramp}\Matt{TODO: This image should be replaced with one for a simulation that uses a large dynamic coding region}}
 		\label{fig:vips_ramp_results}
 \end{figure}
