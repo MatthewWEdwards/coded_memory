@@ -104,7 +104,13 @@ We augmented the vips benchmark in one scenario to have 20 dense bands, a 10-fol
 The Ramulator DRAM simulator estimates the number of CPU cycles required by memory systems to execute a memory trace\cite{Ramulator}. We use a slightly modified version of the vanilla Ramulator to simulate the coded model without the reorder buffer or parity banks. Next, we run the simulation with the reorder buffer and parity banks implemented and we compare the results. We use a consistent Ramulator configuration across the simulations, so any differences in simulator performance is a result of the proposed coded model. We test different parity bank architectures and reorder buffer lengths.
 
 \subsection{Alternative Parity Schemes}
-In addition to the 8-bank parity scheme described in Section~\ref{sec:codingArchitecture},
+In addition to the 8-bank parity scheme described in Section~\ref{sec:codingArchitecture}, We also examine the effect of alternate parity bank schemes. In particular, we employ the following schemes.
+\begin{itemize}
+	\item 8-banks 4-message symbols: The scheme described in Section~\ref{sec:codingArchitecture}
+	\item 4-banks 4-message symbols: A scheme which consists of the first four banks of the scheme described in Section~\ref{sec:codingArchitecture} 
+	\item 8-bank duplicate: A scheme which consists of duplicates of the original eight data banks. The parity banks in this scheme are not parity banks per se, as they do not contain parity elements.
+	\item 12-bank 2-message symbols: A scheme constructed by partitioning the data banks into two groups of four banks, and generating 6 parity banks from each combination of two banks from each of the disjoint groups.
+\end{itemize}
 
 \subsection{Dynamic Coding}
 \Matt{How to cite other paper, as it is unpublished?}
