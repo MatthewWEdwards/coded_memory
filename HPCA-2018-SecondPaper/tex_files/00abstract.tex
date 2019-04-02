@@ -1,7 +1,7 @@
 \begin{abstract}
 We explore the use of coding theory in double data rate (DDR) and high bandwidth memory (HBM) systems. Modern DDR systems incur large latencies due to contention of multiple requests on the same memory bank. Our proposed memory design stores data across DRAM pages in a redundant manner using Reed-Solomon codes as a building block. A memory controller then assigns coded versions of the data to dedicated parity banks. This multi-bank coding scheme creates multiple ways to retrieve a given data element and allows for more efficient scheduling in multi-core memory architectures such as HBM. Our approach differs from conventional, uncoded systems which only optimize the timing of each incoming memory request. 
 
-We implement our proposed memory design on an HBM DRAM architecture via the Ramulator simulation platform. Experimental results show that multi-bank coding reduces the number of contended memory accesses, and thus the overall latency, for several standard benchmarks. Our design reduces the number of CPU cycles by nearly $70\%$ compared to an uncoded baseline.
+We implement our proposed memory design on an HBM DRAM architecture via the Ramulator simulation platform. Experimental results show that multi-bank coding reduces the number of contended memory accesses, and thus the overall latency, for several standard benchmarks. Our design reduces the number of CPU cycles in some scenarios by over $50\%$ compared to an uncoded baseline.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Old abstract begins
 %%%%%%%%%%%%%%%%%%%%%%%
