@@ -665,7 +665,7 @@
 \fi
 %
 \if@ll
-\renewcommand{\rmdefault}{cmr}  % was 'ttm'
+ \renewcommand{\rmdefault}{cmr}  % was 'ttm'
 % Note! I have also found 'mvr' to work ESPECIALLY well.
 % Gerry - October 1999
 % You may need to change your LV1times.fd file so that sc is
@@ -730,7 +730,7 @@
     \vskip 1.5em               % Vertical space after author.
    \end{center}}
  \dimen0=\ht\@acmtitlebox
- \advance\dimen0 by -12.75pc\relax % Increased space for title box -- KBT
+ %\advance\dimen0 by -12.75pc\relax % Increased space for title box -- KBT
  \unvbox\@acmtitlebox
  \ifdim\dimen0<0.0pt\relax\vskip-\dimen0\fi}
 
@@ -1492,7 +1492,7 @@
 %\ProvidesPackage{aecompl}[\filedate\space\fileversion\space   % GM
 %T1 Complements for AE fonts (D. Roegel)]                      % GM -- keeping the log file clean(er)
  
- \def\@ae@compl#1{{\fontencoding{T1}\fontfamily{cmr}\selectfont\symbol{#1}}}
+\def\@ae@compl#1{{\fontencoding{T1}\fontfamily{cmr}\selectfont\symbol{#1}}}
 \def\guillemotleft{\@ae@compl{19}}
 \def\guillemotright{\@ae@compl{20}}
 \def\guilsinglleft{\@ae@compl{14}}
