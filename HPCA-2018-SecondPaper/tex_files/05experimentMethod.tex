@@ -66,45 +66,43 @@ Figure~\ref{fig:mapping} describes the address mapping for each channel. The lea
 \end{figure}
 
 \subsection{Memory Traces}
-We use the PARSEC benchmark suite to evaluate how the proposed memory system improves performance in shared memory scenarios. The PARSEC benchmark suite was developed to evaluate chip multiprocessors. We run the PARSEC benchmarks on the gem5 simulator to generate memory traces for use in evaluating the efficacy of the proposed memory system. The memory traces we use to evaluate the proposed memory system are dense, as illustrated by Figure~\ref{fig:dedup_dense}. It is necessary that the memory traces we use evaluate the proposed memory system is dense so that the inclusion of the system speeds up the simulation by reducing memory access latency.
+We use the PARSEC benchmark suite to evaluate how the proposed memory system improves performance in shared memory scenarios. The PARSEC benchmark suite was developed to evaluate chip multiprocessors. We run the PARSEC benchmarks on the gem5 simulator to generate memory traces for use in evaluating the efficacy of the proposed memory system. The memory traces we use to evaluate the proposed memory system are dense, as illustrated by Figure~\ref{fig:canneal_dense}. It is necessary that the memory traces we use are dense, otherwise the benefits of the proposed memory system will not be visible.
  
-We observe that the regions of memory most heavily used in Figure~\ref{fig:dedup_dense} do not change with time. Figure~\ref{fig:dedup_whole} shows an entire memory trace used to evaluate the performance of the coded model. We observe that there are two major memory bands. Figure~\ref{fig:dedup_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands of similar density. These two sub-bands contain over 90\% of the memory accesses in this memory trace. Figure~\ref{fig:dedup_dense} also shows that the memory regions used by the processors overlap to a degree which yields frequent bank conflicts.
+We observe that the regions of memory most heavily used in the trace pictured in Figure~\ref{fig:canneal_dense} are stationary with respect to time. Figure~\ref{fig:canneal_whole} shows an entire memory trace. We observe that there are two major memory bands. Figure~\ref{fig:canneal_dense} is a magnified view of the bottom band. This figure reveals that the bottom band is composed of two sub-bands of similar density. These two sub-bands contain over 90\% of the memory accesses in this memory trace. Figure~\ref{fig:canneal_dense} also shows that the memory regions used by the processors overlap to a degree which yields frequent bank conflicts.
 
-Because the structure of the PARSEC benchmark traces is similar across the benchmarks, we choose to augment the traces in order to analyze how the proposed memory system behaves in more memory access scenarios. We augment the trace by splitting the traces into a greater number of bands, and we also introduce a ramp to the memory trace. The augmentations we implement are visualized in Figure~\ref{fig:vips_split} and Figure~\ref{fig:vips_ramp}
-
+Because the structure of the PARSEC benchmark traces is similar across the benchmarks, we choose to augment the traces in order to analyze how the proposed memory system behaves in more memory access scenarios. We augment the trace by splitting the traces into a greater number of bands, and we introduce a linear ramp. The augmentations we implement are visualized in Figure~\ref{fig:vips_split} and Figure~\ref{fig:vips_ramp}
 
 \begin{figure}[h!]
-
-		\includegraphics[width=\linewidth]{figures/dedup_whole.png}
-		\caption{Memory Access from the Dedup PARSEC benchmark. This trace was generated using 8 cores.\Matt{TODO: Replace with an equivalent image that doesn't appear in Paper 1}}
-		\label{fig:dedup_whole}
+		\includegraphics[width=\linewidth]{figures/canneal_whole.png}
+		\caption{The entire memory trace of the canneal PARSEC benchmark simulated in gem5.}
+		\label{fig:canneal_whole}
 \end{figure}
 
 \begin{figure}[h!]
-		\includegraphics[width=\linewidth]{figures/dedup_dense.png}
-		\caption{Memory Access from the Dedup PARSEC benchmark demonstrating the density of memory accesses\Matt{TODO: Replace with an equivalent image that doesn't appear in Paper 1}}
-		\label{fig:dedup_dense}
+		\includegraphics[width=\linewidth]{figures/canneal_trace.png}
+		\caption{The bottom band of the trace pictured in Figure~\ref{fig:canneal_whole}. Two sub-bands are visible.}
+		\label{fig:canneal_dense}
 \end{figure}
 		
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_split.png}
-		\caption{The vip benchmark, changed such that the memory access addresses were assigned to a greater number of memory bands\Matt{TODO: Replace with an equivalent image that doesn't appear in Paper 1}}
+		\caption{A trace of a PARSEC benchmark augmented to increase the number of memory bands.}
 		\label{fig:vips_split}
 \end{figure}
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_ramp.png}
-		\caption{The vip benchmark, changed such that the memory access addresses gradually increase over time\Matt{TODO: Replace with an equivalent image that doesn't appear in Paper 1}}
+		\caption{An PARSEC benchmark trace augmented to include a linear ramp.}
 		\label{fig:vips_ramp}
 \end{figure}
 
 \subsection{Ramulator Simulations}
-The Ramulator program simulates DRAM systems based on an input memory trace. At the conclusion of a simulation, the number of CPU cycles needed to execute the memory trace is output. We compare the number of CPU cycles required to execute memory traces as simulated by an unmodified version of Ramulator and a version which includes the proposed memory system.
+The Ramulator program simulates DRAM systems taking a memory trace as input. At the conclusion of a simulation, the number of CPU cycles needed to execute the memory trace is output. We compare the number of CPU cycles required to execute memory traces as simulated by an unmodified version of Ramulator and a version which includes the proposed memory system.
 
 In addition to the 8-bank parity scheme described in Section~\ref{sec:codingArchitecture}, We also examine the efficacy of alternate parity bank schemes. In particular, we employ the following schemes.
 \begin{itemize}
-	\item 8-banks 4-message symbols: The scheme described in Section~\ref{sec:codingArchitecture}
-	\item 4-banks 4-message symbols: A scheme which consists of the first four banks of the scheme described in Section~\ref{sec:codingArchitecture} 
+	\item 8-banks 4-message symbols: The scheme described in Section~\ref{sec:codingArchitecture}.
+	\item 4-banks 4-message symbols: A scheme which consists of the first four banks of the scheme described in Section~\ref{sec:codingArchitecture}.
 	\item 8-bank duplicate: A scheme which consists of duplicates of the original eight data banks. The parity banks in this scheme are not parity banks per se, as they do not contain parity elements.
 	\item 12-bank 2-message symbols: A scheme constructed by partitioning the data banks into two groups of four banks, and generating 6 parity banks from each combination of two banks from each of the disjoint groups.
 \end{itemize}
@@ -115,7 +113,7 @@ The proposed memory system performs consistently well across the PARSEC 2.1v and
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/canneal_results.png}
-		\caption{The results of running the 8-core Canneal memory trace through Ramulator}
+		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:canneal_results}.}
 		\label{fig:canneal_results}
 \end{figure}
 		
@@ -123,17 +121,17 @@ The proposed memory system performs consistently well across the PARSEC 2.1v and
 \subsection{Augmented PARSEC Results}
 \label{sec:aug_results}
 
-The augmentations on the PARSEC traces significantly impact how the proposed memory system performs. Figure~\ref{fig:vips_split_results} shows the simulation results for the benchmark pictured in Figure \Matt{TODO}. The figure shows that the proposed coded system is able to achieve improvements similar to those picture in Figure~\ref{fig:canneal_results}, however a larger reorder buffer length is needed to achieve these results. Figure \Matt{TODO} shows the simulation results for the memory trace pictured in Figure  \Matt{TODO}. Again, we see that the a larger reorder buffer length is needed to maximize the performance of the system. We also observe that here, for small reorder buffer sizes, the proposed memory system performs worse than baseline. The reason for this is that the amount of memory used for dynamic coding is too small for the ramp memory augmentation. Increasing the memory allocated to dynamic coding results in improved performance, as seen in Figure \#\# \Matt{TODO}.
+The augmentations on the PARSEC traces significantly impact how the proposed memory system performs. Figure~\ref{fig:vips_split_results} shows the simulation results for the benchmark pictured in Figure~\ref{fig:vips_split}. The results show that the proposed coded system is able to achieve improvements similar to those picture in Figure~\ref{fig:canneal_results}, however a larger reorder buffer length is needed to achieve these results. Figure~\ref{fig:vips_ramp_results} shows that memory traces with linear ramps benefit less from the proposed memory system. We again see that a larger reorder buffer length is needed to maximize the performance of the system, but the overall performance improvement is less than those pictured in Figure~\ref{fig:canneal_results}. The parity scheme has a greater impact on performance for the augmented PARSEC traces, as the results show that the exclusion of parity banks leads to worse performance. 
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_split_results.png}
-		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:vips_split} \Matt{TODO: This figure needs a second simulation result demonstrating the need for a larger dynamic coding region}}
+		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:vips_split}.}
 		\label{fig:vips_split_results}
 \end{figure}
 
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_ramp_results.png}
-		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:vips_ramp}}
+		\caption{The performance of the proposed coded system on the trace pictured in Figure~\ref{fig:vips_ramp}.}
 		\label{fig:vips_ramp_results}
 \end{figure}
