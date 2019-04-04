@@ -1,7 +1,7 @@
   \section{Experiments}
 \label{sec:experiments}
 
-In this section, we describe our HBM implementation and Ramulator~\cite{Ramulator} simulations on several PARSEC~\cite{bienia09parsec2} benchmarks. We run the PARSEC v2.1 and v3.0 benchmarks suites with the gem5~\cite{parsec_2_1_m5} simulator to generate memory traces of multi-core shared-memory scenarios. Next, we evaluate the performance of the reorder buffer by running the memory traces through the Ramulator DRAM simulator. To evaluate the performance of our proposed memory system, we compare the number of CPU cycles needed to run the PARSEC memory traces through the original Ramulator program and an extended version of Ramulator which includes the memory system.
+In this section, we describe our HBM implementation and Ramulator~\cite{Ramulator} simulations on several PARSEC~\cite{bienia09parsec2} benchmarks. We run the PARSEC v2.1 and v3.0 benchmarks suites with the gem5~\cite{parsec_2_1_m5} simulator to generate memory traces of multi-core shared-memory scenarios. Next, we evaluate the performance of the reorder buffer by running the memory traces through the Ramulator DRAM simulator. To evaluate the performance of our proposed memory system, we compare the number of CPU cycles needed to run the PARSEC memory traces through the original Ramulator program and an extended version of Ramulator which includes our proposed memory system.
 
 \subsection{HBM Implementation}
 %\Ethan{Move all implementation details here, is sub-channel the same as pseudo channel? OK or still repetitive?}
@@ -11,7 +11,7 @@ Our coding scheme is based on a single $16$-bank channel of HBM DRAM operating i
 %The pseudo channel conceptually divides the memory of a single channel in half. 
 %Since this mode divides a channel into two individual $8$ bank sub-channels, we assign one sub-channel for data banks and the other sub-channel for parity banks. 
 %
-Wherever possible, we try to interleave the banks. This ensures that most large, linear accesses will be spread across multiple banks with reduced contention.
+Wherever possible, we try to interleave the banks. This ensures that accesses will be spread across multiple banks with reduced contention.
 
 In this mode, the 128-bit data bus is split into 2 individual 64-bit segments. 
 However, the pseudo channels share the same address and command bus: commands and addresses may be sent to one pseudo channel or the other, but not to both. They also decode and execute commands individually. For commands that are common to both pseudo channels, strict timing conditions must be met to avoid conflicts.
@@ -29,7 +29,6 @@ Table~\ref{tab:design_params} describes additional design details.
     \hline           
     Cache Line Size & 128/256 bytes size \\ \hline  
     Element Size & Each element is 256 bytes \\ \hline  
-    Number of Cores & 6-8 cores for Wireless SoC platform \\ \hline  
     Access Rate & 1GHz memory speed \\ \hline  
     Burst Length & 4 (256-bit transfer in four 64-bit bursts)\\ \hline
   \end{tabular}
@@ -51,19 +50,6 @@ Figure~\ref{fig:mapping} describes the address mapping for each channel. The lea
 \label{fig:mapping}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\begin{figure}[h!] \centering
-\includegraphics[width=0.9\linewidth]{figures/single-core-cpu.png} 
-\caption{Single-core CPU Simulation.}
-\label{fig:single-core-cpu}
-\end{figure}
-
-\begin{figure}[h!] \centering
-\includegraphics[width=0.9\linewidth]{figures/multi-core-cpu.png} 
-\caption{Multi-core CPU Simulation.}
-\label{fig:multi-core-cpu}
-\end{figure}
 
 \subsection{Memory Traces}
 We use the PARSEC benchmark suite to evaluate how the proposed memory system improves performance in shared memory scenarios. The PARSEC benchmark suite was developed to evaluate chip multiprocessors. We run the PARSEC benchmarks on the gem5 simulator to generate memory traces for use in evaluating the efficacy of the proposed memory system. The memory traces we use to evaluate the proposed memory system are dense, as illustrated by Figure~\ref{fig:canneal_dense}. It is necessary that the memory traces we use are dense, otherwise the benefits of the proposed memory system will not be visible.
@@ -97,7 +83,13 @@ Because the structure of the PARSEC benchmark traces is similar across the bench
 \end{figure}
 
 \subsection{Ramulator Simulations}
-The Ramulator program simulates DRAM systems taking a memory trace as input. At the conclusion of a simulation, the number of CPU cycles needed to execute the memory trace is output. We compare the number of CPU cycles required to execute memory traces as simulated by an unmodified version of Ramulator and a version which includes the proposed memory system.
+The Ramulator program simulates DRAM systems taking a memory trace as input. At the conclusion of a simulation, the number of CPU cycles needed to execute the memory trace is output. We compare the number of CPU cycles required to execute memory traces as simulated by an unmodified version of Ramulator and a version which includes the proposed memory system. Figure~\ref{fig:multi-core-cpu} illustrates the memory system simulated by the extended Ramulator program.
+
+\begin{figure}[h!] \centering
+\includegraphics[width=0.9\linewidth]{figures/multi-core-cpu.png} 
+\caption{Multi-core CPU Simulation.}
+\label{fig:multi-core-cpu}
+\end{figure}
 
 In addition to the 8-bank parity scheme described in Section~\ref{sec:codingArchitecture}, We also examine the efficacy of alternate parity bank schemes. In particular, we employ the following schemes.
 \begin{itemize}
@@ -109,7 +101,7 @@ In addition to the 8-bank parity scheme described in Section~\ref{sec:codingArch
 
 \subsection{Simulation Results}
 \label{sec:results}
-The proposed memory system performs consistently well across the PARSEC 2.1v and 3.0v benchmarks. We find that the parity structure has a small impact on the performance of the system, and the reorder buffer length is  the critical factor for determining the efficacy of a system. In several scenarios we show greater than 50\% reduction of CPU cycles needed for the simulation to complete. In the figure below, we show the number of simulated CPU cycles for the proposed memory system compared to the number of simulated CPU cycles for the baseline coded system. A speedup coefficient is calculated by dividing the simulated CPU cycle count by the baseline CPU cycle count. Most notable in these results is that a short reorder buffer length of 8 is sufficient to achieve significant improvement, and once the reorder buffer reaches a certain length the marginal benefits of increasing buffer length diminish.
+The proposed memory system performs consistently well across the PARSEC 2.1v and 3.0v benchmarks. We find that the parity structure has a small impact on the performance of the system, and the reorder buffer (ROB) length is  the critical factor for determining the efficacy of a system. In several scenarios we show greater than 50\% reduction of the CPU cycles that are needed for the simulation to complete. In Figure~\ref{fig:canneal_results} we show the number of simulated CPU cycles for the proposed memory system compared to the number of simulated CPU cycles for the baseline coded system. A speedup coefficient is calculated by dividing the simulated CPU cycle count by the baseline CPU cycle count. Most notable in these results is that a short reorder buffer length of 8 is sufficient to achieve significant improvement, and once the reorder buffer reaches a certain length the marginal benefits of increasing buffer length diminish. Additionally, the impact of the choice of parity scheme on the simulation results diminishes as the ROB length is increased. This interesting and novel effect comes as a result of the design of the memory controller.
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/canneal_results.png}
@@ -121,7 +113,7 @@ The proposed memory system performs consistently well across the PARSEC 2.1v and
 \subsection{Augmented PARSEC Results}
 \label{sec:aug_results}
 
-The augmentations on the PARSEC traces significantly impact how the proposed memory system performs. Figure~\ref{fig:vips_split_results} shows the simulation results for the benchmark pictured in Figure~\ref{fig:vips_split}. The results show that the proposed coded system is able to achieve improvements similar to those picture in Figure~\ref{fig:canneal_results}, however a larger reorder buffer length is needed to achieve these results. Figure~\ref{fig:vips_ramp_results} shows that memory traces with linear ramps benefit less from the proposed memory system. We again see that a larger reorder buffer length is needed to maximize the performance of the system, but the overall performance improvement is less than those pictured in Figure~\ref{fig:canneal_results}. The parity scheme has a greater impact on performance for the augmented PARSEC traces, as the results show that the exclusion of parity banks leads to worse performance. 
+The augmentations on the PARSEC traces significantly impact how the proposed memory system performs. Figure~\ref{fig:vips_split_results} shows the simulation results for the benchmark pictured in Figure~\ref{fig:vips_split}. The results show that the proposed coded system is able to achieve improvements similar to those picture in Figure~\ref{fig:canneal_results}, however a larger reorder buffer length is needed to achieve these results. Figure~\ref{fig:vips_ramp_results} shows that memory traces with linear ramps benefit less from the proposed memory system. We again see that a larger reorder buffer length is needed to maximize the performance of the system, but the overall performance improvement is less than those pictured in Figure~\ref{fig:canneal_results}. The parity scheme has a greater impact on performance for the augmented PARSEC traces, as the results show that the exclusion of parity banks leads to worse performance. We note that our proposed memory system demonstrates good performance without parity banks. This no-parity performance shows the benefits of the proposed memory controller, however the inclusion of parity banks does yield better overall performance as demonstrated by the augmented trace simulation results.
 
 \begin{figure}[h!]
 		\includegraphics[width=\linewidth]{figures/vips_split_results.png}
