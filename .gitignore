@@ -4,3 +4,14 @@ ramulator
 parsec/
 parsec_traces/
 
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.xcp
+*.run.xml
+*.out
+*.log
+*.fls
+*.fdb_latexmk
+*.bcf
