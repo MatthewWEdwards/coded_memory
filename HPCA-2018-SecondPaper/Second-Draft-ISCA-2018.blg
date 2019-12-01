@@ -1,0 +1,60 @@
+This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: Second-Draft-ISCA-2018.aux
+The style file: ieeetr.bst
+Database file #1: tex_files/ref.bib
+Warning--entry type for "ACP88" isn't style-file defined
+--line 239 of file tex_files/ref.bib
+Warning--entry type for "Memoir_xor" isn't style-file defined
+--line 255 of file tex_files/ref.bib
+Warning--entry type for "Memoir_xor_virtual" isn't style-file defined
+--line 269 of file tex_files/ref.bib
+Repeated entry---line 452 of file tex_files/ref.bib
+ : @article{sathiamoorthy
+ :                       ,
+I'm skipping whatever remains of this entry
+Warning--empty booktitle in intel
+Warning--empty title in Azure12
+Warning--can't use both volume and number fields in sathiamoorthy
+You've used 44 entries,
+            1876 wiz_defined-function locations,
+            754 strings with 11166 characters,
+and the built_in function-call counts, 12957 in all, are:
+= -- 1220
+> -- 582
+< -- 1
++ -- 210
+- -- 166
+* -- 964
+:= -- 1794
+add.period$ -- 49
+call.type$ -- 44
+change.case$ -- 42
+chr.to.int$ -- 0
+cite$ -- 47
+duplicate$ -- 642
+empty$ -- 1230
+format.name$ -- 166
+if$ -- 3137
+int.to.chr$ -- 0
+int.to.str$ -- 44
+missing$ -- 37
+newline$ -- 140
+num.names$ -- 44
+pop$ -- 205
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 468
+stack$ -- 0
+substring$ -- 876
+swap$ -- 258
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 3
+while$ -- 128
+width$ -- 46
+write$ -- 412
+(There was 1 error message)

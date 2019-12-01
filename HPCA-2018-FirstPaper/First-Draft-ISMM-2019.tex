@@ -1,0 +1,284 @@
+
+\documentclass[sigplan,10pt,review,anonymous]{acmart}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+
+\newcommand{\ignore}[1]{}
+%\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{color}
+\usepackage{subcaption}
+\usepackage{graphics}
+\usepackage{amsmath, amssymb}
+\usepackage{comment}
+\usepackage{nicefrac}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{claim}{Claim}[section]
+\newtheorem{definition}{Definition}
+
+%\newtheorem{definition}{Definition}%[section]
+\newtheorem{example}{Example}%[section]
+\newtheorem{conjecture}{Conjecture}%[section]
+\newtheorem{construction}{Construction}%[section]
+\newtheorem{remark}{Remark}%[section]
+
+%\newtheorem{remark}{Remark}%[section]
+\newtheorem{case}{Case}%[section]
+\newtheorem{assumption}{Assumption}
+
+\newcommand*\cn{{\color{red}{\textbf{[Citation Needed]}}}}
+\newcommand*\Ankit[1]{{\color{red}{\textbf{[ANKIT:~#1]}}}}
+\newcommand*\Matt[1]{{\color{red}{\textbf{[MATT:~#1]}}}}
+\newcommand*\Ethan[1]{{\color{red}{\textbf{[Ethan:~#1]}}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Conference information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+\acmConference[PL'18]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2018}{New York, NY, USA}
+\acmYear{2018}
+\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+\citestyle{acmnumeric}     %% For numeric citations
+
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+
+\begin{document}
+
+%%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
+%\title{Dynamic Coding for Improved performance of Memories }
+\title[Memory Coding Techniques]{Achieving Multi-Port Memory Performance with Single-Port Memory Coding Techniques}         %% [Short Title] is optional;
+                                        %% when present, will be used in
+                                        %% header instead of Full Title.
+%\titlenote{with title note}             %% \titlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+%\subtitle{Subtitle}                     %% \subtitle is optional
+%\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% Author information
+%% Contents and number of authors suppressed with 'anonymous'.
+%% Each author should be introduced by \author, followed by
+%% \authornote (optional), \orcid (optional), \affiliation, and
+%% \email.
+%% An author may have multiple affiliations and/or emails; repeat the
+%% appropriate command.
+%% Many elements are not rendered, but should be provided for metadata
+%% extraction tools.
+
+%% Author with single affiliation.
+\author{First1 Last1}
+\authornote{with author1 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  \position{Position1}
+  \department{Department1}              %% \department is recommended
+  \institution{Institution1}            %% \institution is required
+  \streetaddress{Street1 Address1}
+  \city{City1}
+  \state{State1}
+  \postcode{Post-Code1}
+  \country{Country1}                    %% \country is recommended
+}
+\email{first1.last1@inst1.edu}          %% \email is recommended
+
+%% Author with two affiliations and emails.
+\author{First2 Last2}
+\authornote{with author2 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  \position{Position2a}
+  \department{Department2a}             %% \department is recommended
+  \institution{Institution2a}           %% \institution is required
+  \streetaddress{Street2a Address2a}
+  \city{City2a}
+  \state{State2a}
+  \postcode{Post-Code2a}
+  \country{Country2a}                   %% \country is recommended
+}
+\email{first2.last2@inst2a.com}         %% \email is recommended
+\affiliation{
+  \position{Position2b}
+  \department{Department2b}             %% \department is recommended
+  \institution{Institution2b}           %% \institution is required
+  \streetaddress{Street3b Address2b}
+  \city{City2b}
+  \state{State2b}
+  \postcode{Post-Code2b}
+  \country{Country2b}                   %% \country is recommended
+}
+\email{first2.last2@inst2b.org}         %% \email is recommended
+
+
+
+%%%%%% -- PAPER CONTENT STARTS-- %%%%%%%%
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+
+\begin{abstract}
+Many performance critical systems today rely on multi-port memories to keep up with increasing memory access demands. However, the large area footprints and complexity of existing multi-port memory designs limit their applicability. This paper explores a coding theoretic framework to address this problem. In particular, this paper introduces a framework for encoding data across multiple single-port memory banks in order to {\em algorithmically} emulate the functionality of multi-port memory systems.
+
+We propose three code schemes with significantly lower storage overhead compared to existing replication-based emulations of multi-port memories. We also demonstrate a memory controller design that utilizes redundancy across coded memory banks to schedule read and write requests. Furthermore, we explore how {\em dynamic coding} can be used to reduce memory overhead. We then show the performance improvements the code schemes yield when compared to a traditional uncoded-memory design.
+\end{abstract}
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003456.10003457.10003521.10003525</concept_id>
+<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~General programming languages}
+\ccsdesc[300]{Social and professional topics~History of programming languages}
+%% End of generated code
+
+
+%% Keywords
+%% comma separated list
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{intro}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Background and Related Work
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{bgd_relatedwork}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code design
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{code_design}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Memory controller design
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{memControllerDesign}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experimental Methodology
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{experimental_methodology}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Results
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{simulation_results}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%{\color{red}\textbf{Coding over small number of banks:~}In order to save storage space allocated to different pointers.....This is something which does not arise in many classical scenarios where coding is employed. For example, in communications, it is preferable to encode over long messages as apart from computational complexity as in most cases there is no additional penalty (proportional to the code length) in terms of pointers required to deal with write requests.}
+
+%In this part, we attempt to design efficient codes based on the memory traces 
+%shared by Huawei.  The goal of this design was to simulate the efficiency of 
+%coding and compare the results to the baseline implementation of not coding.  
+%During this design phase, we explored various code functions that could be used 
+%to create the codes on the stored data. We decide upon using the XOR function to 
+%store the data in the parity banks because of its low complexity overhead and 
+%for preserving the linearity of codes. Linear codes offer the widest range of 
+%functionality because any order of the codes may be used to either encode or 
+%decode. This lack of dependency allows our design to use the parity banks in the 
+%most flexible way possible. We also explore the potential benefits of using 
+%different weights to the memory elements for the XOR function. For examples, the 
+%memory elements $a_0$ and $b_0$ could be stored as $\alpha a_0 + \beta b_0$ for 
+%integer values of $\alpha$ and $\beta$ which belong to any Galois Field. The 
+%least complex design for the decoder would be for taking $\alpha$ = 1 and 
+%$\beta$ = 1 . Another design consideration explored is the compression factor to 
+%generate the codes.  The codes can be generated by using xor on 2 or more memory 
+%elements. For example, suppose there are four banks A, B , C and D. Each of the 
+%banks hold $a_0$ to $a_n$, $b_0$ to $b_n$ , $c_0$ to $c_n$ and $d_0$ to $d_n$ 
+%elements respectively. The possible codes for these memories could be:
+%\begin{equation}
+%a_i + b_i, b_i + c_i, c_i + d_i \text{ and } c_i + a_i  \text{ for i = 0 to n }
+%\end{equation}
+%This scheme uses the combination of 2 memory elements to generate the codes.  
+%Although this requires 100$\%$ extra memory overhead, it enables 100$\%$ extra 
+%memory accesses per cycle, i.e., 4 extra accesses in this case.
+%Another design could be to compress the codes by combining all 4 memory elements 
+%to generate the codes:
+%\begin{equation}
+%a_i + b_i + c_i + d_i \text{ for i = 0 to n }
+%\end{equation}
+%This design gives one extra access per cycle at the cost of 25$\%$ memory 
+%overhead. However, the decoder here needs to know 3 elements to be able to 
+%decode the 4th element. So although we are able to compress more data into a 
+%single memory location, it comes with the cost of additional memory logic.  The 
+%scheme described above "codes" the memory banks using elements from different 
+%banks. We call this type of coding as Interbank Coding. We also explore the 
+%orthogonal way of coding, i.e. intra-bank coding where we use the memory 
+%elements from the same bank to generate codes.
+%\\
+
+%%%%%%% -- PAPER CONTENT ENDS -- %%%%%%%%
+
+\newpage
+
+%%%%%%%%% -- BIB STYLE AND FILE -- %%%%%%%%
+%\bibliographystyle{ieeetr}
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage 
+%%%%%%%%% -- APPENDIX? -- %%%%%%%%
+\appendix
+\input{app_code_design}
+
+\input{app_motivation}
+
+
+\end{document}

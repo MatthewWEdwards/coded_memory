@@ -1,0 +1,21 @@
+\begin{abstract}
+We explore the use of coding theory in double data rate (DDR) and high bandwidth memory (HBM) systems. Modern DDR systems incur large latencies due to contention of multiple requests on the same memory bank. Our proposed memory design stores data across DRAM pages in a redundant manner using Reed-Solomon codes as a building block. A memory controller then assigns coded versions of the data to dedicated parity banks. This multi-bank coding scheme creates multiple ways to retrieve a given data element and allows for more efficient scheduling in multi-core memory architectures such as HBM. Our approach differs from conventional, uncoded systems which only optimize the timing of each incoming memory request. 
+
+We implement our proposed memory design on an HBM DRAM architecture via the Ramulator simulation platform. Experimental results show that multi-bank coding reduces the number of contended memory accesses, and thus the overall latency, for several standard benchmarks. Our design reduces the number of CPU cycles in some scenarios by over $50\%$ compared to an uncoded baseline.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Old abstract begins
+%%%%%%%%%%%%%%%%%%%%%%%
+\begin{comment}
+This paper explores the use of coding theory in double data rate (DDR) and high bandwidth memory (HBM) systems. Conventional DDR systems use timing optimization techniques around the DDR protocol to improve access efficiency. This paper proposes utilization of coding techniques to store data across DRAM pages in a redundant manner. The introduced redundancy creates multiple alternatives to access a particular data element stored in the DRAM; consequently making the data retrieval more efficient. This paper proposes a memory design which is based on Reed Solomon codes. The proposed design decreases the number of contended memory accesses between cores. This helps reduce the overall latency of the system, leading to increased performance. Various benchmarking experiments carried out on the proposed design show that the designed memories can enable $4$ extra accesses to a bank while incurring a storage overhead of only $15$\% and remaining within the acceptable values of other design parameters. 
+\end{comment}
+%%%%%%%%%%%%%%%%%%%%%%%
+% Old abstract ends
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+%This paper explores the use of coding theory in DDR and high bandwidth memory (HBM) systems. Conventional DDR systems use timing optimization techniques around the DDR protocol to improve access efficiency. We propose increasing redundancy to help distribute access across DRAM pages, which makes data retrieval more efficient. 
+%%Our proposed schemes aim to find the best performing code design scheme given the performance requirements. 
+%Our proposed scheme is based on Reed Solomon error correcting codes and decreases the number of contended memory accesses between cores. This reduces the overall latency of the system, leading to increased performance. Our benchmarking experiments show that with a memory overhead of only 15\%, we can enable 4 extra access to a bank while remaining within the given design parameters.
+%This paper explores the use of coding theory in DDR and high bandwidth memory (HBM) system. Conventional DDR systems use timing optimization techniques around DDR protocol to improve the efficiency of accesses. In this work we propose increasing redundancy to help distribute access across dram pages. This will help in efficient retrieval of data. These schemes will be evaluated and optimized with several iterations. The aim is to find the best performing code design scheme given the performance requirement compared to alternatives. Our proposed scheme results in a decrease in the of the number of contended memory accesses between cores, therefore reducing the overall latency of the system. The reduction in the latency can be seen directly as an increase in the overall system performance. We show that with a memory overhead of  15\%, we can enable 4 extra access to a bank while remaining within the given design parameters.
+
+\end{abstract}

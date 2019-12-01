@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{lamport94}
+L.~Lamport, {\em {\LaTeX: A Document Preparation System}}.
+\newblock Reading, Massachusetts: Addison-Wesley, 2nd~ed., 1994.
+
+\bibitem{nicepaper1}
+F.~Lastname1 and F.~Lastname2, ``A very nice paper to cite,'' in {\em Intl.
+  Symp. on High Performance Computer Architecture (HPCA)}, Feb. 2014.
+
+\bibitem{nicepaper2}
+F.~Lastname1, F.~Lastname2, and F.~Lastname3, ``Another very nice paper to
+  cite,'' in {\em Intl. Symp. on Microarchitecture (MICRO)}, Oct. 2012.
+
+\bibitem{nicepaper3}
+F.~Lastname1, F.~Lastname2, F.~Lastname3, F.~Lastname4, and F.~Lastname5, ``Yet
+  another very nice paper to cite, with many author names all spelled out,'' in
+  {\em Intl. Symp. on Computer Architecture (ISCA)}, June 2011.
+
+\end{thebibliography}

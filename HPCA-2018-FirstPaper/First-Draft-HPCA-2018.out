@@ -1,0 +1,30 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Background and Related Work}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Emulating multi-port memories}{section.2}% 3
+\BOOKMARK [3][-]{subsubsection.2.1.1}{Read-only Support}{subsection.2.1}% 4
+\BOOKMARK [3][-]{subsubsection.2.1.2}{Read and Write Support}{subsection.2.1}% 5
+\BOOKMARK [2][-]{subsection.2.2}{Storage-efficient emulation of multi-port memories}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.3}{Related work}{section.2}% 7
+\BOOKMARK [1][-]{section.3}{Codes to Improve Accesses}{}% 8
+\BOOKMARK [2][-]{subsection.3.1}{Coding for memory banks}{section.3}% 9
+\BOOKMARK [3][-]{subsubsection.3.1.1}{Degraded reads and their locality}{subsection.3.1}% 10
+\BOOKMARK [2][-]{subsection.3.2}{Codes to emulate multi-port memory}{section.3}% 11
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Code Design I}{subsection.3.2}% 12
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Code Design II}{subsection.3.2}% 13
+\BOOKMARK [3][-]{subsubsection.3.2.3}{Code Design III}{subsection.3.2}% 14
+\BOOKMARK [1][-]{section.4}{Memory Controller Design}{}% 15
+\BOOKMARK [2][-]{subsection.4.1}{Code Status Table}{section.4}% 16
+\BOOKMARK [2][-]{subsection.4.2}{Read pattern builder}{section.4}% 17
+\BOOKMARK [2][-]{subsection.4.3}{Write pattern builder}{section.4}% 18
+\BOOKMARK [2][-]{subsection.4.4}{ReCoding unit}{section.4}% 19
+\BOOKMARK [2][-]{subsection.4.5}{Dynamic Coding}{section.4}% 20
+\BOOKMARK [2][-]{subsection.4.6}{Prefetching Codes}{section.4}% 21
+\BOOKMARK [1][-]{section.5}{Experiments}{}% 22
+\BOOKMARK [2][-]{subsection.5.1}{Memory Trace Generation}{section.5}% 23
+\BOOKMARK [2][-]{subsection.5.2}{Ramulator}{section.5}% 24
+\BOOKMARK [2][-]{subsection.5.3}{Simulation Results}{section.5}% 25
+\BOOKMARK [3][-]{subsubsection.5.3.1}{Augmented PARSEC}{subsection.5.3}% 26
+\BOOKMARK [1][-]{section.6}{Acknowledgements}{}% 27
+\BOOKMARK [1][-]{section.7}{References}{}% 28
+\BOOKMARK [1][-]{appendix.A}{Code Design}{}% 29
+\BOOKMARK [1][-]{appendix.B}{Motivation for Dynamic Coding}{}% 30
